@@ -1,0 +1,19 @@
+spring:
+  application:
+    name: arc-backend
+  datasource:
+    url: ${DB_URL:jdbc:mysql://localhost:3307/arc?useUnicode=true&characterEncoding=utf8}
+    username: ${DB_USERNAME:arc}
+    password: ${DB_PASSWORD:}
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    open-in-view: false
+  flyway:
+    enabled: true
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health

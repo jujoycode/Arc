@@ -1,0 +1,22 @@
+:root {
+  /* KRDS 기반 Arc 확장: 기본 → 의미 → 제품 패턴 순서로 사용한다. */
+  --arc-color-canvas: #f7f8fa;
+  --arc-color-surface: #ffffff;
+  --arc-color-text: #17212f;
+  --arc-color-text-muted: #5f6b7a;
+  --arc-color-border: #d9e0e8;
+  --arc-color-action-primary: #315cf5;
+  --arc-color-action-on-primary: #ffffff;
+  --arc-color-danger: #b42318;
+  --arc-gantt-today-line: #b42318;
+  --arc-gantt-weekend-background: #eef1f4;
+  --arc-font-family: 'Pretendard GOV', 'Noto Sans KR', system-ui, sans-serif;
+  --arc-radius-control: 8px;
+  --arc-radius-panel: 12px;
+  --arc-space-1: 4px;
+  --arc-space-2: 8px;
+  --arc-space-3: 12px;
+  --arc-space-4: 16px;
+  --arc-space-6: 24px;
+  --arc-space-8: 32px;
+}
