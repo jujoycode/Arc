@@ -4,3 +4,5 @@
 ## 문서
 
 - [팀용 MVP 계획](docs/PLAN.md)
+- [디자인 가이드](docs/DESIGN_GUIDE.md)
+- [기능 명세](docs/FUNCTIONAL_SPEC.md)
