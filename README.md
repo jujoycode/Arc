@@ -8,6 +8,7 @@
 - [기능 명세](docs/FUNCTIONAL_SPEC.md)
 - [Redmine 간트 기능 기준](docs/GANTT_REFERENCE.md)
 - [GitHub·GitLab 연동 설계 기준](docs/INTEGRATIONS.md)
+- [명세 대비 구현 현황](docs/STATUS.md)
 
 ## 개발 시작점
 
@@ -15,6 +16,6 @@
 - `backend/`: Kotlin + Spring Boot API와 Flyway 마이그레이션
 - `compose.yaml`: 로컬 MySQL 8
 
-현재는 실행 기반과 초기 화면·데이터 모델을 구축한 단계다. 로그인, 프로젝트, 이슈, 간트, 보드와 스프린트 동작은 기능 명세에 따라 순서대로 구현한다.
+현재는 실행 기반과 데이터 모델, 샘플 데이터를 사용하는 간트 화면 미리보기를 구축한 단계다. 로그인, 실제 프로젝트·이슈 저장, 간트의 서버 연결·출력, 보드와 스프린트 동작은 기능 명세에 따라 순서대로 구현한다.
 
 로컬 실행 시 `.env.example`을 `.env`로 복사하고 개발용 비밀번호를 설정한 뒤 MySQL을 시작한다. 자세한 명령은 각 디렉터리의 README에 적었다.
