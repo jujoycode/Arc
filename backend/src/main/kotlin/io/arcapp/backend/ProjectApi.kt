@@ -57,8 +57,14 @@ class ProjectApi(private val jdbc: JdbcTemplate) {
         val project = projectRow(jdbc, id, request.userId())
         requireManager(jdbc, project.long("workspace_id"), request.userId())
         if (project["archived_at"] != null) throw ApiError(HttpStatus.CONFLICT, "보관된 프로젝트입니다.")
-        if (input.name.isBlank() || input.startDate != null && input.startDate > input.dueDate) throw ApiError(HttpStatus.BAD_REQUEST, "버전 날짜를 확인해 주세요.")
-        val idVersion = jdbc.insert("INSERT INTO versions(project_id,name,description,start_date,due_date) VALUES(?,?,?,?,?)", id, input.name.trim(), input.description, input.startDate?.let(java.sql.Date::valueOf), java.sql.Date.valueOf(input.dueDate))
+        val startDate: java.sql.Date?
+        val dueDate: java.sql.Date
+        try {
+            startDate = input.startDate?.let(java.sql.Date::valueOf)
+            dueDate = java.sql.Date.valueOf(input.dueDate)
+        } catch (_: IllegalArgumentException) { throw ApiError(HttpStatus.BAD_REQUEST, "버전 날짜를 확인해 주세요.") }
+        if (input.name.isBlank() || startDate != null && startDate.after(dueDate)) throw ApiError(HttpStatus.BAD_REQUEST, "버전 날짜를 확인해 주세요.")
+        val idVersion = jdbc.insert("INSERT INTO versions(project_id,name,description,start_date,due_date) VALUES(?,?,?,?,?)", id, input.name.trim(), input.description, startDate, dueDate)
         return mapOf("id" to idVersion)
     }
 

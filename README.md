@@ -42,6 +42,8 @@ npm run dev
 
 `http://localhost:5173`에서 가입한 뒤 `http://localhost:8025`의 Mailpit에서 확인 메일을 열어 이메일을 검증하세요. 로그인 후 워크스페이스와 프로젝트를 만들 수 있습니다. API는 `localhost:8080`, MySQL은 `localhost:3307`에서 실행됩니다. 운영 환경에서는 실제 SMTP 설정과 HTTPS 주소를 환경 변수로 지정해야 합니다.
 
+`frontend/index.html`은 Vite가 React를 불러오는 시작 파일입니다. 파일을 직접 열면 브라우저 모듈 제한으로 앱이 표시되지 않을 수 있으므로 개발 서버 주소를 사용하세요. 로그인 없이 화면 구조를 검토하려면 [독립형 디자인 시안](frontend/public/design-preview.html)을 직접 열거나 개발 서버의 `/design-preview.html`로 접속할 수 있습니다. 재기획 방향은 [디자인 재기획 v2](docs/DESIGN_REPLAN.md)에 기록했습니다.
+
 ## 기술 구성
 
 | 영역 | 기술 |

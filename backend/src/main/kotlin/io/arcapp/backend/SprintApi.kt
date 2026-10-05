@@ -25,8 +25,14 @@ class SprintApi(private val jdbc: JdbcTemplate) {
         val project = projectRow(jdbc, projectId, request.userId())
         requireManager(jdbc, project.long("workspace_id"), request.userId())
         if (project["archived_at"] != null) throw ApiError(HttpStatus.CONFLICT, "보관된 프로젝트입니다.")
-        if (input.name.isBlank() || input.name.length > 120 || input.startOn > input.endOn) throw ApiError(HttpStatus.BAD_REQUEST, "스프린트 이름과 기간을 확인해 주세요.")
-        val id = jdbc.insert("INSERT INTO sprints(project_id,name,goal,start_on,end_on,status) VALUES(?,?,?,?,?,'PLANNED')", projectId, input.name.trim(), input.goal, Date.valueOf(input.startOn), Date.valueOf(input.endOn))
+        val startDate: Date
+        val endDate: Date
+        try {
+            startDate = Date.valueOf(input.startOn)
+            endDate = Date.valueOf(input.endOn)
+        } catch (_: IllegalArgumentException) { throw ApiError(HttpStatus.BAD_REQUEST, "스프린트 이름과 기간을 확인해 주세요.") }
+        if (input.name.isBlank() || input.name.length > 120 || startDate.after(endDate)) throw ApiError(HttpStatus.BAD_REQUEST, "스프린트 이름과 기간을 확인해 주세요.")
+        val id = jdbc.insert("INSERT INTO sprints(project_id,name,goal,start_on,end_on,status) VALUES(?,?,?,?,?,'PLANNED')", projectId, input.name.trim(), input.goal, startDate, endDate)
         return mapOf("id" to id)
     }
 

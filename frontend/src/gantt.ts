@@ -4,6 +4,7 @@ export type RelationKind = 'BLOCKS' | 'PRECEDES'
 
 export interface GanttIssue {
   id: string
+  projectId?: string
   parentId?: string
   key: string
   title: string

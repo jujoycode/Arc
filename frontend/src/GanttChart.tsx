@@ -19,12 +19,14 @@ interface Props {
   issues: GanttIssue[]
   relations: GanttRelation[]
   onOpenIssue?: (id: string) => void
+  onOpenProject?: (id: string) => void
+  onOpenVersion?: (projectId: string) => void
   savedViews?: { id: number; name: string; filters: string; options: string }[]
   onSaveView?: (name: string, filters: string, options: string) => Promise<void>
   onDeleteView?: (id: number) => Promise<void>
 }
 
-export function GanttChart({ issues, relations, onOpenIssue, savedViews = [], onSaveView, onDeleteView }: Props) {
+export function GanttChart({ issues, relations, onOpenIssue, onOpenProject, onOpenVersion, savedViews = [], onSaveView, onDeleteView }: Props) {
   const [today] = useState(() => {
     const now = new Date()
     return new Date(Date.UTC(now.getFullYear(), now.getMonth(), now.getDate()))
@@ -307,7 +309,7 @@ export function GanttChart({ issues, relations, onOpenIssue, savedViews = [], on
 
       <div className="gantt-bottom">
         <div className="gantt-legend"><span><i className="legend-swatch epic" /> Epic / 프로젝트</span><span><i className="legend-swatch task" /> Story / Task</span><span><i className="legend-line" /> 차단 관계</span><span><i className="legend-line dashed" /> 선행 관계</span><span><i className="legend-today" /> 오늘</span></div>
-        {selected && <aside className="issue-detail" aria-label="선택한 항목 상세"><button type="button" className="detail-close" onClick={() => setSelectedId(null)} aria-label="상세 닫기">×</button><div className="issue-key">{selected.key} · {KIND_LABEL[selected.kind]}</div><h2>{selected.title}</h2><dl><div><dt>상태</dt><dd>{STATUS_LABEL[selected.status]}</dd></div><div><dt>담당자</dt><dd>{selected.assignee ?? '미지정'}</dd></div><div><dt>시작일</dt><dd>{dateLabel(selected.startDate)}</dd></div><div><dt>완료일</dt><dd>{dateLabel(selected.dueDate)}</dd></div><div><dt>완료율</dt><dd>{selected.progress ?? 0}%</dd></div><div><dt>관계</dt><dd>{relationDescriptions.length ? relationDescriptions.join(', ') : '없음'}</dd></div></dl>{onOpenIssue && !selected.id.startsWith('project-') && !selected.id.startsWith('version-') && <button type="button" className="open-issue" onClick={() => onOpenIssue(selected.id)}>이슈 상세 열기 →</button>}</aside>}
+        {selected && <aside className="issue-detail" aria-label="선택한 항목 상세"><button type="button" className="detail-close" onClick={() => setSelectedId(null)} aria-label="상세 닫기">×</button><div className="issue-key">{selected.key} · {KIND_LABEL[selected.kind]}</div><h2>{selected.title}</h2><dl><div><dt>상태</dt><dd>{STATUS_LABEL[selected.status]}</dd></div><div><dt>담당자</dt><dd>{selected.assignee ?? '미지정'}</dd></div><div><dt>시작일</dt><dd>{dateLabel(selected.startDate)}</dd></div><div><dt>완료일</dt><dd>{dateLabel(selected.dueDate)}</dd></div><div><dt>완료율</dt><dd>{selected.progress ?? 0}%</dd></div><div><dt>관계</dt><dd>{relationDescriptions.length ? relationDescriptions.join(', ') : '없음'}</dd></div></dl>{selected.kind === 'PROJECT' && selected.projectId && onOpenProject && <button type="button" className="open-issue" onClick={() => onOpenProject(selected.projectId!)}>프로젝트 열기 →</button>}{selected.kind === 'VERSION' && selected.projectId && onOpenVersion && <button type="button" className="open-issue" onClick={() => onOpenVersion(selected.projectId!)}>버전 설정 열기 →</button>}{onOpenIssue && !selected.id.startsWith('project-') && !selected.id.startsWith('version-') && <button type="button" className="open-issue" onClick={() => onOpenIssue(selected.id)}>이슈 상세 열기 →</button>}</aside>}
       </div>
       {onSaveView && <div className="saved-view-bar"><form onSubmit={saveView}><input aria-label="보기 이름" placeholder="개인 보기 이름" value={viewName} onChange={event => setViewName(event.target.value)} required maxLength={120} /><button type="submit">현재 보기 저장</button></form><label>저장된 보기<select aria-label="저장된 보기" defaultValue="" onChange={event => loadView(Number(event.target.value))}><option value="">선택</option>{savedViews.map(view => <option key={view.id} value={view.id}>{view.name}</option>)}</select></label>{savedViews.map(view => <button type="button" key={view.id} className="delete-view" onClick={() => onDeleteView?.(view.id)} aria-label={`${view.name} 보기 삭제`}>× {view.name}</button>)}{viewError && <span role="alert">{viewError}</span>}</div>}
       <div className="export-bar"><span>현재 필터·기간으로 내보내기</span><button type="button" disabled={exporting} onClick={() => exportChart('png')}>PNG</button><button type="button" disabled={exporting} onClick={() => exportChart('pdf')}>PDF</button>{exporting && <span role="status">내보내는 중…</span>}</div>

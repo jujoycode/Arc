@@ -110,6 +110,8 @@ class IssueApi(private val jdbc: JdbcTemplate) {
         val project = projectRow(jdbc, projectId, request.userId())
         requireManager(jdbc, project.long("workspace_id"), request.userId())
         issue(projectId, id)
+        if (jdbc.one("SELECT 1 FROM issues WHERE parent_issue_id=? AND deleted_at IS NULL LIMIT 1", id) != null)
+            throw ApiError(HttpStatus.CONFLICT, "하위 이슈를 먼저 이동하거나 삭제해 주세요.")
         jdbc.update("UPDATE issues SET deleted_at=UTC_TIMESTAMP(6),version=version+1 WHERE id=?", id)
         activity(id, request.userId(), "DELETED")
     }
@@ -202,6 +204,17 @@ class IssueApi(private val jdbc: JdbcTemplate) {
             throw ApiError(HttpStatus.BAD_REQUEST, "버전이 프로젝트에 속하지 않습니다.")
         if (type == "EPIC" && parentId != null || type == "SUBTASK" && parentId == null)
             throw ApiError(HttpStatus.BAD_REQUEST, "이슈 계층이 올바르지 않습니다.")
+        if (ownId != null) {
+            val childTypes = jdbc.queryForList("SELECT issue_type FROM issues WHERE parent_issue_id=? AND deleted_at IS NULL", ownId)
+                .map { it["issue_type"] as String }
+            val allowedChildren = when (type) {
+                "EPIC" -> setOf("STORY", "TASK", "BUG")
+                "STORY", "TASK", "BUG" -> setOf("SUBTASK")
+                else -> emptySet()
+            }
+            if (childTypes.any { it !in allowedChildren })
+                throw ApiError(HttpStatus.BAD_REQUEST, "하위 이슈와 유형이 맞지 않습니다. 하위 이슈를 먼저 이동해 주세요.")
+        }
         if (parentId != null) {
             val parent = issue(projectId, parentId)
             val parentType = parent["issue_type"] as String

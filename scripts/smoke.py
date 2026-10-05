@@ -60,6 +60,8 @@ def main():
     wid = workspace["id"]
     project = request(f"/workspaces/{wid}/projects", {"name": "Smoke project", "key": "SMOKE"}, owner)
     pid = project["id"]
+    child_project = request(f"/workspaces/{wid}/projects", {"name": "Child project", "key": "CHILD", "parentProjectId": pid}, owner)
+    child_pid = child_project["id"]
     request(f"/projects/{pid}", token=member, expected=403)
     request(f"/auth/workspaces/{wid}/invitations", {"email": member_email, "role": "MEMBER"}, owner)
     invite = mail_token(member_email, "Arc 팀 초대")
@@ -70,6 +72,16 @@ def main():
     epic = request(f"/projects/{pid}/issues", {"title": "Epic", "type": "EPIC", "startDate": "2026-10-01", "dueDate": "2026-10-31"}, member)
     story = request(f"/projects/{pid}/issues", {"title": "Story", "type": "STORY", "parentId": epic["id"], "startDate": "2026-10-03", "dueDate": "2026-10-12", "storyPoints": 5}, member)
     second = request(f"/projects/{pid}/issues", {"title": "Second", "type": "TASK"}, member)
+    child_issue = request(f"/projects/{child_pid}/issues", {"title": "Child schedule", "type": "STORY", "startDate": "2026-10-05", "dueDate": "2026-10-20"}, member)
+    gantt = request(f"/projects/{pid}/gantt", token=member)
+    assert child_pid in {item["id"] for item in gantt["projects"]}
+    assert child_issue["id"] in {item["id"] for item in gantt["issues"]}
+    assert all(item["projectId"] in {pid, child_pid} for item in gantt["issues"])
+    request(f"/projects/{pid}/issues/{epic['id']}", method="DELETE", token=owner, expected=409)
+    epic_before = request(f"/projects/{pid}/issues/{epic['id']}", token=owner)
+    request(f"/projects/{pid}/issues/{epic['id']}", {"title": "Epic", "type": "TASK", "status": epic_before["status"], "priority": epic_before["priority"], "version": epic_before["version"]}, owner, method="PUT", expected=400)
+    request(f"/projects/{pid}/versions", {"name": "Invalid", "dueDate": "not-a-date"}, owner, expected=400)
+    request(f"/projects/{pid}/sprints", {"name": "Invalid", "startOn": "not-a-date", "endOn": "2026-10-14"}, owner, expected=400)
     assert len({epic["key"], story["key"], second["key"]}) == 3
     with ThreadPoolExecutor(max_workers=6) as pool:
         created = list(pool.map(lambda index: request(f"/projects/{pid}/issues", {"title": f"Concurrent {index}", "type": "TASK"}, member), range(6)))
@@ -97,7 +109,7 @@ def main():
     request(f"/auth/workspaces/{wid}/owner/{request('/auth/me', token=member)['id']}", {}, owner)
     request(f"/auth/workspaces/{wid}", {"confirmation": workspace_name}, member, method="DELETE")
     request(f"/projects/{pid}", token=owner, expected=403)
-    print("Arc smoke flow passed: auth, invitation, isolation, concurrent issue IDs, conflict, relation, sprint, saved view, ownership, deletion")
+    print("Arc smoke flow passed: auth, invitation, isolation, child-project gantt, hierarchy, dates, concurrent issue IDs, conflict, relation, sprint, saved view, ownership, deletion")
 
 
 if __name__ == "__main__":
