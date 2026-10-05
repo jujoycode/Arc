@@ -29,6 +29,7 @@ jobs:
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         with:
           name: frontend-build
+          overwrite: true
           path: frontend/dist/
           if-no-files-found: error
           retention-days: 7
@@ -60,6 +61,7 @@ jobs:
         with:
           name: backend-build
           include-hidden-files: true
+          overwrite: true
           path: .ci-build/backend/arc.jar
           if-no-files-found: error
           retention-days: 7
@@ -68,6 +70,7 @@ jobs:
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         with:
           name: backend-diagnostics
+          overwrite: true
           path: |
             backend/build/reports/
             backend/build/test-results/
@@ -134,6 +137,7 @@ jobs:
         with:
           name: acceptance-artifacts
           include-hidden-files: true
+          overwrite: true
           path: .ci-artifacts/
           if-no-files-found: ignore
           retention-days: 7

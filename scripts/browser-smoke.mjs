@@ -153,7 +153,17 @@ try {
   await page.getByRole('button', { name: '필터 초기화', exact: true }).click()
   await nav('칸반')
   const storyCard = await card('일정 관리 구현')
-  await page.route(`**/api/projects/${projectId}/issues/${storyId}/status`, route => route.fulfill({ status: 409, contentType: 'application/json', body: JSON.stringify({ error: '검증용 충돌' }) }), { times: 1 })
+  // Keep interception active while the failed mutation starts its refetch.
+  // Expiring the route at fulfillment can leave a concurrent request paused.
+  let failNextMove = true
+  await page.route(`**/api/projects/${projectId}/issues/${storyId}/status`, async route => {
+    if (failNextMove) {
+      failNextMove = false
+      await route.fulfill({ status: 409, contentType: 'application/json', body: JSON.stringify({ error: '검증용 충돌' }) })
+    } else {
+      await route.continue()
+    }
+  })
   await storyCard.getByLabel('상태 변경').selectOption('IN_PROGRESS')
   await page.getByRole('alert').filter({ hasText: '검증용 충돌' }).waitFor()
   assert.equal(await storyCard.getByLabel('상태 변경').inputValue(), 'TODO')
