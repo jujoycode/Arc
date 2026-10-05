@@ -5,5 +5,6 @@ export { statusLabels, typeLabels, priorityLabels } from './internal/model/issue
 export { ProjectFiltersProvider, useProjectFilters, matchesIssue } from './internal/model/ProjectFilters'
 export { ProjectIssueFilters } from './internal/ui/ProjectIssueFilters'
 export { IssueForm } from './internal/ui/IssueForm'
+export { IssueCard } from './internal/ui/IssueCard'
 export { IssuesScreen } from './internal/ui/IssuesScreen'
 export { IssueDetailScreen } from './internal/ui/IssueDetailScreen'

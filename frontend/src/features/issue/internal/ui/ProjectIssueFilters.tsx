@@ -26,6 +26,6 @@ export function ProjectIssueFilters({ projectId, prefix = '', onChange }: { proj
     <Input type="search" aria-label={label('이슈 검색')} placeholder="키 또는 제목 검색" value={filters.search} onChange={event => change('search', event.target.value)} />
     {choices.map(([key, name, all, options]) => <select key={key} aria-label={label(`${name} 필터`)} value={filters[key]} onChange={event => change(key, event.target.value)}><option value="">{all}</option>{options.map(([value, text]) => <option key={value} value={value}>{text}</option>)}</select>)}
     <Button variant="outline" disabled={!Object.values(filters).some(Boolean)} onClick={() => { reset(); onChange?.() }}>필터 초기화</Button>
-    {Object.values(filters).some(Boolean) && <span className="muted">필터 적용</span>}
+    {Object.values(filters).some(Boolean) && <div className="filter-chips" aria-label="적용된 필터">{filters.search && <button type="button" className="filter-chip" onClick={() => change('search', '')} aria-label="검색 필터 해제">검색: {filters.search} ×</button>}{choices.filter(([key]) => filters[key]).map(([key, name, , options]) => <button type="button" key={key} className="filter-chip" onClick={() => change(key, '')} aria-label={`${name} 필터 해제`}>{name}: {options.find(([value]) => value === filters[key])?.[1] ?? filters[key]} ×</button>)}</div>}
   </div>
 }

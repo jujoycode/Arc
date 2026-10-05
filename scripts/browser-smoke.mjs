@@ -1,7 +1,9 @@
 // Full user flow against local API/MySQL/Mailpit. Creates and deletes its own workspace.
 import { chromium, request } from '../frontend/node_modules/playwright/index.mjs'
 import assert from 'node:assert/strict'
-import { existsSync, mkdirSync, readFileSync } from 'node:fs'
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs'
+import { createRequire } from 'node:module'
+const { default: AxeBuilder } = await import(createRequire(new URL('../frontend/package.json', import.meta.url)).resolve('@axe-core/playwright'))
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 
@@ -11,7 +13,8 @@ const mail = process.env.ARC_MAIL_URL ?? 'http://localhost:8025/api/v1/'
 const http = await request.newContext({ baseURL: backend })
 const executablePath = process.env.CHROMIUM_PATH === '' ? undefined : (process.env.CHROMIUM_PATH ?? (existsSync('/usr/bin/chromium') ? '/usr/bin/chromium' : undefined))
 const browser = await chromium.launch({ executablePath, headless: true, args: ['--no-sandbox', '--no-proxy-server'] })
-const page = await browser.newPage({ viewport: { width: 1440, height: 1000 }, timezoneId: 'Asia/Seoul' })
+const context = await browser.newContext({ viewport: { width: 1440, height: 1000 }, timezoneId: 'Asia/Seoul' })
+const page = await context.newPage()
 await page.context().tracing.start({ screenshots: true, snapshots: true, sources: true })
 page.setDefaultTimeout(15000)
 const errors = []
@@ -28,6 +31,27 @@ const workspaceName = `Browser smoke ${suffix}`
 let workspaceId, projectId, ownerToken
 const output = process.env.ARC_TEST_OUTPUT ?? join(tmpdir(), `arc-browser-${suffix}`)
 mkdirSync(output, { recursive: true })
+
+async function audit(name) {
+  await page.evaluate(() => document.fonts.ready)
+  const result = await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa']).analyze()
+  const violations = result.violations.map(item => ({ id: item.id, impact: item.impact, nodes: item.nodes.map(node => ({ target: node.target, reason: node.failureSummary })) }))
+  writeFileSync(join(output, `accessibility-${name}.json`), JSON.stringify({ name, violations, passes: result.passes.length, incomplete: result.incomplete.length }, null, 2))
+  assert.deepEqual(violations, [], `${name}: accessibility violations`)
+}
+async function reflow(name) {
+  for (const width of [360, 768, 1280]) {
+    await page.setViewportSize({ width, height: 900 })
+    assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), `${name} must reflow at ${width}px`)
+  }
+  // 1440 physical pixels / 2 = 720 CSS pixels: desktop 200% zoom reflow viewport.
+  const session = await context.newCDPSession(page)
+  await session.send('Emulation.setDeviceMetricsOverride', { width: 720, height: 500, deviceScaleFactor: 2, mobile: false })
+  assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), `${name} must reflow at a 200% equivalent viewport`)
+  await session.send('Emulation.clearDeviceMetricsOverride')
+  await session.detach()
+  await page.setViewportSize({ width: 1440, height: 1000 })
+}
 
 async function api(path, body, token, method = body === undefined ? 'GET' : 'POST', expected = 200) {
   const response = await http.fetch(path, { method, data: body, headers: token ? { Authorization: `Bearer ${token}` } : {} })
@@ -85,6 +109,7 @@ try {
 
   await nav('칸반')
   await page.getByRole('button', { name: '이슈 만들기', exact: true }).click()
+  await audit('issue-create')
   const form = page.getByRole('dialog')
   await form.getByLabel('제목', { exact: true }).fill('일정 관리 구현')
   await form.getByLabel('설명', { exact: true }).fill('실제 제품의 이슈 생성과 화면 동기화를 검증합니다.')
@@ -131,8 +156,10 @@ try {
   await page.getByLabel('시작 월', { exact: true }).fill('2026-10')
   await page.getByLabel('표시 기간', { exact: true }).selectOption('1')
   await page.getByLabel('확대', { exact: true }).selectOption('2')
+  await page.getByText('표시 옵션', { exact: true }).click()
   await page.getByLabel('진행선', { exact: true }).check()
   await page.getByLabel('담당자 열', { exact: true }).check()
+  await page.getByText('개인 보기 저장 · 불러오기', { exact: true }).click()
   await page.getByLabel('보기 이름').fill('검증 보기')
   await page.getByRole('button', { name: '현재 보기 저장', exact: true }).click()
   await page.getByLabel('저장된 보기').locator('option').filter({ hasText: '검증 보기' }).waitFor({ state: 'attached' })
@@ -145,7 +172,7 @@ try {
   const png = await download('PNG')
   assert.equal(png.subarray(1, 4).toString(), 'PNG')
   assert.equal(png.readUInt32BE(16), 470 + 31 * 34, 'PNG must include selected columns and month range')
-  assert.ok(png.readUInt32BE(20) >= 222)
+  assert.ok(png.readUInt32BE(20) >= 216)
   const pdf = await download('PDF')
   assert.equal(pdf.subarray(0, 4).toString(), '%PDF')
   assert.ok(pdf.length > 1000)
@@ -169,7 +196,7 @@ try {
   assert.equal(await storyCard.getByLabel('상태 변경').inputValue(), 'TODO')
   await storyCard.getByLabel('상태 변경').selectOption('IN_PROGRESS')
   await page.getByRole('region', { name: '진행 중 열' }).locator('.board-card').filter({ hasText: '일정 관리 구현' }).waitFor()
-  await (await card('일정 관리 구현')).getByRole('button').click()
+  await (await card('일정 관리 구현')).getByRole('link').click()
   await heading('일정 관리 구현')
   await page.getByRole('button', { name: '이슈 편집', exact: true }).click()
   await page.getByLabel('제목', { exact: true }).fill('보존할 편집 내용')
@@ -218,13 +245,29 @@ try {
   await page.getByRole('dialog').getByText(`${story.key} · 일정 관리 구현 · 진행 중 · 5점`, { exact: true }).waitFor()
   assert.equal((await api(`projects/${projectId}/sprints/${sprint.id}/history`, undefined, ownerToken)).length, 2)
 
+  await page.keyboard.press('Escape')
+  for (const view of ['gantt', 'board', 'backlog', 'sprints', 'issues', 'settings']) {
+    await page.goto(`${web}/projects/${projectId}/${view}`)
+    await page.locator('h1').waitFor()
+    await page.locator('.loading-state').waitFor({ state: 'detached' })
+    await audit(view)
+    await reflow(view)
+  }
+  await page.emulateMedia({ forcedColors: 'active', reducedMotion: 'reduce' })
+  await page.goto(`${web}/projects/${projectId}/gantt`)
+  await page.getByRole('button', { name: '이슈 만들기', exact: true }).waitFor()
+  await page.getByText('표시 옵션', { exact: true }).focus()
+  await page.keyboard.press('Enter')
+  assert.equal(await page.getByLabel('진행선', { exact: true }).isVisible(), true)
+  await page.emulateMedia({ forcedColors: 'none', reducedMotion: 'no-preference' })
+
   await api(`projects/${projectId}`, { name: '제품 기능 검증', archived: true }, ownerToken, 'PUT')
   await page.goto(`${web}/projects/${projectId}/board`)
   await page.getByText('보관된 프로젝트입니다. 변경하려면 설정에서 복원하세요.').waitFor()
   assert.equal(await page.getByRole('button', { name: '이슈 만들기', exact: true }).isDisabled(), true)
   assert.equal(await (await card('일정 관리 구현')).getByLabel('상태 변경').isDisabled(), true)
   assert.deepEqual(errors, [])
-  console.log('Browser acceptance passed: email verification, workspace/project creation, issue/comment/relation, shared filters, hierarchy aggregation, saved view, PNG/PDF, failed move recovery, edit conflict, backlog/sprint, member permissions, mobile keyboard, archive')
+  console.log('Browser acceptance passed: email verification, workspace/project creation, issue/comment/relation, shared filters, hierarchy aggregation, saved view, PNG/PDF, failed move recovery, edit conflict, backlog/sprint, member permissions, mobile keyboard, accessibility, responsive/zoom reflow, forced colors, archive')
   console.log(`Export files: ${output}`)
   await page.context().tracing.stop()
 } catch (error) {

@@ -32,6 +32,11 @@
   --arc-color-danger-surface: var(--arc-red-50);
   --arc-color-success: var(--arc-green-700);
   --arc-color-success-surface: var(--arc-green-50);
+  --arc-color-warning: #70500d;
+  --arc-color-warning-surface: #fff5de;
+  --arc-shadow-card: 0 2px 7px color-mix(in srgb, var(--arc-color-text) 3%, transparent);
+  --arc-shadow-panel: 0 5px 24px color-mix(in srgb, var(--arc-color-text) 4%, transparent);
+  --arc-shadow-dialog: 0 16px 50px color-mix(in srgb, var(--arc-color-text) 8%, transparent);
   --arc-color-focus: var(--arc-blue-600);
   --arc-font-family: 'Pretendard GOV', 'Noto Sans KR', system-ui, sans-serif;
   --arc-font-body: 1rem;
