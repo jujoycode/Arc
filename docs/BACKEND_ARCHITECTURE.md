@@ -15,7 +15,7 @@ backend/src/main/kotlin/io/arcapp/backend/
 ├── shared/
 │   ├── api/                   # 공통 오류 계약
 │   ├── web/                   # HTTP 오류 응답, 인증된 사용자 추출
-│   ├── persistence/           # JDBC 공통 기능
+│   ├── persistence/           # 트랜잭션 참여·값 변환
 │   └── security/              # 토큰 생성·해시
 ├── identity/
 │   ├── api/                   # SessionAuthenticator, IdentityDirectory
@@ -85,12 +85,14 @@ flowchart LR
 
 ## 트랜잭션과 저장 기술
 
-기존 동작을 보존하기 위해 현재 저장 계층은 **Exposed DSL과 Spring JDBC를 함께 사용**한다. 멤버 관리·저장된 보기는 Exposed, 인증·프로젝트·이슈·스프린트는 기존 JDBC SQL이다. ORM 세부사항은 모두 persistence 안에 둔다. 후속 Exposed 전환도 이 경계 안에서 진행한다.
+저장 계층의 Exposed 전환을 단계적으로 진행한다. 인증·워크스페이스·멤버·프로젝트·버전·저장 보기는 Exposed DSL이며 이슈·스프린트 저장소는 다음 전환 대상이다. ORM 세부사항은 모두 persistence 안에 둔다.
 
-- JDBC 쓰기 유스케이스의 `@Transactional`은 Service에 둔다. 스프린트 종료 이력·이슈 이동·종료 상태가 같은 Spring 트랜잭션에서 커밋된다.
+- 쓰기 유스케이스의 `@Transactional`은 Service에 둔다. Exposed의 `SpringTransactionManager`가 JDBC와 Exposed에 같은 연결을 제공하므로 전환 중에도 스프린트 종료 이력·이슈 이동·종료 상태가 함께 커밋·롤백된다.
 - 프로젝트 변경은 프로젝트 행 잠금으로 직렬화한다. 이슈 번호 발급, 계층·관계 변경, 스프린트 시작·종료의 경합을 보호하고 이슈의 낙관적 버전 검사를 유지한다.
 - `ProjectAccess.forUpdate`와 `SprintIssueOperations`의 쓰기는 호출하는 Service의 트랜잭션 안에서 실행한다.
-- Exposed 저장소의 원자적 작업은 자체 `transaction`을 사용한다. JDBC와 Exposed 쓰기를 하나의 유스케이스에서 혼합하지 않는다. 멤버·소유권 변경은 잠금 후 권한과 상태를 재검사한다.
+- Exposed 저장소는 `dbQuery`로 현재 트랜잭션에 참여한다. 인증 필터 등 트랜잭션 밖의 호출만 새 트랜잭션을 연다. 같은 유스케이스 안에서 저장소가 별도로 커밋하지 않는다. 멤버·소유권 변경은 잠금 후 권한과 상태를 재검사한다.
+- 조회 조합에 필요한 다른 기능의 테이블 투영은 해당 기능의 persistence 안에 최소 컬럼으로 선언한다. 다른 기능의 Table을 직접 참조하거나 해당 데이터의 쓰기 책임을 가져오지 않는다.
+- SQL 중복 키 오류는 Spring 예외로 변환하여 기존 HTTP 409 계약을 유지한다. SQL·바인딩 값은 응답에 포함하지 않는다.
 - 스키마 변경은 기존 Flyway 마이그레이션으로 관리한다.
 
 ## 구조를 확장하는 기준

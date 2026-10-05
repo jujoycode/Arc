@@ -1,24 +1,47 @@
 package io.arcapp.backend.workspace.internal.persistence
 
-import io.arcapp.backend.shared.persistence.insert
-import io.arcapp.backend.shared.persistence.one
-import org.springframework.jdbc.core.JdbcTemplate
+import io.arcapp.backend.shared.persistence.dbQuery
+import org.jetbrains.exposed.v1.core.*
+import org.jetbrains.exposed.v1.jdbc.*
 import org.springframework.stereotype.Repository
 import java.time.Instant
+import java.time.Clock
+import java.time.LocalDateTime
+import java.time.ZoneOffset
 
 @Repository
-class WorkspaceRepository(private val jdbc: JdbcTemplate) {
-    fun lock(workspaceId: Long) = jdbc.one("SELECT * FROM workspaces WHERE id=? FOR UPDATE", workspaceId)
-    fun active(workspaceId: Long) = jdbc.one("SELECT 1 FROM workspaces WHERE id=? AND deleted_at IS NULL", workspaceId) != null
-    fun role(workspaceId: Long, userId: Long): String? = jdbc.one("SELECT m.role FROM workspace_members m JOIN workspaces w ON w.id=m.workspace_id WHERE m.workspace_id=? AND m.user_id=? AND w.deleted_at IS NULL", workspaceId, userId)?.get("role") as? String
-    fun list(userId: Long) = jdbc.queryForList("SELECT w.id,w.name,m.role FROM workspaces w JOIN workspace_members m ON m.workspace_id=w.id WHERE m.user_id=? AND w.deleted_at IS NULL ORDER BY w.id", userId)
-    fun create(name: String): Long = jdbc.insert("INSERT INTO workspaces(name) VALUES(?)", name)
-    fun addMember(workspaceId: Long, userId: Long, role: String) { jdbc.update("INSERT INTO workspace_members(workspace_id,user_id,role) VALUES(?,?,?)", workspaceId, userId, role) }
-    fun members(workspaceId: Long) = jdbc.queryForList("SELECT u.id,u.email,u.display_name AS displayName,m.role FROM workspace_members m JOIN users u ON u.id=m.user_id WHERE m.workspace_id=? ORDER BY u.display_name", workspaceId)
-    fun containsEmail(workspaceId: Long, email: String) = jdbc.one("SELECT 1 FROM workspace_members m JOIN users u ON u.id=m.user_id WHERE m.workspace_id=? AND u.email=?", workspaceId, email) != null
-    fun invite(workspaceId: Long, email: String, role: String, hash: String, actorId: Long, expiresAt: Instant) {
-        jdbc.update("INSERT INTO invitations(workspace_id,email,role,token_hash,invited_by,expires_at) VALUES(?,?,?,?,?,?)", workspaceId, email, role, hash, actorId, java.sql.Timestamp.from(expiresAt))
+class WorkspaceRepository {
+    fun lock(workspaceId: Long): Map<String, Any?>? = dbQuery {
+        Workspaces.selectAll().where { Workspaces.id eq workspaceId }.forUpdate().firstOrNull()?.let { mapOf("id" to it[Workspaces.id], "name" to it[Workspaces.name], "deleted_at" to it[Workspaces.deletedAt]) }
     }
-    fun invitation(hash: String) = jdbc.one("SELECT workspace_id,email,role FROM invitations WHERE token_hash=? AND accepted_at IS NULL AND revoked_at IS NULL AND expires_at>UTC_TIMESTAMP(6) FOR UPDATE", hash)
-    fun accept(hash: String) { jdbc.update("UPDATE invitations SET accepted_at=UTC_TIMESTAMP(6) WHERE token_hash=?", hash) }
+    fun active(workspaceId: Long) = dbQuery { Workspaces.select(Workspaces.id).where { (Workspaces.id eq workspaceId) and Workspaces.deletedAt.isNull() }.any() }
+    fun role(workspaceId: Long, userId: Long): String? = dbQuery {
+        WorkspaceMembers.join(Workspaces, JoinType.INNER, WorkspaceMembers.workspaceId, Workspaces.id).select(WorkspaceMembers.role)
+            .where { (WorkspaceMembers.workspaceId eq workspaceId) and (WorkspaceMembers.userId eq userId) and Workspaces.deletedAt.isNull() }.firstOrNull()?.get(WorkspaceMembers.role)
+    }
+    fun list(userId: Long): List<Map<String, Any?>> = dbQuery {
+        Workspaces.join(WorkspaceMembers, JoinType.INNER, Workspaces.id, WorkspaceMembers.workspaceId).select(Workspaces.id, Workspaces.name, WorkspaceMembers.role)
+            .where { (WorkspaceMembers.userId eq userId) and Workspaces.deletedAt.isNull() }.orderBy(Workspaces.id)
+            .map { mapOf("id" to it[Workspaces.id], "name" to it[Workspaces.name], "role" to it[WorkspaceMembers.role]) }
+    }
+    fun create(name: String): Long = dbQuery { Workspaces.insert { it[Workspaces.name] = name }[Workspaces.id] }
+    fun addMember(workspaceId: Long, userId: Long, role: String) = dbQuery { WorkspaceMembers.insert { it[WorkspaceMembers.workspaceId] = workspaceId; it[WorkspaceMembers.userId] = userId; it[WorkspaceMembers.role] = role }; Unit }
+    fun members(workspaceId: Long): List<Map<String, Any?>> = dbQuery {
+        WorkspaceMembers.join(MemberUsers, JoinType.INNER, WorkspaceMembers.userId, MemberUsers.id).select(MemberUsers.id, MemberUsers.email, MemberUsers.displayName, WorkspaceMembers.role)
+            .where { WorkspaceMembers.workspaceId eq workspaceId }.orderBy(MemberUsers.displayName)
+            .map { mapOf("id" to it[MemberUsers.id], "email" to it[MemberUsers.email], "displayName" to it[MemberUsers.displayName], "role" to it[WorkspaceMembers.role]) }
+    }
+    fun containsEmail(workspaceId: Long, email: String) = dbQuery {
+        WorkspaceMembers.join(MemberUsers, JoinType.INNER, WorkspaceMembers.userId, MemberUsers.id).select(WorkspaceMembers.userId)
+            .where { (WorkspaceMembers.workspaceId eq workspaceId) and (MemberUsers.email eq email) }.any()
+    }
+    fun invite(workspaceId: Long, email: String, role: String, hash: String, actorId: Long, expiresAt: Instant) = dbQuery {
+        Invitations.insert { it[Invitations.workspaceId] = workspaceId; it[Invitations.email] = email; it[Invitations.role] = role; it[Invitations.hash] = hash; it[invitedBy] = actorId; it[Invitations.expiresAt] = expiresAt.atOffset(ZoneOffset.UTC).toLocalDateTime() }
+        Unit
+    }
+    fun invitation(hash: String): Map<String, Any?>? = dbQuery {
+        Invitations.select(Invitations.workspaceId, Invitations.email, Invitations.role).where { (Invitations.hash eq hash) and Invitations.acceptedAt.isNull() and Invitations.revokedAt.isNull() and (Invitations.expiresAt greater LocalDateTime.now(Clock.systemUTC())) }
+            .forUpdate().firstOrNull()?.let { mapOf("workspace_id" to it[Invitations.workspaceId], "email" to it[Invitations.email], "role" to it[Invitations.role]) }
+    }
+    fun accept(hash: String) = dbQuery { Invitations.update({ Invitations.hash eq hash }) { it[acceptedAt] = LocalDateTime.now(Clock.systemUTC()) }; Unit }
 }

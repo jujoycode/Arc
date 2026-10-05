@@ -62,6 +62,7 @@ def main():
     wid = workspace["id"]
     project = request(f"/workspaces/{wid}/projects", {"name": "Smoke project", "key": "SMOKE"}, owner)
     pid = project["id"]
+    request(f"/workspaces/{wid}/projects", {"name": "Duplicate project key", "key": "SMOKE"}, owner, expected=409)
     child_project = request(f"/workspaces/{wid}/projects", {"name": "Child project", "key": "CHILD", "parentProjectId": pid}, owner)
     child_pid = child_project["id"]
     request(f"/projects/{child_pid}", {"name": "Child project", "key": "CHILDX", "parentProjectId": pid}, owner, method="PUT")

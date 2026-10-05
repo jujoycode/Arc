@@ -17,7 +17,7 @@ API 수용 스크립트 `scripts/smoke.py`는 이메일 인증·팀 초대·권�
 
 `scripts/browser-smoke.mjs`로 실제 화면에서 이메일 확인의 중복 요청 방지, 워크스페이스·프로젝트·이슈 생성, 댓글·관계, 보기 간 필터 유지, 하위 일정 집계, 저장 보기, PNG/PDF 다운로드, 이동 실패 복원, 편집 충돌 시 입력 보존, 백로그·스프린트 종료 이력, 멤버 권한, 390px 화면 키보드 조작, 보관 중 변경 제한을 검증했습니다. 테스트는 별도 워크스페이스를 생성하고 종료 시 삭제합니다.
 
-백엔드는 identity·workspace·project·issue·sprint·gantt·savedview·mail의 8개 기능 모듈로 정리했습니다. HTTP는 web, 업무 처리는 internal, 모듈 간 호출은 api 계약을 사용합니다. [구조 문서](BACKEND_ARCHITECTURE.md)와 `scripts/check_backend_boundaries.py`를 추가했으며, Gradle check와 새 구조의 API 수용 흐름이 통과했습니다. Gradle에는 별도 단위 테스트가 없으며 실제 API 동작 검증은 smoke 스크립트로 수행했습니다.
+백엔드는 identity·workspace·project·issue·sprint·gantt·savedview·mail의 8개 기능 모듈로 정리했습니다. HTTP는 web, 업무 처리는 internal, 모듈 간 호출은 api 계약을 사용합니다. [구조 문서](BACKEND_ARCHITECTURE.md)와 `scripts/check_backend_boundaries.py`를 추가했으며, Gradle check와 새 구조의 API 수용 흐름이 통과했습니다. 당시 API 동작 검증은 smoke 스크립트로 수행했고, Exposed 전환 단계에서 트랜잭션 테스트를 추가했습니다.
 
 디자인 전반은 [디자인 재기획 v2](DESIGN_REPLAN.md)에서 다시 정의하고, 로그인 없이 볼 수 있는 [HTML 시안](../frontend/public/design-preview.html)을 제공합니다. 시안은 실제 제품의 기능 화면과 분리되어 있습니다.
 
@@ -28,3 +28,5 @@ API 수용 스크립트 `scripts/smoke.py`는 이메일 인증·팀 초대·권�
 [GitHub Actions CI](CI.md)를 구성했고 2026-10-06에 main의 프런트·백엔드·API/브라우저·CI gate가 모두 통과했습니다. 빌드 파일을 수용 검사에 재사용하며 새 MySQL·Mailpit에서 마이그레이션과 기능 흐름을 검증합니다. 실패 시 로그·화면·추적 자료를 보관합니다.
 
 디자인 시스템 v2를 실제 앱에 적용했습니다. KRDS 대응·확장 계약, Arc 토큰과 shadcn 연결, 프로젝트 선택·모바일 하단 탐색, 공통 이슈 카드, 48px 간트 행, 표시 옵션·개인 보기 구분, 개별 필터 해제, 설정 레이블을 제공하며 실제 스크린샷을 갱신했습니다. 생성 대화상자와 6개 화면의 axe 자동 규칙, 360/768/1280px·200%에 해당하는 화면 재배치, 고대비·키보드·충돌 복원 검사가 통과했습니다. [디자인 검증](DESIGN_VERIFICATION.md)에 자동 검사와 실기기 검증의 범위를 구분해 기록했습니다.
+
+Exposed 전환 1단계에서 인증·워크스페이스·프로젝트·버전 저장소를 DSL로 옮기고, 멤버·개인 보기의 트랜잭션 참여 방식을 통일했습니다. SpringTransactionManager와 dbQuery는 유스케이스 안의 Exposed·JDBC 쓰기를 같은 연결에서 처리합니다. H2에서 함께 커밋·롤백되는 동작과 중복 키 예외 변환을 검증했고, MySQL의 API·브라우저 전체 수용 검사와 Gradle check·bootJar가 통과했습니다. 남은 이슈·스프린트 저장소 전환을 계속 진행합니다.

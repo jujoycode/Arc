@@ -9,8 +9,8 @@
 | 검사 | 실행하는 작업 | 잡아내는 문제 |
 | --- | --- | --- |
 | Frontend checks | Node 24, pnpm 11.19.0 고정 설치, lint, 기능 경계·TypeScript 검사, Vite 빌드 | 잠금 파일 불일치, 잘못된 의존·타입·경로, 빌드 실패 |
-| Backend checks | Java 21, Gradle wrapper 검증, 패키지 경계 검사, `check bootJar` | 모듈 경계 위반, 컴파일·검사·패키징 실패 |
-| API and browser acceptance | 새 MySQL 8.4·Mailpit, 생성한 실행 JAR와 웹 번들, API·Chromium 수용 검사 | 마이그레이션, 인증·권한·트랜잭션, 화면과 서버 연결, 간트 출력·스프린트·모바일 회귀 |
+| Backend checks | Java 21, Gradle wrapper 검증, 패키지 경계, 트랜잭션 커밋·롤백·중복 키 검사, `check bootJar` | 모듈 경계 위반, 컴파일·검사·패키징 실패 |
+| API and browser acceptance | 새 MySQL 8.4·Mailpit, 실행 JAR와 웹 번들, API·Chromium·axe 수용 검사 | 마이그레이션, 인증·권한·잠금, 화면 연결, 간트 출력·스프린트·키보드·접근성·반응형 회귀 |
 | CI gate | 앞의 세 검사 결과 확인 | 실패하거나 건너뛴 필수 검사를 성공으로 처리하는 문제 |
 
 ```mermaid
