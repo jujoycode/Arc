@@ -1,5 +1,7 @@
 # Arc
 
+[![Arc CI](https://github.com/jujoycode/Arc/actions/workflows/ci.yml/badge.svg)](https://github.com/jujoycode/Arc/actions/workflows/ci.yml)
+
 Arc는 소규모 팀이 하나의 이슈를 간트 차트, 칸반 보드, 스프린트에서 함께 관리하는 웹 앱입니다. Epic·Story·Task·Bug·하위 작업의 계층, 버전과 이슈 관계, 일정과 진행률을 연결합니다.
 
 ### 간트 차트
@@ -91,6 +93,8 @@ pnpm dev
 프런트는 `app / features / shared`, 백엔드는 기능별 `api / internal / web` 경계를 사용합니다. 프런트의 기능 간 참조는 공개 `index.ts`로 제한합니다. 저장소 계층은 현재 Exposed와 JDBC를 함께 사용하며, 남은 Exposed 전환과 디자인 시스템 재구성은 [작업 목록](docs/TODO.md)에서 추적합니다.
 
 ## 검증과 문서
+
+GitHub Actions는 PR과 main 변경에서 프런트·백엔드를 검사한 뒤, 생성한 웹 번들과 실행 JAR를 새 MySQL·Mailpit에서 API·브라우저로 검증합니다. [CI 구성과 운영 방법](docs/CI.md)에서 검사 범위와 실패 자료 확인 방법을 설명합니다.
 
 ```bash
 (cd frontend && pnpm build)

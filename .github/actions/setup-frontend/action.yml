@@ -1,0 +1,23 @@
+name: Set up Arc frontend
+description: Install the pinned pnpm version, restore its store, and use the lockfile.
+runs:
+  using: composite
+  steps:
+    - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
+      with:
+        node-version: '24'
+    - uses: pnpm/action-setup@b906affcce14559ad1aafd4ab0e942779e9f58b1 # v4
+      with:
+        package_json_file: frontend/package.json
+        run_install: false
+    - name: Locate pnpm store
+      id: store
+      shell: bash
+      run: echo "path=$(pnpm store path --silent)" >> "$GITHUB_OUTPUT"
+    - uses: actions/cache@caa296126883cff596d87d8935842f9db880ef25 # v5
+      with:
+        path: ${{ steps.store.outputs.path }}
+        key: ${{ runner.os }}-node24-pnpm-${{ hashFiles('frontend/pnpm-lock.yaml', 'frontend/pnpm-workspace.yaml') }}
+    - name: Install frontend dependencies
+      shell: bash
+      run: pnpm --dir frontend install --frozen-lockfile

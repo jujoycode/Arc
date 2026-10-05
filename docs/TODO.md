@@ -1,9 +1,10 @@
 # Arc 작업 목록
 
-> 갱신일: 2026-10-05 · 완료 현황은 [STATUS](STATUS.md), 제품 범위는 [PLAN](PLAN.md)을 따른다.
+> 갱신일: 2026-10-06 · 완료 현황은 [STATUS](STATUS.md), 제품 범위는 [PLAN](PLAN.md)을 따른다.
 
 ## 현재 진행
 
+- [ ] GitHub Actions CI의 첫 실행을 확인한다. 프런트·백엔드 검사, 빌드 결과의 API·브라우저 수용 검증, 실패 자료 수집을 구성했다. [CI 문서](CI.md)
 - [x] 프런트 패키지 관리를 pnpm 11.19.0으로 전환하고 잠금 파일로 설치를 재현한다.
 - [x] 프런트를 app·8개 기능·shared로 구조화하고 공개 진입점·의존 경계 검사를 빌드에 적용했다. [구조 문서](FRONTEND_ARCHITECTURE.md)
 

@@ -1,0 +1,156 @@
+name: Arc CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  frontend:
+    name: Frontend checks
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          persist-credentials: false
+      - uses: ./.github/actions/setup-frontend
+      - run: pnpm --dir frontend lint
+      - run: pnpm --dir frontend build
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        with:
+          name: frontend-build
+          path: frontend/dist/
+          if-no-files-found: error
+          retention-days: 7
+
+  backend:
+    name: Backend checks
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          persist-credentials: false
+      - uses: actions/setup-java@b6effb05e454b25005698d916606bdc6ffcbf961 # v5
+        with:
+          distribution: temurin
+          java-version: '21'
+      - uses: gradle/actions/setup-gradle@0723195856401067f7a2779048b490ace7a47d7c # v5
+        with:
+          cache-read-only: ${{ github.ref != 'refs/heads/main' }}
+      - run: ./gradlew --no-daemon check bootJar
+        working-directory: backend
+      - name: Collect executable JAR
+        run: |
+          mkdir -p .ci-build/backend
+          mapfile -t arc_jars < <(find backend/build/libs -maxdepth 1 -name '*.jar' ! -name '*-plain.jar')
+          test "${#arc_jars[@]}" -eq 1
+          cp "${arc_jars[0]}" .ci-build/backend/arc.jar
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        with:
+          name: backend-build
+          include-hidden-files: true
+          path: .ci-build/backend/arc.jar
+          if-no-files-found: error
+          retention-days: 7
+      - name: Upload Gradle diagnostics
+        if: failure()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        with:
+          name: backend-diagnostics
+          path: |
+            backend/build/reports/
+            backend/build/test-results/
+          if-no-files-found: ignore
+          retention-days: 7
+
+  acceptance:
+    name: API and browser acceptance
+    needs: [frontend, backend]
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    env:
+      # These passwords belong only to this job's disposable service containers.
+      DB_PASSWORD: arc-ci-password
+      DB_URL: jdbc:mysql://127.0.0.1:3307/arc?useUnicode=true&characterEncoding=utf8
+      SMTP_HOST: 127.0.0.1
+      SMTP_PORT: '1025'
+      # Use the browser installed for the lockfile's Playwright version.
+      CHROMIUM_PATH: ''
+    services:
+      mysql:
+        image: mysql:8.4
+        env:
+          MYSQL_DATABASE: arc
+          MYSQL_USER: arc
+          MYSQL_PASSWORD: arc-ci-password
+          MYSQL_ROOT_PASSWORD: arc-ci-root-password
+        ports:
+          - 3307:3306
+        options: >-
+          --health-cmd="mysqladmin ping -h 127.0.0.1 -uroot -parc-ci-root-password"
+          --health-interval=5s
+          --health-timeout=3s
+          --health-retries=30
+      mailpit:
+        image: axllent/mailpit:v1.28
+        ports:
+          - 1025:1025
+          - 8025:8025
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          persist-credentials: false
+      - uses: ./.github/actions/setup-frontend
+      - uses: actions/setup-java@b6effb05e454b25005698d916606bdc6ffcbf961 # v5
+        with:
+          distribution: temurin
+          java-version: '21'
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
+        with:
+          name: frontend-build
+          path: frontend/dist/
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
+        with:
+          name: backend-build
+          path: .ci-build/backend/
+      - name: Install Chromium and Linux dependencies
+        run: pnpm --dir frontend exec playwright install --with-deps chromium
+      - name: Run API and browser acceptance against built artifacts
+        run: bash scripts/ci/acceptance.sh
+      - name: Upload acceptance diagnostics and exports
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        with:
+          name: acceptance-artifacts
+          include-hidden-files: true
+          path: .ci-artifacts/
+          if-no-files-found: ignore
+          retention-days: 7
+
+  gate:
+    name: CI gate
+    needs: [frontend, backend, acceptance]
+    if: always()
+    runs-on: ubuntu-24.04
+    timeout-minutes: 2
+    steps:
+      - name: Require all checks to succeed
+        env:
+          FRONTEND_RESULT: ${{ needs.frontend.result }}
+          BACKEND_RESULT: ${{ needs.backend.result }}
+          ACCEPTANCE_RESULT: ${{ needs.acceptance.result }}
+        run: |
+          test "$FRONTEND_RESULT" = success
+          test "$BACKEND_RESULT" = success
+          test "$ACCEPTANCE_RESULT" = success
