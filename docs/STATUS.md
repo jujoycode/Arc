@@ -22,3 +22,5 @@ API 수용 스크립트 `scripts/smoke.py`는 이메일 인증·팀 초대·권�
 디자인 전반은 [디자인 재기획 v2](DESIGN_REPLAN.md)에서 다시 정의하고, 로그인 없이 볼 수 있는 [HTML 시안](../frontend/public/design-preview.html)을 제공합니다. 시안은 실제 제품의 기능 화면과 분리되어 있습니다.
 
 프런트는 pnpm 11.19.0으로 전환하고 app·features·shared로 구조화했습니다. auth·workspace·project·issue·kanban·gantt·sprint·settings의 8개 기능은 공개 index를 통해 참조하며, 공유 UI·통신·스타일은 shared에 둡니다. `pnpm build`는 [프런트 경계 검사](FRONTEND_ARCHITECTURE.md)를 포함합니다.
+
+2026-10-05에 pnpm 고정 설치, 프런트 경계 검사·TypeScript·프로덕션 빌드, 구조 변경 후 브라우저 수용 흐름이 통과했습니다. lint는 오류 없이 완료했으며 Fast Refresh, TanStack Table, 인증 effect 관련 경고가 남아 있습니다. 실제 제품의 간트·칸반 스크린샷을 다시 촬영하고 README에 첫 사용 흐름과 재현 가능한 검증 명령을 갱신했습니다. 전체 디자인 시스템 재구성과 남은 JDBC 저장소의 Exposed 전환은 별도 후속 작업입니다.
