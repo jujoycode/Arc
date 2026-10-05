@@ -33,5 +33,5 @@ export function ProjectView({ view }: { view: 'gantt' | 'board' | 'backlog' | 's
   if (view === 'sprints') return <SprintsScreen projectId={id} />
   if (view === 'issues') return <IssuesScreen projectId={id} />
   if (view === 'detail') return <IssueDetailScreen projectId={id} />
-  return <SettingsScreen projectId={id} />
+  return <SettingsScreen key={id} projectId={id} />
 }
