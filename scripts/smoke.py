@@ -55,6 +55,7 @@ def main():
     member_email = f"smoke-member-{suffix}@example.com"
     owner = account(owner_email, password)
     member = account(member_email, password)
+    request("/auth/register", {"email": f"long-password-{suffix}@example.com", "displayName": "Invalid password", "password": "a" * 73}, expected=400)
     workspace_name = "Smoke " + suffix
     workspace = request("/auth/workspaces", {"name": workspace_name}, owner)
     wid = workspace["id"]
@@ -62,6 +63,7 @@ def main():
     pid = project["id"]
     child_project = request(f"/workspaces/{wid}/projects", {"name": "Child project", "key": "CHILD", "parentProjectId": pid}, owner)
     child_pid = child_project["id"]
+    request(f"/projects/{child_pid}", {"name": "Child project", "key": "CHILDX", "parentProjectId": pid}, owner, method="PUT")
     request(f"/projects/{pid}", token=member, expected=403)
     request(f"/auth/workspaces/{wid}/invitations", {"email": member_email, "role": "MEMBER"}, owner)
     invite = mail_token(member_email, "Arc 팀 초대")
@@ -73,6 +75,8 @@ def main():
     story = request(f"/projects/{pid}/issues", {"title": "Story", "type": "STORY", "parentId": epic["id"], "startDate": "2026-10-03", "dueDate": "2026-10-12", "storyPoints": 5}, member)
     second = request(f"/projects/{pid}/issues", {"title": "Second", "type": "TASK"}, member)
     child_issue = request(f"/projects/{child_pid}/issues", {"title": "Child schedule", "type": "STORY", "startDate": "2026-10-05", "dueDate": "2026-10-20"}, member)
+    assert child_issue["key"] == "CHILDX-1"
+    request(f"/projects/{child_pid}", {"name": "Child project", "key": "CHILD", "parentProjectId": pid}, owner, method="PUT", expected=409)
     gantt = request(f"/projects/{pid}/gantt", token=member)
     assert child_pid in {item["id"] for item in gantt["projects"]}
     assert child_issue["id"] in {item["id"] for item in gantt["issues"]}
@@ -93,12 +97,19 @@ def main():
     assert request(f"/projects/{pid}/issues?search=Story&type=STORY&size=5", token=member)["total"] == 1
     assert request(f"/projects/{pid}/issues?sprintState=BACKLOG", token=member)["total"] == 9
     request(f"/projects/{pid}/issues?sort=drop_table", token=member, expected=400)
+    comment = request(f"/projects/{pid}/issues/{story['id']}/comments", {"body": "Comment"}, member)
+    request(f"/projects/{pid}/comments/{comment['id']}", {"body": "Not mine"}, owner, method="PUT", expected=403)
+    request(f"/projects/{pid}/comments/{comment['id']}", {"body": "Updated"}, member, method="PUT")
+    assert request(f"/projects/{pid}/issues/{story['id']}/comments", token=owner)[0]["body"] == "Updated"
+    request(f"/projects/{pid}/comments/{comment['id']}", token=owner, method="DELETE")
+    assert not request(f"/projects/{pid}/issues/{story['id']}/comments", token=member)
     before = request(f"/projects/{pid}/issues/{story['id']}", token=member)
     request(f"/projects/{pid}/issues/{story['id']}/status", {"status": "IN_PROGRESS", "version": before["version"]}, member, method="PATCH")
     request(f"/projects/{pid}/issues/{story['id']}/status", {"status": "DONE", "version": before["version"]}, member, method="PATCH", expected=409)
     request(f"/projects/{pid}/issues/{story['id']}/relations", {"targetId": second["id"], "type": "BLOCKS"}, member)
     request(f"/projects/{pid}/issues/{second['id']}/relations", {"targetId": story["id"], "type": "BLOCKS"}, member, expected=400)
     request(f"/projects/{pid}/saved-views", {"name": "Mine", "filters": "{}", "options": "{}"}, member)
+    request(f"/projects/{pid}/saved-views", {"name": "Invalid JSON", "filters": "{broken", "options": "{}"}, member, expected=400)
     assert len(request(f"/projects/{pid}/saved-views", token=owner)) == 0
 
     sprint = request(f"/projects/{pid}/sprints", {"name": "Sprint 1", "startOn": "2026-10-01", "endOn": "2026-10-14"}, owner)
@@ -108,15 +119,25 @@ def main():
     assert start["issueCount"] == 1 and start["storyPoints"] == 5
     request(f"/projects/{pid}/sprints/{next_sprint['id']}/start", {}, owner, expected=409)
     close = request(f"/projects/{pid}/sprints/{sprint['id']}/close", {"nextSprintId": next_sprint["id"]}, owner)
-    assert close["issueCount"] == 1 and close["doneCount"] == 0
+    assert close["issueCount"] == 1 and close["doneCount"] == 0 and close["remainingPoints"] == 5 and close["donePoints"] == 0
     assert request(f"/projects/{pid}/issues/{story['id']}", token=member)["sprintId"] == next_sprint["id"]
     assert len(request(f"/projects/{pid}/sprints/{sprint['id']}/history", token=member)) == 1
+    request(f"/projects/{pid}/sprints/{sprint['id']}/close", {}, owner, expected=409)
+    assert len(request(f"/projects/{pid}/sprints/{sprint['id']}/history", token=member)) == 1
+    assert any(item["type"] == "SPRINT_CHANGED" for item in request(f"/projects/{pid}/issues/{story['id']}/activities", token=member))
+
+    request(f"/projects/{pid}", {"name": "Smoke project", "archived": True}, owner, method="PUT")
+    request(f"/projects/{pid}/issues/{story['id']}", token=member)
+    request(f"/projects/{pid}/issues/{story['id']}/comments", {"body": "Denied while archived"}, member, expected=409)
+    request(f"/projects/{pid}/sprints/{next_sprint['id']}/start", {}, owner, expected=409)
+    request(f"/projects/{pid}/backlog/order", {"issueIds": []}, member, method="PUT", expected=409)
+    request(f"/projects/{pid}", {"name": "Smoke project", "archived": False}, owner, method="PUT")
 
     request(f"/auth/workspaces/{wid}/members/{request('/auth/me', token=member)['id']}/role", {"role": "ADMIN"}, owner, method="PATCH")
     request(f"/auth/workspaces/{wid}/owner/{request('/auth/me', token=member)['id']}", {}, owner)
     request(f"/auth/workspaces/{wid}", {"confirmation": workspace_name}, member, method="DELETE")
     request(f"/projects/{pid}", token=owner, expected=403)
-    print("Arc smoke flow passed: auth, invitation, isolation, child-project gantt, hierarchy, dates, pagination, filters, concurrent issue IDs, conflict, relation, sprint, saved view, ownership, deletion")
+    print("Arc smoke flow passed: auth, invitation, isolation, project key, child-project gantt, hierarchy, dates, pagination, filters, concurrent issue IDs, conflict, relation, sprint, archive, saved view, ownership, deletion")
 
 
 if __name__ == "__main__":

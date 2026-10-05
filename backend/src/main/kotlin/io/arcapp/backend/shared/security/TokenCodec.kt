@@ -1,0 +1,11 @@
+package io.arcapp.backend.shared.security
+
+import java.security.MessageDigest
+import java.security.SecureRandom
+import java.util.Base64
+
+fun sha256(value: String): String = MessageDigest.getInstance("SHA-256")
+    .digest(value.toByteArray(Charsets.UTF_8)).joinToString("") { "%02x".format(it) }
+
+fun randomToken(): String = ByteArray(32).also { SecureRandom().nextBytes(it) }
+    .let { Base64.getUrlEncoder().withoutPadding().encodeToString(it) }

@@ -15,4 +15,6 @@
 
 API 수용 스크립트 `scripts/smoke.py`는 이메일 인증·팀 초대·권한·동시 이슈 번호 발급·충돌·관계 순환·스프린트·개인 저장 보기를 검증합니다. 프런트 프로덕션 빌드는 통과했습니다. 제품 스크린샷은 로컬 API에 저장한 실제 이슈를 브라우저에서 표시한 화면입니다.
 
+백엔드는 identity·workspace·project·issue·sprint·gantt·savedview·mail의 8개 기능 모듈로 정리했습니다. HTTP는 web, 업무 처리는 internal, 모듈 간 호출은 api 계약을 사용합니다. [구조 문서](BACKEND_ARCHITECTURE.md)와 `scripts/check_backend_boundaries.py`를 추가했으며, Gradle check와 새 구조의 API 수용 흐름이 통과했습니다. Gradle에는 별도 단위 테스트가 없으며 실제 API 동작 검증은 smoke 스크립트로 수행했습니다.
+
 디자인 전반은 [디자인 재기획 v2](DESIGN_REPLAN.md)에서 다시 정의하고, 로그인 없이 볼 수 있는 [HTML 시안](../frontend/public/design-preview.html)을 제공합니다. 시안은 실제 제품의 기능 화면과 분리되어 있습니다.

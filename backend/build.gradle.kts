@@ -51,3 +51,9 @@ kotlin {
 tasks.withType<Test> {
 	useJUnitPlatform()
 }
+
+val checkArchitecture = tasks.register<Exec>("checkArchitecture") {
+	description = "Check feature package boundaries and dependency cycles"
+	commandLine("python3", rootDir.resolve("../scripts/check_backend_boundaries.py"))
+}
+tasks.named("check") { dependsOn(checkArchitecture) }

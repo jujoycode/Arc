@@ -1,4 +1,4 @@
-package io.arcapp.backend
+package io.arcapp.backend.bootstrap.config
 
 import javax.sql.DataSource
 import org.jetbrains.exposed.v1.jdbc.Database

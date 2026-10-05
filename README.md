@@ -57,9 +57,10 @@ npm run dev
 
 ```bash
 (cd frontend && npm run build)
-(cd backend && ./gradlew compileKotlin)
+(cd backend && ./gradlew check)  # Python 3 필요: 패키지 경계 검사 포함
 python3 scripts/smoke.py  # API, MySQL, Mailpit 실행 필요
 ```
 
 - [기능 명세](docs/FUNCTIONAL_SPEC.md) · [명세 대비 구현 현황](docs/STATUS.md)
 - [Redmine 간트 기준](docs/GANTT_REFERENCE.md) · [팀용 MVP 계획](docs/PLAN.md)
+- [백엔드 구조](docs/BACKEND_ARCHITECTURE.md) · [작업 목록](docs/TODO.md)
