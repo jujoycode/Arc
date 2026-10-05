@@ -34,8 +34,9 @@ class IssueApi(private val jdbc: JdbcTemplate) {
         @RequestParam(required = false) search: String?, @RequestParam(required = false) status: String?,
         @RequestParam(required = false) type: String?, @RequestParam(required = false) assigneeId: Long?,
         @RequestParam(required = false) priority: String?, @RequestParam(required = false) versionId: Long?,
-        @RequestParam(required = false) sprintId: Long?, @RequestParam(defaultValue = "0") page: Int,
-        @RequestParam(defaultValue = "100") size: Int,
+        @RequestParam(required = false) sprintId: Long?, @RequestParam(required = false) sprintState: String?,
+        @RequestParam(defaultValue = "updatedAt") sort: String, @RequestParam(defaultValue = "desc") direction: String,
+        @RequestParam(defaultValue = "0") page: Int, @RequestParam(defaultValue = "100") size: Int,
     ): Map<String, Any> {
         projectRow(jdbc, projectId, request.userId())
         val clauses = mutableListOf("i.project_id=?")
@@ -47,11 +48,17 @@ class IssueApi(private val jdbc: JdbcTemplate) {
         if (!priority.isNullOrBlank()) { clauses += "i.priority=?"; args += priority }
         if (versionId != null) { clauses += "i.version_id=?"; args += versionId }
         if (sprintId != null) { clauses += "i.sprint_id=?"; args += sprintId }
+        if (sprintState == "BACKLOG") clauses += "i.sprint_id IS NULL"
+        if (sprintState == "ASSIGNED") clauses += "i.sprint_id IS NOT NULL"
+        if (sprintState != null && sprintState !in setOf("BACKLOG", "ASSIGNED")) throw ApiError(HttpStatus.BAD_REQUEST, "스프린트 필터가 올바르지 않습니다.")
+        val sortColumn = mapOf("updatedAt" to "i.updated_at", "key" to "i.issue_number", "title" to "i.title", "type" to "i.issue_type", "status" to "i.status", "priority" to "i.priority", "assigneeName" to "u.display_name", "dueDate" to "i.due_date")[sort]
+            ?: throw ApiError(HttpStatus.BAD_REQUEST, "정렬 기준이 올바르지 않습니다.")
+        if (direction !in setOf("asc", "desc")) throw ApiError(HttpStatus.BAD_REQUEST, "정렬 방향이 올바르지 않습니다.")
         val where = clauses.joinToString(" AND ")
         val count = jdbc.queryForObject("SELECT COUNT(*) FROM issues i JOIN projects p ON p.id=i.project_id WHERE i.deleted_at IS NULL AND $where", Long::class.java, *args.toTypedArray()) ?: 0
         val limit = size.coerceIn(1, 1000)
         val offset = page.coerceAtLeast(0) * limit
-        val items = jdbc.queryForList("$issueSelect AND $where ORDER BY i.updated_at DESC,i.id DESC LIMIT ? OFFSET ?", *(args + listOf(limit, offset)).toTypedArray())
+        val items = jdbc.queryForList("$issueSelect AND $where ORDER BY $sortColumn ${direction.uppercase()},i.id DESC LIMIT ? OFFSET ?", *(args + listOf(limit, offset)).toTypedArray())
         return mapOf("items" to items, "total" to count, "page" to page.coerceAtLeast(0), "size" to limit)
     }
 

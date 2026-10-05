@@ -86,6 +86,13 @@ def main():
     with ThreadPoolExecutor(max_workers=6) as pool:
         created = list(pool.map(lambda index: request(f"/projects/{pid}/issues", {"title": f"Concurrent {index}", "type": "TASK"}, member), range(6)))
     assert len({item["key"] for item in created}) == 6
+    first_page = request(f"/projects/{pid}/issues?size=5&page=0&sort=key&direction=asc", token=member)
+    second_page = request(f"/projects/{pid}/issues?size=5&page=1&sort=key&direction=asc", token=member)
+    assert first_page["total"] == 9 and len(first_page["items"]) == 5 and len(second_page["items"]) == 4
+    assert first_page["items"][0]["key"] == epic["key"]
+    assert request(f"/projects/{pid}/issues?search=Story&type=STORY&size=5", token=member)["total"] == 1
+    assert request(f"/projects/{pid}/issues?sprintState=BACKLOG", token=member)["total"] == 9
+    request(f"/projects/{pid}/issues?sort=drop_table", token=member, expected=400)
     before = request(f"/projects/{pid}/issues/{story['id']}", token=member)
     request(f"/projects/{pid}/issues/{story['id']}/status", {"status": "IN_PROGRESS", "version": before["version"]}, member, method="PATCH")
     request(f"/projects/{pid}/issues/{story['id']}/status", {"status": "DONE", "version": before["version"]}, member, method="PATCH", expected=409)
@@ -109,7 +116,7 @@ def main():
     request(f"/auth/workspaces/{wid}/owner/{request('/auth/me', token=member)['id']}", {}, owner)
     request(f"/auth/workspaces/{wid}", {"confirmation": workspace_name}, member, method="DELETE")
     request(f"/projects/{pid}", token=owner, expected=403)
-    print("Arc smoke flow passed: auth, invitation, isolation, child-project gantt, hierarchy, dates, concurrent issue IDs, conflict, relation, sprint, saved view, ownership, deletion")
+    print("Arc smoke flow passed: auth, invitation, isolation, child-project gantt, hierarchy, dates, pagination, filters, concurrent issue IDs, conflict, relation, sprint, saved view, ownership, deletion")
 
 
 if __name__ == "__main__":
