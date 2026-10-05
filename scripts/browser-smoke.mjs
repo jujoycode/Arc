@@ -9,9 +9,10 @@ const web = process.env.ARC_WEB_URL ?? 'http://localhost:5173'
 const backend = process.env.ARC_API_URL ?? 'http://localhost:8080/api/'
 const mail = process.env.ARC_MAIL_URL ?? 'http://localhost:8025/api/v1/'
 const http = await request.newContext({ baseURL: backend })
-const executablePath = process.env.CHROMIUM_PATH ?? (existsSync('/usr/bin/chromium') ? '/usr/bin/chromium' : undefined)
+const executablePath = process.env.CHROMIUM_PATH === '' ? undefined : (process.env.CHROMIUM_PATH ?? (existsSync('/usr/bin/chromium') ? '/usr/bin/chromium' : undefined))
 const browser = await chromium.launch({ executablePath, headless: true, args: ['--no-sandbox', '--no-proxy-server'] })
 const page = await browser.newPage({ viewport: { width: 1440, height: 1000 }, timezoneId: 'Asia/Seoul' })
+await page.context().tracing.start({ screenshots: true, snapshots: true, sources: true })
 page.setDefaultTimeout(15000)
 const errors = []
 page.on('pageerror', error => errors.push(error.message))
@@ -25,8 +26,8 @@ const ownerEmail = `browser-owner-${suffix}@example.com`, memberEmail = `browser
 const password = 'browser-smoke-password-123'
 const workspaceName = `Browser smoke ${suffix}`
 let workspaceId, projectId, ownerToken
-const output = join(tmpdir(), `arc-browser-${suffix}`)
-mkdirSync(output)
+const output = process.env.ARC_TEST_OUTPUT ?? join(tmpdir(), `arc-browser-${suffix}`)
+mkdirSync(output, { recursive: true })
 
 async function api(path, body, token, method = body === undefined ? 'GET' : 'POST', expected = 200) {
   const response = await http.fetch(path, { method, data: body, headers: token ? { Authorization: `Bearer ${token}` } : {} })
@@ -215,9 +216,19 @@ try {
   assert.deepEqual(errors, [])
   console.log('Browser acceptance passed: email verification, workspace/project creation, issue/comment/relation, shared filters, hierarchy aggregation, saved view, PNG/PDF, failed move recovery, edit conflict, backlog/sprint, member permissions, mobile keyboard, archive')
   console.log(`Export files: ${output}`)
+  await page.context().tracing.stop()
+} catch (error) {
+  await Promise.allSettled([
+    page.screenshot({ path: join(output, 'failure.png'), fullPage: true }),
+    page.context().tracing.stop({ path: join(output, 'trace.zip') }),
+  ])
+  throw error
 } finally {
-  if (!workspaceId && ownerToken) workspaceId = (await api('auth/workspaces', undefined, ownerToken)).find(space => space.name === workspaceName)?.id
-  if (workspaceId && ownerToken) await api(`auth/workspaces/${workspaceId}`, { confirmation: workspaceName }, ownerToken, 'DELETE')
-  await browser.close()
-  await http.dispose()
+  try {
+    if (!workspaceId && ownerToken) workspaceId = (await api('auth/workspaces', undefined, ownerToken)).find(space => space.name === workspaceName)?.id
+    if (workspaceId && ownerToken) await api(`auth/workspaces/${workspaceId}`, { confirmation: workspaceName }, ownerToken, 'DELETE')
+  } finally {
+    await browser.close()
+    await http.dispose()
+  }
 }

@@ -1,6 +1,7 @@
 """Exercise Arc's local MySQL + Mailpit acceptance flow. Run after backend starts."""
 
 import json
+import os
 import re
 import time
 import urllib.error
@@ -8,8 +9,8 @@ import urllib.request
 import uuid
 from concurrent.futures import ThreadPoolExecutor
 
-API = "http://localhost:8080/api"
-MAIL = "http://localhost:8025/api/v1"
+API = os.environ.get("ARC_API_URL", "http://localhost:8080/api/").rstrip("/")
+MAIL = os.environ.get("ARC_MAIL_URL", "http://localhost:8025/api/v1/").rstrip("/")
 
 
 def request(path, body=None, token=None, method=None, expected=200):
@@ -23,7 +24,7 @@ def request(path, body=None, token=None, method=None, expected=200):
         method=method,
     )
     try:
-        with urllib.request.urlopen(req) as response:
+        with urllib.request.urlopen(req, timeout=30) as response:
             status, raw = response.status, response.read()
     except urllib.error.HTTPError as error:
         status, raw = error.code, error.read()
@@ -33,10 +34,10 @@ def request(path, body=None, token=None, method=None, expected=200):
 
 def mail_token(email, subject):
     for _ in range(15):
-        listing = json.load(urllib.request.urlopen(MAIL + "/messages"))
+        listing = json.load(urllib.request.urlopen(MAIL + "/messages", timeout=10))
         for item in listing["messages"]:
             if item["Subject"] == subject and any(to["Address"] == email for to in item["To"]):
-                message = json.load(urllib.request.urlopen(MAIL + "/message/" + item["ID"]))
+                message = json.load(urllib.request.urlopen(MAIL + "/message/" + item["ID"], timeout=10))
                 return re.search(r"token=([^\s]+)", message["Text"]).group(1)
         time.sleep(0.2)
     raise AssertionError(f"Missing {subject} for {email}")

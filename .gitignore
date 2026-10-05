@@ -147,3 +147,7 @@ vite.config.ts.timestamp-*
 
 # Turbo Repo
 .turbo
+
+# CI build inputs and diagnostic artifacts
+.ci-build/
+.ci-artifacts/
