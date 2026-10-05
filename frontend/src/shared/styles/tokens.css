@@ -1,16 +1,44 @@
 :root {
-  /* KRDS 기반 Arc 확장: 기본 → 의미 → 제품 패턴 순서로 사용한다. */
-  --arc-color-canvas: #f7f8fa;
-  --arc-color-surface: #ffffff;
-  --arc-color-text: #17212f;
-  --arc-color-text-muted: #5f6b7a;
-  --arc-color-border: #d9e0e8;
-  --arc-color-action-primary: #315cf5;
-  --arc-color-action-on-primary: #ffffff;
-  --arc-color-danger: #b42318;
-  --arc-gantt-today-line: #b42318;
-  --arc-gantt-weekend-background: #eef1f4;
+  /* Arc primitives. KRDS token layering is followed; these values belong to Arc. */
+  --arc-blue-50: #edf2ff;
+  --arc-blue-600: #315cf5;
+  --arc-blue-700: #2447ba;
+  --arc-neutral-0: #ffffff;
+  --arc-neutral-50: #f7f8fa;
+  --arc-neutral-100: #eef1f4;
+  --arc-neutral-200: #d9e0e8;
+  --arc-neutral-500: #7b8797;
+  --arc-neutral-600: #5f6b7a;
+  --arc-neutral-900: #17212f;
+  --arc-red-50: #fff0ed;
+  --arc-red-700: #b42318;
+  --arc-green-50: #e9f6ee;
+  --arc-green-700: #17613d;
+
+  /* Semantic tokens: product and shared UI consume these, never primitives. */
+  --arc-color-canvas: var(--arc-neutral-50);
+  --arc-color-surface: var(--arc-neutral-0);
+  --arc-color-surface-subtle: var(--arc-neutral-100);
+  --arc-color-text: var(--arc-neutral-900);
+  --arc-color-text-muted: var(--arc-neutral-600);
+  --arc-color-border: var(--arc-neutral-200);
+  --arc-color-border-control: var(--arc-neutral-500);
+  --arc-color-action-primary: var(--arc-blue-600);
+  --arc-color-action-hover: var(--arc-blue-700);
+  --arc-color-action-on-primary: var(--arc-neutral-0);
+  --arc-color-selected: var(--arc-blue-50);
+  --arc-color-selected-text: var(--arc-blue-700);
+  --arc-color-danger: var(--arc-red-700);
+  --arc-color-danger-surface: var(--arc-red-50);
+  --arc-color-success: var(--arc-green-700);
+  --arc-color-success-surface: var(--arc-green-50);
+  --arc-color-focus: var(--arc-blue-600);
   --arc-font-family: 'Pretendard GOV', 'Noto Sans KR', system-ui, sans-serif;
+  --arc-font-body: 1rem;
+  --arc-font-data: .9375rem;
+  --arc-font-label: .875rem;
+  --arc-font-meta: .8125rem;
+  --arc-line-height: 1.5;
   --arc-radius-control: 8px;
   --arc-radius-panel: 12px;
   --arc-space-1: 4px;
@@ -19,4 +47,24 @@
   --arc-space-4: 16px;
   --arc-space-6: 24px;
   --arc-space-8: 32px;
+  --arc-focus-width: 3px;
+  --arc-focus-gap: 2px;
+
+  /* Component and product pattern tokens. */
+  --arc-control-height: 40px;
+  --arc-control-height-primary: 44px;
+  --arc-control-height-dense: 32px;
+  --arc-shell-header-height: 64px;
+  --arc-shell-sidebar-width: 232px;
+  --arc-data-row-height: 48px;
+  --arc-gantt-today-line: var(--arc-color-danger);
+  --arc-gantt-weekend-background: var(--arc-color-surface-subtle);
+  --arc-gantt-task-complete: #2563ab;
+  --arc-gantt-task-remaining: #bbd3f2;
+  --arc-gantt-epic-complete: #6941b9;
+  --arc-gantt-epic-remaining: #e5d8f7;
+  --arc-gantt-bug-complete: #b45335;
+  --arc-gantt-bug-remaining: #f9d8cf;
+  --arc-gantt-relation: var(--arc-color-text-muted);
+  --arc-gantt-progress-line: #9e2947;
 }
