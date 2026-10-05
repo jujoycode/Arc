@@ -1,0 +1,3 @@
+# core-js uses postinstall for a funding notice; no build step is needed.
+allowBuilds:
+  core-js: false

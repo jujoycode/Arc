@@ -17,7 +17,7 @@ GitHub·GitLab 연결은 [설계 기준](docs/INTEGRATIONS.md)을 마련한 후�
 
 ## Get started
 
-필요한 도구: **Java 21**, **Node.js 20 이상**, **Docker Compose**. 로컬 DB는 MySQL 8.4, 개발용 메일함은 Mailpit입니다.
+필요한 도구: **Java 21**, **Node.js 22.13 이상**, **pnpm 11.19.0**, **Docker Compose**. 로컬 DB는 MySQL 8.4, 개발용 메일함은 Mailpit입니다.
 
 ```bash
 cp .env.example .env
@@ -36,8 +36,9 @@ DB_PASSWORD=choose-a-local-password ./gradlew bootRun
 
 ```bash
 cd frontend
-npm ci
-npm run dev
+corepack enable  # pnpm이 이미 설치되어 있으면 생략
+pnpm install --frozen-lockfile
+pnpm dev
 ```
 
 `http://localhost:5173`에서 가입한 뒤 `http://localhost:8025`의 Mailpit에서 확인 메일을 열어 이메일을 검증하세요. 로그인 후 워크스페이스와 프로젝트를 만들 수 있습니다. API는 `localhost:8080`, MySQL은 `localhost:3307`에서 실행됩니다. 운영 환경에서는 실제 SMTP 설정과 HTTPS 주소를 환경 변수로 지정해야 합니다.
@@ -56,7 +57,7 @@ npm run dev
 ## 검증과 문서
 
 ```bash
-(cd frontend && npm run build)
+(cd frontend && pnpm build)
 (cd backend && ./gradlew check)  # Python 3 필요: 패키지 경계 검사 포함
 python3 scripts/smoke.py  # API, MySQL, Mailpit 실행 필요
 ```
