@@ -75,7 +75,7 @@ class AuthApi(
 
     @GetMapping("/workspaces")
     fun workspaces(request: HttpServletRequest): List<Map<String, Any?>> = jdbc.queryForList(
-        "SELECT w.id,w.name,m.role FROM workspaces w JOIN workspace_members m ON m.workspace_id=w.id WHERE m.user_id=? ORDER BY w.id", request.userId()
+        "SELECT w.id,w.name,m.role FROM workspaces w JOIN workspace_members m ON m.workspace_id=w.id WHERE m.user_id=? AND w.deleted_at IS NULL ORDER BY w.id", request.userId()
     )
 
     @PostMapping("/workspaces")

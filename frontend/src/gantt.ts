@@ -10,6 +10,9 @@ export interface GanttIssue {
   kind: IssueKind
   status: IssueStatus
   assignee?: string
+  assigneeId?: string
+  priority?: string
+  versionId?: string
   startDate?: string
   dueDate?: string
   progress?: number
@@ -48,7 +51,7 @@ export function daysBetween(start: Date, end: Date): number {
   return Math.round((end.getTime() - start.getTime()) / DAY_MS)
 }
 
-export function visibleIssues(issues: GanttIssue[], collapsed: Set<string>, query: string, kind: string, status: string): GanttIssue[] {
+export function visibleIssues(issues: GanttIssue[], collapsed: Set<string>, query: string, kind: string, status: string, extra: { assignee?: string; priority?: string; version?: string } = {}): GanttIssue[] {
   const byId = new Map(issues.map((issue) => [issue.id, issue]))
   const matches = new Set<string>()
   const search = query.trim().toLocaleLowerCase()
@@ -56,6 +59,9 @@ export function visibleIssues(issues: GanttIssue[], collapsed: Set<string>, quer
   for (const issue of issues) {
     if (kind !== 'ALL' && issue.kind !== kind) continue
     if (status !== 'ALL' && issue.status !== status) continue
+    if (extra.assignee && extra.assignee !== 'ALL' && issue.assigneeId !== extra.assignee) continue
+    if (extra.priority && extra.priority !== 'ALL' && issue.priority !== extra.priority) continue
+    if (extra.version && extra.version !== 'ALL' && issue.versionId !== extra.version) continue
     if (search && !`${issue.key} ${issue.title} ${issue.assignee ?? ''}`.toLocaleLowerCase().includes(search)) continue
     matches.add(issue.id)
     let parent = issue.parentId ? byId.get(issue.parentId) : undefined

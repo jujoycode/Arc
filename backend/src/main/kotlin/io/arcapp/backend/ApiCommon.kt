@@ -50,7 +50,7 @@ fun JdbcTemplate.insert(sql: String, vararg args: Any?): Long {
 fun Map<String, Any?>.long(name: String): Long = (this[name] as Number).toLong()
 
 fun memberRole(jdbc: JdbcTemplate, workspaceId: Long, userId: Long): String =
-    jdbc.one("SELECT role FROM workspace_members WHERE workspace_id=? AND user_id=?", workspaceId, userId)
+    jdbc.one("SELECT m.role FROM workspace_members m JOIN workspaces w ON w.id=m.workspace_id WHERE m.workspace_id=? AND m.user_id=? AND w.deleted_at IS NULL", workspaceId, userId)
         ?.get("role") as? String ?: throw ApiError(HttpStatus.FORBIDDEN, "워크스페이스 접근 권한이 없습니다.")
 
 fun requireManager(jdbc: JdbcTemplate, workspaceId: Long, userId: Long) {

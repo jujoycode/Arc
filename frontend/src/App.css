@@ -25,12 +25,17 @@ main { flex: 1; width: 100%; max-width: 1700px; margin: 0 auto; padding: 36px 32
 .gantt-filters { background: #fafbfd; }
 .gantt-filters label:not(.check-field) { display: inline-flex; align-items: center; gap: 8px; }
 .gantt-filters input[type="search"] { width: 190px; }
+.gantt-filters .filter-reset { min-height: 32px; padding: 5px 9px; border: 1px solid var(--arc-color-border); border-radius: 7px; background: white; color: var(--arc-color-text-muted); font-size: 12px; cursor: pointer; }
 .check-field { display: inline-flex; align-items: center; gap: 5px; cursor: pointer; }
 .check-field input { width: 16px; height: 16px; accent-color: var(--arc-color-action-primary); }
 .gantt-hint { padding: 10px 20px; font-size: 12px; color: var(--arc-color-text-muted); }
 .gantt-grid { display: grid; grid-template-columns: minmax(310px, 370px) minmax(0, 1fr); border-top: 1px solid var(--arc-color-border); }
 .issue-pane { z-index: 2; border-right: 1px solid var(--arc-color-border); background: white; }
 .issue-header { height: 72px; display: flex; align-items: end; justify-content: space-between; padding: 0 16px 13px; border-bottom: 1px solid var(--arc-color-border); color: var(--arc-color-text-muted); font-size: 12px; font-weight: 700; }
+.issue-columns { display: flex; align-items: center; flex: none; gap: 6px; font-size: 11px; }
+.assignee-column { width: 94px; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; text-align: center; }
+.priority-column { width: 74px; text-align: center; }
+.progress-column { width: 42px; text-align: right; }
 .issue-row { height: 50px; display: flex; align-items: center; justify-content: space-between; gap: 8px; border-bottom: 1px solid #edf0f4; }
 .issue-row:hover, .issue-row.is-selected { background: #f0f4ff; }
 .issue-name { min-width: 0; display: flex; align-items: center; flex: 1; }

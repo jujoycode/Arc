@@ -28,7 +28,7 @@ function ganttRows(project: Project, issues: Issue[], versions: Version[]): Gant
       seen.add(issue.id)
       const descendants = issues.filter(child => child.parentId === issue.id)
       const childDates = descendants.flatMap(child => [child.startDate, child.dueDate].filter(Boolean) as string[]).map(date => date.slice(0, 10))
-      rows.push({ id: String(issue.id), parentId: parent, key: issue.key, title: issue.title, kind: issue.type, status: issue.status, assignee: issue.assigneeName ?? undefined, startDate: issue.startDate?.slice(0, 10) ?? childDates.sort()[0], dueDate: issue.dueDate?.slice(0, 10) ?? childDates.sort().at(-1), progress: descendants.length ? Math.round(descendants.reduce((sum, child) => sum + child.progress, 0) / descendants.length) : issue.progress })
+      rows.push({ id: String(issue.id), parentId: parent, key: issue.key, title: issue.title, kind: issue.type, status: issue.status, assignee: issue.assigneeName ?? undefined, assigneeId: issue.assigneeId?.toString(), priority: issue.priority, versionId: issue.versionId?.toString(), startDate: issue.startDate?.slice(0, 10) ?? childDates.sort()[0], dueDate: issue.dueDate?.slice(0, 10) ?? childDates.sort().at(-1), progress: descendants.length ? Math.round(descendants.reduce((sum, child) => sum + child.progress, 0) / descendants.length) : issue.progress })
       addChildren(`issue-${issue.id}`)
     }
   }

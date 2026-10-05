@@ -11,6 +11,7 @@ const STATUS_LABEL: Record<IssueStatus, string> = {
   TODO: '할 일', IN_PROGRESS: '진행 중', REVIEW: '검토', DONE: '완료',
 }
 const ZOOM_WIDTHS = [18, 24, 34, 48]
+const PRIORITY_LABEL: Record<string, string> = { LOW: '낮음', NORMAL: '보통', HIGH: '높음', URGENT: '긴급' }
 const ROW_HEIGHT = 50
 const dateLabel = (key?: string) => key ? parseDate(key).toLocaleDateString('ko-KR', { timeZone: 'UTC', year: 'numeric', month: 'long', day: 'numeric' }) : '날짜 없음'
 
@@ -34,10 +35,15 @@ export function GanttChart({ issues, relations, onOpenIssue, savedViews = [], on
   const [query, setQuery] = useState('')
   const [kind, setKind] = useState('ALL')
   const [status, setStatus] = useState('ALL')
+  const [assignee, setAssignee] = useState('ALL')
+  const [priority, setPriority] = useState('ALL')
+  const [version, setVersion] = useState('ALL')
   const [collapsed, setCollapsed] = useState<Set<string>>(new Set())
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const [showRelations, setShowRelations] = useState(true)
   const [showProgress, setShowProgress] = useState(true)
+  const [showAssigneeColumn, setShowAssigneeColumn] = useState(false)
+  const [showPriorityColumn, setShowPriorityColumn] = useState(false)
   const [viewName, setViewName] = useState('')
   const [viewError, setViewError] = useState('')
   const [exporting, setExporting] = useState(false)
@@ -46,7 +52,10 @@ export function GanttChart({ issues, relations, onOpenIssue, savedViews = [], on
 
   const byId = useMemo(() => new Map(issues.map((issue) => [issue.id, issue])), [issues])
   const children = useMemo(() => new Set(issues.map((issue) => issue.parentId).filter(Boolean)), [issues])
-  const rows = useMemo(() => visibleIssues(issues, collapsed, query, kind, status), [issues, collapsed, query, kind, status])
+  const rows = useMemo(() => visibleIssues(issues, collapsed, query, kind, status, { assignee, priority, version }), [issues, collapsed, query, kind, status, assignee, priority, version])
+  const assignees = useMemo(() => Array.from(new Map(issues.filter(issue => issue.assigneeId).map(issue => [issue.assigneeId!, issue.assignee ?? '이름 없음'])).entries()), [issues])
+  const versions = useMemo(() => issues.filter(issue => issue.kind === 'VERSION' && issue.id.startsWith('version-')).map(issue => [issue.id.slice(8), issue.title] as const), [issues])
+  const paneWidth = 370 + (showAssigneeColumn ? 100 : 0) + (showPriorityColumn ? 80 : 0)
   const rangeEnd = addMonths(rangeStart, monthCount)
   const dayCount = daysBetween(rangeStart, rangeEnd)
   const dayWidth = ZOOM_WIDTHS[zoom]
@@ -79,7 +88,7 @@ export function GanttChart({ issues, relations, onOpenIssue, savedViews = [], on
     if (!onSaveView) return
     setViewError('')
     try {
-      await onSaveView(viewName, JSON.stringify({ query, kind, status }), JSON.stringify({ startMonth: toDateKey(rangeStart).slice(0, 7), monthCount, zoom, showRelations, showProgress }))
+      await onSaveView(viewName, JSON.stringify({ query, kind, status, assignee, priority, version }), JSON.stringify({ startMonth: toDateKey(rangeStart).slice(0, 7), monthCount, zoom, showRelations, showProgress, showAssigneeColumn, showPriorityColumn }))
       setViewName('')
     } catch (error) { setViewError((error as Error).message) }
   }
@@ -93,11 +102,16 @@ export function GanttChart({ issues, relations, onOpenIssue, savedViews = [], on
       setQuery(filters.query ?? '')
       setKind(filters.kind ?? 'ALL')
       setStatus(filters.status ?? 'ALL')
+      setAssignee(filters.assignee ?? 'ALL')
+      setPriority(filters.priority ?? 'ALL')
+      setVersion(filters.version ?? 'ALL')
       if (options.startMonth) setRangeStart(parseDate(`${options.startMonth}-01`))
       setMonthCount(options.monthCount ?? 3)
       setZoom(options.zoom ?? 1)
       setShowRelations(options.showRelations ?? true)
       setShowProgress(options.showProgress ?? true)
+      setShowAssigneeColumn(options.showAssigneeColumn ?? false)
+      setShowPriorityColumn(options.showPriorityColumn ?? false)
       setViewError('')
     } catch { setViewError('저장된 보기를 읽을 수 없습니다.') }
   }
@@ -107,13 +121,13 @@ export function GanttChart({ issues, relations, onOpenIssue, savedViews = [], on
     setExporting(true); setViewError('')
     try {
       const { toCanvas } = await import('html-to-image')
-      const width = 370 + chartWidth
+      const width = paneWidth + chartWidth
       const height = 72 + Math.max(rows.length * ROW_HEIGHT, ROW_HEIGHT)
       const grid = gridRef.current
       const timeline = timelineRef.current!
       const previous = { gridWidth: grid.style.width, gridColumns: grid.style.gridTemplateColumns, timelineWidth: timeline.style.width, timelineOverflow: timeline.style.overflow, scrollLeft: timeline.scrollLeft }
       grid.style.width = `${width}px`
-      grid.style.gridTemplateColumns = `370px ${chartWidth}px`
+      grid.style.gridTemplateColumns = `${paneWidth}px ${chartWidth}px`
       timeline.style.width = `${chartWidth}px`
       timeline.style.overflow = 'visible'
       timeline.scrollLeft = 0
@@ -133,7 +147,7 @@ export function GanttChart({ issues, relations, onOpenIssue, savedViews = [], on
         link.click()
       } else {
         const { jsPDF } = await import('jspdf')
-        const pageWidth = 1440, pageHeight = 850, sidebar = 370, header = 72
+        const pageWidth = 1440, pageHeight = 850, sidebar = paneWidth, header = 72
         const chartPageWidth = pageWidth - sidebar
         const bodyPageHeight = pageHeight - header
         const pdf = new jsPDF({ orientation: 'landscape', unit: 'px', format: [pageWidth, pageHeight], hotfixes: ['px_scaling'] })
@@ -210,14 +224,26 @@ export function GanttChart({ issues, relations, onOpenIssue, savedViews = [], on
             {Object.entries(STATUS_LABEL).map(([value, label]) => <option key={value} value={value}>{label}</option>)}
           </select>
         </label>
+        <label htmlFor="assignee-filter">담당자
+          <select id="assignee-filter" value={assignee} onChange={(event) => setAssignee(event.target.value)}><option value="ALL">전체</option>{assignees.map(([id, name]) => <option key={id} value={id}>{name}</option>)}</select>
+        </label>
+        <label htmlFor="priority-filter">우선순위
+          <select id="priority-filter" value={priority} onChange={(event) => setPriority(event.target.value)}><option value="ALL">전체</option>{Object.entries(PRIORITY_LABEL).map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select>
+        </label>
+        <label htmlFor="version-filter">버전
+          <select id="version-filter" value={version} onChange={(event) => setVersion(event.target.value)}><option value="ALL">전체</option>{versions.map(([id, name]) => <option key={id} value={id}>{name}</option>)}</select>
+        </label>
         <label className="check-field"><input type="checkbox" checked={showRelations} onChange={(event) => setShowRelations(event.target.checked)} /> 관계선</label>
         <label className="check-field"><input type="checkbox" checked={showProgress} onChange={(event) => setShowProgress(event.target.checked)} /> 완료율</label>
+        <label className="check-field"><input type="checkbox" checked={showAssigneeColumn} onChange={(event) => setShowAssigneeColumn(event.target.checked)} /> 담당자 열</label>
+        <label className="check-field"><input type="checkbox" checked={showPriorityColumn} onChange={(event) => setShowPriorityColumn(event.target.checked)} /> 우선순위 열</label>
+        <button type="button" className="filter-reset" onClick={() => { setQuery(''); setKind('ALL'); setStatus('ALL'); setAssignee('ALL'); setPriority('ALL'); setVersion('ALL') }}>필터 초기화</button>
       </div>
 
       <div className="gantt-hint" role="status">{rows.length}개 항목 표시 · 막대를 선택하면 날짜와 관계를 읽을 수 있습니다.</div>
-      <div className="gantt-grid" ref={gridRef}>
+      <div className="gantt-grid" ref={gridRef} style={{ gridTemplateColumns: `${paneWidth}px minmax(0,1fr)` }}>
         <div className="issue-pane">
-          <div className="issue-header"><span>이슈 / 버전</span><span>완료율</span></div>
+          <div className="issue-header"><span>이슈 / 버전</span><div className="issue-columns">{showAssigneeColumn && <span className="assignee-column">담당자</span>}{showPriorityColumn && <span className="priority-column">우선순위</span>}<span className="progress-column">완료율</span></div></div>
           {rows.length === 0 ? <div className="empty-state">조건에 맞는 항목이 없습니다.</div> : rows.map((issue) => {
             const depth = issueDepth(issue, byId)
             return <div className={`issue-row ${selectedId === issue.id ? 'is-selected' : ''}`} key={issue.id}>
@@ -228,7 +254,7 @@ export function GanttChart({ issues, relations, onOpenIssue, savedViews = [], on
                   <span className="issue-text"><span className="issue-key">{issue.key} · {KIND_LABEL[issue.kind]}</span><span className="issue-title">{issue.title}</span></span>
                 </button>
               </div>
-              <span className="row-progress">{issue.progress ?? 0}%</span>
+              <div className="issue-columns">{showAssigneeColumn && <span className="assignee-column">{issue.assignee ?? '—'}</span>}{showPriorityColumn && <span className="priority-column">{issue.priority ? PRIORITY_LABEL[issue.priority] : '—'}</span>}<span className="row-progress">{issue.progress ?? 0}%</span></div>
             </div>
           })}
         </div>
