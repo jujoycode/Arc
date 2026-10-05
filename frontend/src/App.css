@@ -221,3 +221,9 @@ main { flex: 1; width: 100%; max-width: 1700px; margin: 0 auto; padding: 36px 32
 .error-page div { margin-top: 20px; }
 @media (max-width: 1050px) { .board-grid { grid-template-columns: repeat(4, minmax(210px, 1fr)); } .detail-grid { grid-template-columns: 1fr; } }
 @media (max-width: 760px) { .product-shell { display: block; } .product-sidebar { position: static; height: auto; padding: 10px 12px; } .product-sidebar .brand { margin: 0 0 10px; } .back-link, .project-identity, .sidebar-footer { display: none; } .product-sidebar nav { display: flex; overflow-x: auto; gap: 4px; } .side-link { white-space: nowrap; font-size: 12px; } .product-topbar { height: 42px; padding: 0 16px; } .view-page { padding: 25px 12px 50px; } .view-heading { align-items: start; flex-direction: column; } .workspace-content { padding: 35px 16px 70px; } .workspace-layout { grid-template-columns: 1fr; } .issue-form { grid-template-columns: 1fr; } .board-grid { grid-template-columns: repeat(4, 240px); } }
+
+.gantt-grid-scroller { overflow-x: auto; }
+.progress-legend { border-color: #b93a59; border-top-style: dotted; }
+.archive-notice { margin: 0; padding: 12px 28px; background: #fff5de; color: #70500d; font-size: 13px; }
+.backlog-row strong, .board-card strong, .setting-list span { overflow-wrap: anywhere; }
+@media (max-width: 760px) { .gantt-grid { min-width: 700px; } .settings-grid { grid-template-columns: minmax(0, 1fr); } .backlog-row { flex-wrap: wrap; } .backlog-row select { margin-left: 38px; max-width: calc(100% - 38px); } .workspace-header { padding: 0 16px; } .setting-member { flex-wrap: wrap; } .table-toolbar { flex-wrap: wrap; gap: 12px; } .setting-actions { flex-wrap: wrap; } }

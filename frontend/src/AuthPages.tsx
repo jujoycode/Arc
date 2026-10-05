@@ -1,5 +1,6 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Link, useNavigate } from '@tanstack/react-router'
+import { useQueryClient } from '@tanstack/react-query'
 import { api, tokenStore } from './api'
 import type { User } from './api'
 import { Button } from '@/components/ui/button'
@@ -9,6 +10,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 
 export function AuthPage({ mode }: { mode: 'login' | 'register' }) {
   const navigate = useNavigate()
+  const client = useQueryClient()
   const [email, setEmail] = useState('')
   const [displayName, setDisplayName] = useState('')
   const [password, setPassword] = useState('')
@@ -23,6 +25,7 @@ export function AuthPage({ mode }: { mode: 'login' | 'register' }) {
       } else {
         const result = await api<{ token: string; user: User }>('/auth/login', { body: { email, password } })
         tokenStore.set(result.token)
+        client.clear()
         await navigate({ to: '/' })
       }
     } catch (error) { setMessage((error as Error).message) } finally { setBusy(false) }
@@ -31,8 +34,11 @@ export function AuthPage({ mode }: { mode: 'login' | 'register' }) {
 }
 
 export function VerifyPage() {
+  const submitted = useRef(false)
   const [message, setMessage] = useState('이메일을 확인하는 중입니다…')
   useEffect(() => {
+    if (submitted.current) return
+    submitted.current = true
     const token = new URLSearchParams(window.location.search).get('token')
     if (!token) { setMessage('확인 토큰이 없습니다.'); return }
     api(`/auth/verify?token=${encodeURIComponent(token)}`, { method: 'POST' }).then(() => setMessage('이메일 확인을 마쳤습니다. 로그인하세요.')).catch(error => setMessage(error.message))
@@ -41,12 +47,16 @@ export function VerifyPage() {
 }
 
 export function InvitePage() {
+  const submitted = useRef(false)
+  const client = useQueryClient()
   const [message, setMessage] = useState('초대를 확인하는 중입니다…')
   useEffect(() => {
+    if (submitted.current) return
+    submitted.current = true
     const token = new URLSearchParams(window.location.search).get('token')
     if (!token) { setMessage('초대 토큰이 없습니다.'); return }
     if (!tokenStore.get()) { setMessage('초대받은 이메일 계정으로 로그인한 뒤 이 링크를 다시 여세요.'); return }
-    api(`/auth/invitations/accept?token=${encodeURIComponent(token)}`, { method: 'POST' }).then(() => setMessage('초대를 수락했습니다.')).catch(error => setMessage(error.message))
+    api(`/auth/invitations/accept?token=${encodeURIComponent(token)}`, { method: 'POST' }).then(async () => { await client.invalidateQueries({ queryKey: ['workspaces'] }); setMessage('초대를 수락했습니다.') }).catch(error => setMessage(error.message))
   }, [])
   return <main id="main-content" className="auth-page"><Card className="auth-card"><CardHeader><CardTitle>팀 초대</CardTitle></CardHeader><CardContent><p role="status">{message}</p><Button asChild className="mt-4"><Link to="/">워크스페이스로 이동</Link></Button></CardContent></Card></main>
 }

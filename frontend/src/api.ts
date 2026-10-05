@@ -50,6 +50,8 @@ export async function refreshProjectIssues(client: QueryClient, projectId: numbe
     client.invalidateQueries({ queryKey: ['issues', projectId] }),
     client.invalidateQueries({ queryKey: ['issue-directory', projectId] }),
     client.invalidateQueries({ queryKey: ['issue', projectId] }),
+    client.invalidateQueries({ queryKey: ['activities', projectId] }),
+    client.invalidateQueries({ queryKey: ['relations', projectId] }),
     client.invalidateQueries({ queryKey: ['gantt'] }),
   ])
 }

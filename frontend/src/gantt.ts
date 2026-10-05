@@ -14,6 +14,8 @@ export interface GanttIssue {
   assigneeId?: string
   priority?: string
   versionId?: string
+  sprintId?: string
+  aggregated?: boolean
   startDate?: string
   dueDate?: string
   progress?: number
@@ -52,7 +54,7 @@ export function daysBetween(start: Date, end: Date): number {
   return Math.round((end.getTime() - start.getTime()) / DAY_MS)
 }
 
-export function visibleIssues(issues: GanttIssue[], collapsed: Set<string>, query: string, kind: string, status: string, extra: { assignee?: string; priority?: string; version?: string } = {}): GanttIssue[] {
+export function visibleIssues(issues: GanttIssue[], collapsed: Set<string>, query: string, kind: string, status: string, extra: { assignee?: string; priority?: string; version?: string; sprintState?: string } = {}): GanttIssue[] {
   const byId = new Map(issues.map((issue) => [issue.id, issue]))
   const matches = new Set<string>()
   const search = query.trim().toLocaleLowerCase()
@@ -63,6 +65,8 @@ export function visibleIssues(issues: GanttIssue[], collapsed: Set<string>, quer
     if (extra.assignee && extra.assignee !== 'ALL' && issue.assigneeId !== extra.assignee) continue
     if (extra.priority && extra.priority !== 'ALL' && issue.priority !== extra.priority) continue
     if (extra.version && extra.version !== 'ALL' && issue.versionId !== extra.version) continue
+    if (extra.sprintState === 'BACKLOG' && (issue.kind === 'PROJECT' || issue.kind === 'VERSION' || issue.sprintId)) continue
+    if (extra.sprintState === 'ASSIGNED' && !issue.sprintId) continue
     if (search && !`${issue.key} ${issue.title} ${issue.assignee ?? ''}`.toLocaleLowerCase().includes(search)) continue
     matches.add(issue.id)
     let parent = issue.parentId ? byId.get(issue.parentId) : undefined
