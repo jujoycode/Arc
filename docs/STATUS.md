@@ -20,3 +20,5 @@ API 수용 스크립트 `scripts/smoke.py`는 이메일 인증·팀 초대·권�
 백엔드는 identity·workspace·project·issue·sprint·gantt·savedview·mail의 8개 기능 모듈로 정리했습니다. HTTP는 web, 업무 처리는 internal, 모듈 간 호출은 api 계약을 사용합니다. [구조 문서](BACKEND_ARCHITECTURE.md)와 `scripts/check_backend_boundaries.py`를 추가했으며, Gradle check와 새 구조의 API 수용 흐름이 통과했습니다. Gradle에는 별도 단위 테스트가 없으며 실제 API 동작 검증은 smoke 스크립트로 수행했습니다.
 
 디자인 전반은 [디자인 재기획 v2](DESIGN_REPLAN.md)에서 다시 정의하고, 로그인 없이 볼 수 있는 [HTML 시안](../frontend/public/design-preview.html)을 제공합니다. 시안은 실제 제품의 기능 화면과 분리되어 있습니다.
+
+프런트는 pnpm 11.19.0으로 전환하고 app·features·shared로 구조화했습니다. auth·workspace·project·issue·kanban·gantt·sprint·settings의 8개 기능은 공개 index를 통해 참조하며, 공유 UI·통신·스타일은 shared에 둡니다. `pnpm build`는 [프런트 경계 검사](FRONTEND_ARCHITECTURE.md)를 포함합니다.
