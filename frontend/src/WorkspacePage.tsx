@@ -28,7 +28,7 @@ export function WorkspacePage() {
   }
   async function createProject(event: React.FormEvent) {
     event.preventDefault(); setMessage('')
-    try { const result = await api<Project>(`/workspaces/${activeWorkspace}/projects`, { body: { name: projectName, key: projectKey.toUpperCase(), parentProjectId: parentProjectId ? Number(parentProjectId) : null } }); await queryClient.invalidateQueries({ queryKey: ['projects', activeWorkspace] }); await navigate({ to: '/projects/$projectId/gantt', params: { projectId: String(result.id) } }) }
+    try { const result = await api<Project>(`/workspaces/${activeWorkspace}/projects`, { body: { name: projectName, key: projectKey.toUpperCase(), parentProjectId: parentProjectId ? Number(parentProjectId) : null } }); await queryClient.invalidateQueries({ queryKey: ['projects', activeWorkspace] }); await queryClient.invalidateQueries({ queryKey: ['gantt'] }); await navigate({ to: '/projects/$projectId/gantt', params: { projectId: String(result.id) } }) }
     catch (error) { setMessage((error as Error).message) }
   }
   async function logout() { await api('/auth/logout', { method: 'POST' }).catch(() => undefined); tokenStore.clear(); queryClient.clear(); await navigate({ to: '/login' }) }

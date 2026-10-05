@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
-import { api, issuePath } from './api'
+import { api, issuePath, refreshProjectIssues } from './api'
 import type { Issue, Member, Project, Version } from './api'
 import { useIssues } from './GanttScreen'
 import { Button } from '@/components/ui/button'
@@ -39,8 +39,7 @@ export function IssueForm({ projectId, initial, onSaved, onCancel }: { projectId
       const result = initial
         ? await api<{ version: number }>(issuePath(projectId, initial.id), { method: 'PUT', body: { ...body, version: initial.version } })
         : await api<{ id: number }>(`/projects/${projectId}/issues`, { body })
-      await queryClient.invalidateQueries({ queryKey: ['issues', projectId] })
-      if (initial) await queryClient.invalidateQueries({ queryKey: ['issue', projectId, initial.id] })
+      await refreshProjectIssues(queryClient, projectId)
       onSaved?.(initial ? initial.id : (result as { id: number }).id)
     } catch (cause) { setError((cause as Error).message) } finally { setBusy(false) }
   }

@@ -1,3 +1,5 @@
+import type { QueryClient } from '@tanstack/react-query'
+
 export interface User { id: number; email: string; displayName: string }
 export interface Workspace { id: number; name: string; role: string }
 export interface Project { id: number; workspaceId: number; parentProjectId?: number | null; name: string; key: string; description?: string; archivedAt?: string | null }
@@ -41,3 +43,12 @@ export async function api<T>(path: string, options: { method?: string; body?: un
 
 export const issuePath = (projectId: number, issueId: number) => `/projects/${projectId}/issues/${issueId}`
 export const projectPath = (projectId: number) => `/projects/${projectId}`
+
+export async function refreshProjectIssues(client: QueryClient, projectId: number) {
+  await Promise.all([
+    client.invalidateQueries({ queryKey: ['issues', projectId] }),
+    client.invalidateQueries({ queryKey: ['issue-directory', projectId] }),
+    client.invalidateQueries({ queryKey: ['issue', projectId] }),
+    client.invalidateQueries({ queryKey: ['gantt'] }),
+  ])
+}

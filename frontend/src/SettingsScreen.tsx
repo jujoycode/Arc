@@ -49,14 +49,14 @@ export function SettingsScreen({ projectId }: { projectId: number }) {
   }
   async function addVersion(event: React.FormEvent) {
     event.preventDefault()
-    await run(async () => { await api(`/projects/${projectId}/versions`, { body: { name: versionName, startDate: versionStart || null, dueDate: versionDue } }); setVersionName(''); setVersionStart(''); setVersionDue(''); await client.invalidateQueries({ queryKey: ['versions', projectId] }) }, '버전을 추가했습니다.')
+    await run(async () => { await api(`/projects/${projectId}/versions`, { body: { name: versionName, startDate: versionStart || null, dueDate: versionDue } }); setVersionName(''); setVersionStart(''); setVersionDue(''); await client.invalidateQueries({ queryKey: ['versions', projectId] }); await client.invalidateQueries({ queryKey: ['gantt'] }) }, '버전을 추가했습니다.')
   }
   async function saveProject(event: React.FormEvent) {
     event.preventDefault()
-    await run(async () => { await api(`/projects/${projectId}`, { method: 'PUT', body: { name: name ?? project.data?.name, description: description ?? project.data?.description ?? '', parentProjectId: parentId === undefined ? project.data?.parentProjectId ?? null : parentId, archived: !!project.data?.archivedAt } }); await client.invalidateQueries({ queryKey: ['project', String(projectId)] }); await client.invalidateQueries({ queryKey: ['projects', workspaceId] }) }, '프로젝트를 저장했습니다.')
+    await run(async () => { await api(`/projects/${projectId}`, { method: 'PUT', body: { name: name ?? project.data?.name, description: description ?? project.data?.description ?? '', parentProjectId: parentId === undefined ? project.data?.parentProjectId ?? null : parentId, archived: !!project.data?.archivedAt } }); await client.invalidateQueries({ queryKey: ['project', String(projectId)] }); await client.invalidateQueries({ queryKey: ['projects', workspaceId] }); await client.invalidateQueries({ queryKey: ['gantt'] }) }, '프로젝트를 저장했습니다.')
   }
   async function setArchive(archived: boolean) {
-    await run(async () => { await api(`/projects/${projectId}`, { method: 'PUT', body: { name: project.data?.name, description: project.data?.description, parentProjectId: project.data?.parentProjectId ?? null, archived } }); await client.invalidateQueries({ queryKey: ['project', String(projectId)] }); await client.invalidateQueries({ queryKey: ['projects', workspaceId] }) }, archived ? '프로젝트를 보관했습니다.' : '프로젝트를 복원했습니다.')
+    await run(async () => { await api(`/projects/${projectId}`, { method: 'PUT', body: { name: project.data?.name, description: project.data?.description, parentProjectId: project.data?.parentProjectId ?? null, archived } }); await client.invalidateQueries({ queryKey: ['project', String(projectId)] }); await client.invalidateQueries({ queryKey: ['projects', workspaceId] }); await client.invalidateQueries({ queryKey: ['gantt'] }) }, archived ? '프로젝트를 보관했습니다.' : '프로젝트를 복원했습니다.')
   }
   async function changeRole(member: Member, nextRole: string) {
     await run(async () => { await api(`/auth/workspaces/${workspaceId}/members/${member.id}/role`, { method: 'PATCH', body: { role: nextRole } }); await refreshTeam() }, `${member.displayName}님의 역할을 변경했습니다.`)

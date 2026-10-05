@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { Link, useNavigate, useParams } from '@tanstack/react-router'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
-import { api, issuePath } from './api'
+import { api, issuePath, refreshProjectIssues } from './api'
 import type { Comment, Issue, Project, Relation, User, Workspace } from './api'
 import { useIssues } from './GanttScreen'
 import { IssueForm, priorityLabels, statusLabels, typeLabels } from './IssueForm'
@@ -39,12 +39,12 @@ export function IssueDetailScreen({ projectId }: { projectId: number }) {
   }
   async function addRelation(event: React.FormEvent) {
     event.preventDefault(); setError('')
-    try { await api(issuePath(projectId, id) + '/relations', { body: { targetId: Number(relationTarget), type: relationType } }); setRelationTarget(''); await client.invalidateQueries({ queryKey: ['relations', projectId] }) }
+    try { await api(issuePath(projectId, id) + '/relations', { body: { targetId: Number(relationTarget), type: relationType } }); setRelationTarget(''); await client.invalidateQueries({ queryKey: ['relations', projectId] }); await client.invalidateQueries({ queryKey: ['gantt'] }) }
     catch (cause) { setError((cause as Error).message) }
   }
   async function deleteIssue() {
     if (!window.confirm('이슈를 삭제하시겠습니까?')) return
-    try { await api(issuePath(projectId, id), { method: 'DELETE' }); await client.invalidateQueries({ queryKey: ['issues', projectId] }); navigate({ to: '/projects/$projectId/issues', params: { projectId: String(projectId) } }) }
+    try { await api(issuePath(projectId, id), { method: 'DELETE' }); await refreshProjectIssues(client, projectId); navigate({ to: '/projects/$projectId/issues', params: { projectId: String(projectId) } }) }
     catch (cause) { setError((cause as Error).message) }
   }
   async function deleteComment(commentId: number) {
@@ -56,7 +56,7 @@ export function IssueDetailScreen({ projectId }: { projectId: number }) {
     catch (cause) { setError((cause as Error).message) }
   }
   async function deleteRelation(relationId: number) {
-    try { await api(`/projects/${projectId}/relations/${relationId}`, { method: 'DELETE' }); await client.invalidateQueries({ queryKey: ['relations', projectId] }) }
+    try { await api(`/projects/${projectId}/relations/${relationId}`, { method: 'DELETE' }); await client.invalidateQueries({ queryKey: ['relations', projectId] }); await client.invalidateQueries({ queryKey: ['gantt'] }) }
     catch (cause) { setError((cause as Error).message) }
   }
   if (issue.isPending) return <p className="loading-state">이슈를 불러오는 중입니다…</p>
