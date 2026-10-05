@@ -4,7 +4,7 @@
 
 ## 현재 진행
 
-- [ ] GitHub Actions CI의 첫 실행을 확인한다. 프런트·백엔드 검사, 빌드 결과의 API·브라우저 수용 검증, 실패 자료 수집을 구성했다. [CI 문서](CI.md)
+- [x] GitHub Actions CI를 구성하고 [main 실행](https://github.com/jujoycode/Arc/actions/runs/37341400334)에서 모든 검사의 성공을 확인했다. 프런트·백엔드 검사, 빌드 결과의 API·브라우저 수용 검증, 실패 자료 수집을 제공한다. [CI 문서](CI.md)
 - [x] 프런트 패키지 관리를 pnpm 11.19.0으로 전환하고 잠금 파일로 설치를 재현한다.
 - [x] 프런트를 app·8개 기능·shared로 구조화하고 공개 진입점·의존 경계 검사를 빌드에 적용했다. [구조 문서](FRONTEND_ARCHITECTURE.md)
 

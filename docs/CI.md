@@ -2,6 +2,8 @@
 
 > 기준일: 2026-10-06 · GitHub Actions / Ubuntu 24.04
 
+2026-10-06에 [main 실행 #37341400334](https://github.com/jujoycode/Arc/actions/runs/37341400334)의 네 job이 모두 성공했다. 강제 충돌 테스트의 요청 가로채기 수명과 재실행 시 artifact 교체를 보완한 상태다.
+
 ## 검사 구성
 
 | 검사 | 실행하는 작업 | 잡아내는 문제 |
