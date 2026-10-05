@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import type { CSSProperties } from 'react'
 import { addDays, addMonths, daysBetween, issueDepth, parseDate, startOfMonth, toDateKey, visibleIssues } from './gantt'
 import type { GanttIssue, GanttRelation, IssueKind, IssueStatus } from './gantt'
@@ -17,9 +17,13 @@ const dateLabel = (key?: string) => key ? parseDate(key).toLocaleDateString('ko-
 interface Props {
   issues: GanttIssue[]
   relations: GanttRelation[]
+  onOpenIssue?: (id: string) => void
+  savedViews?: { id: number; name: string; filters: string; options: string }[]
+  onSaveView?: (name: string, filters: string, options: string) => Promise<void>
+  onDeleteView?: (id: number) => Promise<void>
 }
 
-export function GanttChart({ issues, relations }: Props) {
+export function GanttChart({ issues, relations, onOpenIssue, savedViews = [], onSaveView, onDeleteView }: Props) {
   const [today] = useState(() => {
     const now = new Date()
     return new Date(Date.UTC(now.getFullYear(), now.getMonth(), now.getDate()))
@@ -34,6 +38,11 @@ export function GanttChart({ issues, relations }: Props) {
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const [showRelations, setShowRelations] = useState(true)
   const [showProgress, setShowProgress] = useState(true)
+  const [viewName, setViewName] = useState('')
+  const [viewError, setViewError] = useState('')
+  const [exporting, setExporting] = useState(false)
+  const timelineRef = useRef<HTMLDivElement>(null)
+  const gridRef = useRef<HTMLDivElement>(null)
 
   const byId = useMemo(() => new Map(issues.map((issue) => [issue.id, issue])), [issues])
   const children = useMemo(() => new Set(issues.map((issue) => issue.parentId).filter(Boolean)), [issues])
@@ -42,6 +51,10 @@ export function GanttChart({ issues, relations }: Props) {
   const dayCount = daysBetween(rangeStart, rangeEnd)
   const dayWidth = ZOOM_WIDTHS[zoom]
   const chartWidth = dayCount * dayWidth
+  useEffect(() => {
+    const index = daysBetween(rangeStart, today)
+    if (timelineRef.current) timelineRef.current.scrollLeft = index >= 0 && index < dayCount ? Math.max(0, (index + .5) * dayWidth - timelineRef.current.clientWidth * .5) : 0
+  }, [rangeStart, today, dayCount, dayWidth])
   const days = Array.from({ length: dayCount }, (_, index) => addDays(rangeStart, index))
   const selected = selectedId ? byId.get(selectedId) : undefined
   const visibleIndex = new Map(rows.map((issue, index) => [issue.id, index]))
@@ -59,6 +72,95 @@ export function GanttChart({ issues, relations }: Props) {
       else next.add(id)
       return next
     })
+  }
+
+  async function saveView(event: React.FormEvent) {
+    event.preventDefault()
+    if (!onSaveView) return
+    setViewError('')
+    try {
+      await onSaveView(viewName, JSON.stringify({ query, kind, status }), JSON.stringify({ startMonth: toDateKey(rangeStart).slice(0, 7), monthCount, zoom, showRelations, showProgress }))
+      setViewName('')
+    } catch (error) { setViewError((error as Error).message) }
+  }
+
+  function loadView(id: number) {
+    const view = savedViews.find(item => item.id === id)
+    if (!view) return
+    try {
+      const filters = JSON.parse(view.filters)
+      const options = JSON.parse(view.options)
+      setQuery(filters.query ?? '')
+      setKind(filters.kind ?? 'ALL')
+      setStatus(filters.status ?? 'ALL')
+      if (options.startMonth) setRangeStart(parseDate(`${options.startMonth}-01`))
+      setMonthCount(options.monthCount ?? 3)
+      setZoom(options.zoom ?? 1)
+      setShowRelations(options.showRelations ?? true)
+      setShowProgress(options.showProgress ?? true)
+      setViewError('')
+    } catch { setViewError('저장된 보기를 읽을 수 없습니다.') }
+  }
+
+  async function exportChart(format: 'png' | 'pdf') {
+    if (!gridRef.current) return
+    setExporting(true); setViewError('')
+    try {
+      const { toCanvas } = await import('html-to-image')
+      const width = 370 + chartWidth
+      const height = 72 + Math.max(rows.length * ROW_HEIGHT, ROW_HEIGHT)
+      const grid = gridRef.current
+      const timeline = timelineRef.current!
+      const previous = { gridWidth: grid.style.width, gridColumns: grid.style.gridTemplateColumns, timelineWidth: timeline.style.width, timelineOverflow: timeline.style.overflow, scrollLeft: timeline.scrollLeft }
+      grid.style.width = `${width}px`
+      grid.style.gridTemplateColumns = `370px ${chartWidth}px`
+      timeline.style.width = `${chartWidth}px`
+      timeline.style.overflow = 'visible'
+      timeline.scrollLeft = 0
+      let canvas: HTMLCanvasElement
+      try { canvas = await toCanvas(grid, { width, height, pixelRatio: 1, backgroundColor: '#ffffff' }) }
+      finally {
+        grid.style.width = previous.gridWidth
+        grid.style.gridTemplateColumns = previous.gridColumns
+        timeline.style.width = previous.timelineWidth
+        timeline.style.overflow = previous.timelineOverflow
+        timeline.scrollLeft = previous.scrollLeft
+      }
+      if (format === 'png') {
+        const link = document.createElement('a')
+        link.download = `arc-gantt-${toDateKey(rangeStart)}.png`
+        link.href = canvas.toDataURL('image/png')
+        link.click()
+      } else {
+        const { jsPDF } = await import('jspdf')
+        const pageWidth = 1440, pageHeight = 850, sidebar = 370, header = 72
+        const chartPageWidth = pageWidth - sidebar
+        const bodyPageHeight = pageHeight - header
+        const pdf = new jsPDF({ orientation: 'landscape', unit: 'px', format: [pageWidth, pageHeight], hotfixes: ['px_scaling'] })
+        let first = true
+        for (let y = 0; y < Math.max(rows.length * ROW_HEIGHT, ROW_HEIGHT); y += bodyPageHeight) {
+          for (let x = 0; x < chartWidth; x += chartPageWidth) {
+            if (!first) pdf.addPage([pageWidth, pageHeight], 'landscape')
+            first = false
+            const page = document.createElement('canvas')
+            page.width = pageWidth; page.height = pageHeight
+            const context = page.getContext('2d')!
+            context.fillStyle = '#fff'; context.fillRect(0, 0, pageWidth, pageHeight)
+            const sliceHeight = Math.min(bodyPageHeight, rows.length * ROW_HEIGHT - y)
+            const sliceWidth = Math.min(chartPageWidth, chartWidth - x)
+            context.drawImage(canvas, 0, 0, sidebar, header, 0, 0, sidebar, header)
+            context.drawImage(canvas, sidebar + x, 0, sliceWidth, header, sidebar, 0, sliceWidth, header)
+            if (sliceHeight > 0) {
+              context.drawImage(canvas, 0, header + y, sidebar, sliceHeight, 0, header, sidebar, sliceHeight)
+              context.drawImage(canvas, sidebar + x, header + y, sliceWidth, sliceHeight, sidebar, header, sliceWidth, sliceHeight)
+            }
+            pdf.addImage(page.toDataURL('image/png'), 'PNG', 0, 0, pageWidth, pageHeight)
+          }
+        }
+        pdf.save(`arc-gantt-${toDateKey(rangeStart)}.pdf`)
+      }
+    } catch (error) { setViewError(`내보내지 못했습니다: ${(error as Error).message}`) }
+    finally { setExporting(false) }
   }
 
   function barPosition(issue: GanttIssue) {
@@ -113,7 +215,7 @@ export function GanttChart({ issues, relations }: Props) {
       </div>
 
       <div className="gantt-hint" role="status">{rows.length}개 항목 표시 · 막대를 선택하면 날짜와 관계를 읽을 수 있습니다.</div>
-      <div className="gantt-grid">
+      <div className="gantt-grid" ref={gridRef}>
         <div className="issue-pane">
           <div className="issue-header"><span>이슈 / 버전</span><span>완료율</span></div>
           {rows.length === 0 ? <div className="empty-state">조건에 맞는 항목이 없습니다.</div> : rows.map((issue) => {
@@ -131,7 +233,7 @@ export function GanttChart({ issues, relations }: Props) {
           })}
         </div>
 
-        <div className="timeline-scroll" role="region" aria-label="일정 시간축" tabIndex={0}>
+        <div className="timeline-scroll" role="region" aria-label="일정 시간축" tabIndex={0} ref={timelineRef}>
           <div className="timeline" style={{ width: chartWidth }}>
             <div className="month-header">
               {Array.from({ length: monthCount }, (_, index) => {
@@ -154,7 +256,6 @@ export function GanttChart({ issues, relations }: Props) {
                 </div>
               })}
               {showRelations && <svg className="relation-overlay" width={chartWidth} height={rows.length * ROW_HEIGHT} aria-hidden="true">
-                <defs><marker id="relation-arrow" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="6" markerHeight="6" orient="auto"><path d="M0 0 L8 4 L0 8 Z" fill="#596579" /></marker></defs>
                 {relations.map((relation, index) => {
                   const from = byId.get(relation.fromId)
                   const to = byId.get(relation.toId)
@@ -169,7 +270,7 @@ export function GanttChart({ issues, relations }: Props) {
                   const y1 = fromRow * ROW_HEIGHT + ROW_HEIGHT / 2
                   const y2 = toRow * ROW_HEIGHT + ROW_HEIGHT / 2
                   const bend = Math.min(chartWidth - 5, Math.max(x1 + 10, x2 - 10))
-                  return <path key={index} d={`M ${x1} ${y1} H ${bend} V ${y2} H ${x2}`} className={relation.kind === 'BLOCKS' ? 'relation-blocks' : 'relation-precedes'} markerEnd="url(#relation-arrow)" />
+                  return <g key={index}><path d={`M ${x1} ${y1} H ${bend} V ${y2} H ${x2}`} fill="none" stroke="#596579" strokeWidth="1.5" strokeDasharray={relation.kind === 'PRECEDES' ? '5 3' : undefined} /><path d={`M ${x2 - 5} ${y2 - 4} L ${x2} ${y2} L ${x2 - 5} ${y2 + 4}`} fill="none" stroke="#596579" strokeWidth="1.5" /></g>
                 })}
               </svg>}
               {daysBetween(rangeStart, today) >= 0 && daysBetween(rangeStart, today) < dayCount && <div className="today-line" style={{ left: (daysBetween(rangeStart, today) + .5) * dayWidth }} title={`오늘 · ${dateLabel(toDateKey(today))}`} />}
@@ -180,8 +281,10 @@ export function GanttChart({ issues, relations }: Props) {
 
       <div className="gantt-bottom">
         <div className="gantt-legend"><span><i className="legend-swatch epic" /> Epic / 프로젝트</span><span><i className="legend-swatch task" /> Story / Task</span><span><i className="legend-line" /> 차단 관계</span><span><i className="legend-line dashed" /> 선행 관계</span><span><i className="legend-today" /> 오늘</span></div>
-        {selected && <aside className="issue-detail" aria-label="선택한 항목 상세"><button type="button" className="detail-close" onClick={() => setSelectedId(null)} aria-label="상세 닫기">×</button><div className="issue-key">{selected.key} · {KIND_LABEL[selected.kind]}</div><h2>{selected.title}</h2><dl><div><dt>상태</dt><dd>{STATUS_LABEL[selected.status]}</dd></div><div><dt>담당자</dt><dd>{selected.assignee ?? '미지정'}</dd></div><div><dt>시작일</dt><dd>{dateLabel(selected.startDate)}</dd></div><div><dt>완료일</dt><dd>{dateLabel(selected.dueDate)}</dd></div><div><dt>완료율</dt><dd>{selected.progress ?? 0}%</dd></div><div><dt>관계</dt><dd>{relationDescriptions.length ? relationDescriptions.join(', ') : '없음'}</dd></div></dl></aside>}
+        {selected && <aside className="issue-detail" aria-label="선택한 항목 상세"><button type="button" className="detail-close" onClick={() => setSelectedId(null)} aria-label="상세 닫기">×</button><div className="issue-key">{selected.key} · {KIND_LABEL[selected.kind]}</div><h2>{selected.title}</h2><dl><div><dt>상태</dt><dd>{STATUS_LABEL[selected.status]}</dd></div><div><dt>담당자</dt><dd>{selected.assignee ?? '미지정'}</dd></div><div><dt>시작일</dt><dd>{dateLabel(selected.startDate)}</dd></div><div><dt>완료일</dt><dd>{dateLabel(selected.dueDate)}</dd></div><div><dt>완료율</dt><dd>{selected.progress ?? 0}%</dd></div><div><dt>관계</dt><dd>{relationDescriptions.length ? relationDescriptions.join(', ') : '없음'}</dd></div></dl>{onOpenIssue && !selected.id.startsWith('project-') && !selected.id.startsWith('version-') && <button type="button" className="open-issue" onClick={() => onOpenIssue(selected.id)}>이슈 상세 열기 →</button>}</aside>}
       </div>
+      {onSaveView && <div className="saved-view-bar"><form onSubmit={saveView}><input aria-label="보기 이름" placeholder="개인 보기 이름" value={viewName} onChange={event => setViewName(event.target.value)} required maxLength={120} /><button type="submit">현재 보기 저장</button></form><label>저장된 보기<select aria-label="저장된 보기" defaultValue="" onChange={event => loadView(Number(event.target.value))}><option value="">선택</option>{savedViews.map(view => <option key={view.id} value={view.id}>{view.name}</option>)}</select></label>{savedViews.map(view => <button type="button" key={view.id} className="delete-view" onClick={() => onDeleteView?.(view.id)} aria-label={`${view.name} 보기 삭제`}>× {view.name}</button>)}{viewError && <span role="alert">{viewError}</span>}</div>}
+      <div className="export-bar"><span>현재 필터·기간으로 내보내기</span><button type="button" disabled={exporting} onClick={() => exportChart('png')}>PNG</button><button type="button" disabled={exporting} onClick={() => exportChart('pdf')}>PDF</button>{exporting && <span role="status">내보내는 중…</span>}</div>
     </section>
   )
 }
