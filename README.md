@@ -86,11 +86,11 @@ pnpm dev
 | --- | --- |
 | 웹 | React 19, TypeScript, Vite, Tailwind CSS v4, shadcn/ui, TanStack Query·Table·Router |
 | 패키지 관리 | pnpm 11.19.0, 고정 잠금 파일 설치 |
-| API | Kotlin, Spring Boot 4, Exposed DSL 및 Spring JDBC, Flyway |
+| API | Kotlin, Spring Boot 4, Exposed DSL, Flyway |
 | 저장·메일 | MySQL 8.4, 로컬 Mailpit |
 | 디자인 | KRDS를 바탕으로 확장한 [Arc 디자인 가이드](docs/DESIGN_GUIDE.md) |
 
-프런트는 `app / features / shared`, 백엔드는 기능별 `api / internal / web` 경계를 사용합니다. 프런트의 기능 간 참조는 공개 `index.ts`로 제한합니다. 저장소 계층은 현재 Exposed와 JDBC를 함께 사용하며, 남은 Exposed 전환과 디자인 시스템 재구성은 [작업 목록](docs/TODO.md)에서 추적합니다.
+프런트는 `app / features / shared`, 백엔드는 기능별 `api / internal / web` 경계를 사용합니다. 프런트의 기능 간 참조는 공개 `index.ts`로 제한합니다. 모든 저장소를 Exposed DSL로 전환하고 Arc 디자인 시스템 v2를 적용했습니다. 후속 작업은 [작업 목록](docs/TODO.md)에서 추적합니다.
 
 ## 검증과 문서
 
@@ -104,7 +104,7 @@ python3 scripts/smoke.py  # API, MySQL, Mailpit 실행 필요
 (cd frontend && pnpm check:browser)  # 웹 앱·API·MySQL·Mailpit 실행 필요
 ```
 
-빌드는 프런트 경계 검사와 TypeScript 검사를 포함합니다. `gradlew check`는 백엔드 경계 검사와 컴파일을 수행하며, 별도 단위 테스트는 아직 없습니다. 실제 API와 화면 동작은 수용 스크립트로 확인합니다. 각 스크립트는 별도 테스트 워크스페이스를 만들고 정상 종료 또는 브라우저 테스트 정리 단계에서 삭제합니다.
+빌드는 프런트 경계 검사와 TypeScript 검사를 포함합니다. `gradlew check`는 백엔드 경계 검사와 트랜잭션 커밋·롤백·중복 키 변환 테스트를 수행합니다. 실제 API와 화면 동작은 MySQL 수용 스크립트로 확인하며, 잘못된 백로그 정렬의 부분 변경도 전체 롤백되는지 검사합니다. 각 스크립트는 별도 테스트 워크스페이스를 만들고 정상 종료 또는 브라우저 테스트 정리 단계에서 삭제합니다.
 
 브라우저 검증은 가입·초대, 이슈·댓글·관계, 공통 필터, 간트 집계·저장 보기·출력, 이동 실패 복원, 편집 충돌, 스프린트 결과, 멤버 권한, 모바일 키보드 조작을 확인합니다. 생성 대화상자와 6개 화면의 자동 접근성 검사, 360/768/1280px·확대 재배치·고대비 검사도 포함합니다. [디자인 검증 범위](docs/DESIGN_VERIFICATION.md)를 참고하세요. 다른 포트를 사용하면 `ARC_WEB_URL`, `ARC_API_URL`, `ARC_MAIL_URL`을 지정하세요. API·메일 주소는 각각 `/api/`, `/api/v1/`까지 포함합니다. 시스템 Chromium을 사용하려면 `CHROMIUM_PATH`를 지정할 수 있습니다.
 

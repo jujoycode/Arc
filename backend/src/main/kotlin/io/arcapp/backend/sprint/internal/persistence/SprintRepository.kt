@@ -1,17 +1,42 @@
 package io.arcapp.backend.sprint.internal.persistence
 
-import io.arcapp.backend.shared.persistence.insert
-import io.arcapp.backend.shared.persistence.one
-import org.springframework.jdbc.core.JdbcTemplate
+import io.arcapp.backend.shared.persistence.dbQuery
+import org.jetbrains.exposed.v1.core.*
+import org.jetbrains.exposed.v1.javatime.date
+import org.jetbrains.exposed.v1.javatime.datetime
+import org.jetbrains.exposed.v1.jdbc.*
 import org.springframework.stereotype.Repository
 import java.sql.Date
+import java.time.Clock
+import java.time.LocalDateTime
+import java.time.ZoneOffset
+
+private object Sprints : Table("sprints") {
+    val id = long("id").autoIncrement()
+    val projectId = long("project_id")
+    val name = varchar("name", 120)
+    val goal = text("goal").nullable()
+    val startOn = date("start_on")
+    val endOn = date("end_on")
+    val status = varchar("status", 16)
+    val startedAt = datetime("started_at").nullable()
+    val completedAt = datetime("completed_at").nullable()
+    override val primaryKey = PrimaryKey(id)
+}
 
 @Repository
-class SprintRepository(private val jdbc: JdbcTemplate) {
-    fun list(projectId: Long) = jdbc.queryForList("SELECT id,name,goal,start_on AS startOn,end_on AS endOn,status,started_at AS startedAt,completed_at AS completedAt FROM sprints WHERE project_id=? ORDER BY id DESC", projectId)
-    fun find(projectId: Long, id: Long) = jdbc.one("SELECT * FROM sprints WHERE id=? AND project_id=?", id, projectId)
-    fun create(projectId: Long, name: String, goal: String?, startDate: Date, endDate: Date) = jdbc.insert("INSERT INTO sprints(project_id,name,goal,start_on,end_on,status) VALUES(?,?,?,?,?,'PLANNED')", projectId, name, goal, startDate, endDate)
-    fun hasActive(projectId: Long) = jdbc.one("SELECT id FROM sprints WHERE project_id=? AND status='ACTIVE'", projectId) != null
-    fun start(id: Long) { jdbc.update("UPDATE sprints SET status='ACTIVE',started_at=UTC_TIMESTAMP(6) WHERE id=?", id) }
-    fun close(id: Long) { jdbc.update("UPDATE sprints SET status='CLOSED',completed_at=UTC_TIMESTAMP(6) WHERE id=?", id) }
+class SprintRepository {
+    fun list(projectId: Long): List<Map<String, Any?>> = dbQuery {
+        Sprints.selectAll().where { Sprints.projectId eq projectId }.orderBy(Sprints.id to SortOrder.DESC)
+            .map { mapOf("id" to it[Sprints.id], "name" to it[Sprints.name], "goal" to it[Sprints.goal], "startOn" to it[Sprints.startOn], "endOn" to it[Sprints.endOn], "status" to it[Sprints.status], "startedAt" to it[Sprints.startedAt]?.toInstant(ZoneOffset.UTC), "completedAt" to it[Sprints.completedAt]?.toInstant(ZoneOffset.UTC)) }
+    }
+    fun find(projectId: Long, id: Long): Map<String, Any?>? = dbQuery {
+        Sprints.selectAll().where { (Sprints.id eq id) and (Sprints.projectId eq projectId) }.firstOrNull()?.let { row -> Sprints.columns.associate { it.name to row[it] } }
+    }
+    fun create(projectId: Long, name: String, goal: String?, startDate: Date, endDate: Date): Long = dbQuery {
+        Sprints.insert { it[Sprints.projectId] = projectId; it[Sprints.name] = name; it[Sprints.goal] = goal; it[startOn] = startDate.toLocalDate(); it[endOn] = endDate.toLocalDate(); it[status] = "PLANNED" }[Sprints.id]
+    }
+    fun hasActive(projectId: Long) = dbQuery { Sprints.select(Sprints.id).where { (Sprints.projectId eq projectId) and (Sprints.status eq "ACTIVE") }.any() }
+    fun start(id: Long) = dbQuery { Sprints.update({ Sprints.id eq id }) { it[status] = "ACTIVE"; it[startedAt] = LocalDateTime.now(Clock.systemUTC()) }; Unit }
+    fun close(id: Long) = dbQuery { Sprints.update({ Sprints.id eq id }) { it[status] = "CLOSED"; it[completedAt] = LocalDateTime.now(Clock.systemUTC()) }; Unit }
 }

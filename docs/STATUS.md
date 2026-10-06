@@ -23,10 +23,10 @@ API 수용 스크립트 `scripts/smoke.py`는 이메일 인증·팀 초대·권�
 
 프런트는 pnpm 11.19.0으로 전환하고 app·features·shared로 구조화했습니다. auth·workspace·project·issue·kanban·gantt·sprint·settings의 8개 기능은 공개 index를 통해 참조하며, 공유 UI·통신·스타일은 shared에 둡니다. `pnpm build`는 [프런트 경계 검사](FRONTEND_ARCHITECTURE.md)를 포함합니다.
 
-2026-10-05에 pnpm 고정 설치, 프런트 경계 검사·TypeScript·프로덕션 빌드, 구조 변경 후 브라우저 수용 흐름이 통과했습니다. lint는 오류 없이 완료했으며 Fast Refresh, TanStack Table, 인증 effect 관련 경고가 남아 있습니다. 실제 제품의 간트·칸반 스크린샷을 다시 촬영하고 README에 첫 사용 흐름과 재현 가능한 검증 명령을 갱신했습니다. 전체 디자인 시스템 재구성과 남은 JDBC 저장소의 Exposed 전환은 별도 후속 작업입니다.
+2026-10-05에 pnpm 고정 설치, 프런트 경계 검사·TypeScript·프로덕션 빌드, 구조 변경 후 브라우저 수용 흐름이 통과했습니다. lint는 오류 없이 완료했으며 Fast Refresh, TanStack Table, 인증 effect 관련 경고가 남아 있습니다. 실제 제품의 간트·칸반 스크린샷을 다시 촬영하고 README에 첫 사용 흐름과 재현 가능한 검증 명령을 갱신했습니다. 이후 디자인 시스템 재구성과 Exposed 전환도 완료했습니다.
 
 [GitHub Actions CI](CI.md)를 구성했고 2026-10-06에 main의 프런트·백엔드·API/브라우저·CI gate가 모두 통과했습니다. 빌드 파일을 수용 검사에 재사용하며 새 MySQL·Mailpit에서 마이그레이션과 기능 흐름을 검증합니다. 실패 시 로그·화면·추적 자료를 보관합니다.
 
 디자인 시스템 v2를 실제 앱에 적용했습니다. KRDS 대응·확장 계약, Arc 토큰과 shadcn 연결, 프로젝트 선택·모바일 하단 탐색, 공통 이슈 카드, 48px 간트 행, 표시 옵션·개인 보기 구분, 개별 필터 해제, 설정 레이블을 제공하며 실제 스크린샷을 갱신했습니다. 생성 대화상자와 6개 화면의 axe 자동 규칙, 360/768/1280px·200%에 해당하는 화면 재배치, 고대비·키보드·충돌 복원 검사가 통과했습니다. [디자인 검증](DESIGN_VERIFICATION.md)에 자동 검사와 실기기 검증의 범위를 구분해 기록했습니다.
 
-Exposed 전환 1단계에서 인증·워크스페이스·프로젝트·버전 저장소를 DSL로 옮기고, 멤버·개인 보기의 트랜잭션 참여 방식을 통일했습니다. SpringTransactionManager와 dbQuery는 유스케이스 안의 Exposed·JDBC 쓰기를 같은 연결에서 처리합니다. H2에서 함께 커밋·롤백되는 동작과 중복 키 예외 변환을 검증했고, MySQL의 API·브라우저 전체 수용 검사와 Gradle check·bootJar가 통과했습니다. 남은 이슈·스프린트 저장소 전환을 계속 진행합니다.
+Exposed 전환을 완료했습니다. 인증·팀·프로젝트에 이어 이슈·댓글·활동·관계·스프린트와 종료 이력까지 DSL로 옮겼습니다. SpringTransactionManager와 dbQuery가 유스케이스의 같은 연결에 참여하며 행 잠금과 낙관적 버전을 유지합니다. H2 커밋·롤백·중복 키 변환 테스트, MySQL의 동시 번호 발급·중간 실패 시 정렬과 버전의 전체 롤백, 스프린트 포인트 합계·종료 이력·미완료 이월, 전체 API·브라우저 수용 검사와 Gradle check·bootJar가 통과했습니다. MySQL 포인트 합계는 호환되는 DECIMAL 변환으로 정수 오버플로를 방지합니다.

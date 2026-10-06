@@ -78,6 +78,12 @@ def main():
     second = request(f"/projects/{pid}/issues", {"title": "Second", "type": "TASK"}, member)
     child_issue = request(f"/projects/{child_pid}/issues", {"title": "Child schedule", "type": "STORY", "startDate": "2026-10-05", "dueDate": "2026-10-20"}, member)
     assert child_issue["key"] == "CHILDX-1"
+    # A later invalid item must roll back the earlier valid reorder as well.
+    reorder_before = request(f"/projects/{pid}/issues/{epic['id']}", token=member)
+    request(f"/projects/{pid}/backlog/order", {"issueIds": [epic["id"], child_issue["id"]]}, member, method="PUT", expected=400)
+    reorder_after = request(f"/projects/{pid}/issues/{epic['id']}", token=member)
+    assert reorder_after["sortOrder"] == reorder_before["sortOrder"]
+    assert reorder_after["version"] == reorder_before["version"]
     request(f"/projects/{child_pid}", {"name": "Child project", "key": "CHILD", "parentProjectId": pid}, owner, method="PUT", expected=409)
     gantt = request(f"/projects/{pid}/gantt", token=member)
     assert child_pid in {item["id"] for item in gantt["projects"]}
@@ -139,7 +145,7 @@ def main():
     request(f"/auth/workspaces/{wid}/owner/{request('/auth/me', token=member)['id']}", {}, owner)
     request(f"/auth/workspaces/{wid}", {"confirmation": workspace_name}, member, method="DELETE")
     request(f"/projects/{pid}", token=owner, expected=403)
-    print("Arc smoke flow passed: auth, invitation, isolation, project key, child-project gantt, hierarchy, dates, pagination, filters, concurrent issue IDs, conflict, relation, sprint, archive, saved view, ownership, deletion")
+    print("Arc smoke flow passed: auth, invitation, isolation, project key, child-project gantt, hierarchy, dates, pagination, filters, concurrent issue IDs, conflict, partial-write rollback, relation, sprint, archive, saved view, ownership, deletion")
 
 
 if __name__ == "__main__":

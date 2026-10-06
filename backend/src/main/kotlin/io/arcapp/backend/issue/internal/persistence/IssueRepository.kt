@@ -2,67 +2,126 @@ package io.arcapp.backend.issue.internal.persistence
 
 import io.arcapp.backend.issue.internal.IssueInput
 import io.arcapp.backend.issue.internal.IssueSearch
-import io.arcapp.backend.shared.persistence.insert
-import io.arcapp.backend.shared.persistence.one
-import org.springframework.jdbc.core.JdbcTemplate
+import io.arcapp.backend.shared.persistence.dbQuery
+import org.jetbrains.exposed.v1.core.*
+import org.jetbrains.exposed.v1.jdbc.*
 import org.springframework.stereotype.Repository
-import java.sql.Date
+import java.time.Clock
+import java.time.LocalDate
+import java.time.LocalDateTime
+import java.time.ZoneOffset
+
+private fun utcNow() = LocalDateTime.now(Clock.systemUTC())
+private fun ResultRow.rawIssue(): Map<String, Any?> = Issues.columns.associate { it.name to this[it] }
+private fun ResultRow.issueView(): Map<String, Any?> = mapOf(
+    "id" to this[Issues.id], "projectId" to this[Issues.projectId], "key" to "${this[IssueProjects.key]}-${this[Issues.number]}",
+    "number" to this[Issues.number], "title" to this[Issues.title], "description" to this[Issues.description], "type" to this[Issues.type],
+    "status" to this[Issues.status], "priority" to this[Issues.priority], "reporterId" to this[Issues.reporterId],
+    "assigneeId" to this[Issues.assigneeId], "assigneeName" to getOrNull(IssueUsers.displayName),
+    "startDate" to this[Issues.startDate], "dueDate" to this[Issues.dueDate], "progress" to this[Issues.progress],
+    "storyPoints" to this[Issues.storyPoints], "parentId" to this[Issues.parentId], "versionId" to this[Issues.versionId],
+    "sprintId" to this[Issues.sprintId], "sortOrder" to this[Issues.sortOrder], "version" to this[Issues.version],
+    "createdAt" to this[Issues.createdAt].toInstant(ZoneOffset.UTC), "updatedAt" to this[Issues.updatedAt].toInstant(ZoneOffset.UTC),
+)
 
 @Repository
-class IssueRepository(private val jdbc: JdbcTemplate) {
-    private val projection = "SELECT i.id,i.project_id AS projectId,CONCAT(p.project_key,'-',i.issue_number) AS `key`,i.issue_number AS number,i.title,i.description,i.issue_type AS type,i.status,i.priority,i.reporter_id AS reporterId,i.assignee_id AS assigneeId,u.display_name AS assigneeName,i.start_date AS startDate,i.due_date AS dueDate,i.done_ratio AS progress,i.story_points AS storyPoints,i.parent_issue_id AS parentId,i.version_id AS versionId,i.sprint_id AS sprintId,i.sort_order AS sortOrder,i.version,i.created_at AS createdAt,i.updated_at AS updatedAt FROM issues i JOIN projects p ON p.id=i.project_id LEFT JOIN users u ON u.id=i.assignee_id WHERE i.deleted_at IS NULL"
-    private val sortColumns = mapOf("updatedAt" to "i.updated_at", "key" to "i.issue_number", "title" to "i.title", "type" to "i.issue_type", "status" to "i.status", "priority" to "i.priority", "assigneeName" to "u.display_name", "dueDate" to "i.due_date")
-
+class IssueRepository {
+    private val joined = Issues.join(IssueProjects, JoinType.INNER, Issues.projectId, IssueProjects.id)
+        .join(IssueUsers, JoinType.LEFT, Issues.assigneeId, IssueUsers.id)
+    private val projection = Issues.columns + listOf(IssueProjects.key, IssueUsers.displayName)
+    private val sortColumns: Map<String, Expression<*>> = mapOf(
+        "updatedAt" to Issues.updatedAt, "key" to Issues.number, "title" to Issues.title, "type" to Issues.type,
+        "status" to Issues.status, "priority" to Issues.priority, "assigneeName" to IssueUsers.displayName, "dueDate" to Issues.dueDate,
+    )
     fun supportsSort(sort: String) = sort in sortColumns
-    fun list(projectId: Long, criteria: IssueSearch): Map<String, Any> {
-        val clauses = mutableListOf("i.project_id=?")
-        val args = mutableListOf<Any>(projectId)
-        with(criteria) {
-            if (!search.isNullOrBlank()) { clauses += "(LOWER(i.title) LIKE ? OR LOWER(CONCAT(p.project_key,'-',i.issue_number)) LIKE ?)"; args += "%${search.lowercase()}%"; args += "%${search.lowercase()}%" }
-            if (!status.isNullOrBlank()) { clauses += "i.status=?"; args += status }
-            if (!type.isNullOrBlank()) { clauses += "i.issue_type=?"; args += type }
-            if (assigneeId != null) { clauses += "i.assignee_id=?"; args += assigneeId }
-            if (!priority.isNullOrBlank()) { clauses += "i.priority=?"; args += priority }
-            if (versionId != null) { clauses += "i.version_id=?"; args += versionId }
-            if (sprintId != null) { clauses += "i.sprint_id=?"; args += sprintId }
-            if (sprintState == "BACKLOG") clauses += "i.sprint_id IS NULL"
-            if (sprintState == "ASSIGNED") clauses += "i.sprint_id IS NOT NULL"
-            val where = clauses.joinToString(" AND ")
-            val total = jdbc.queryForObject("SELECT COUNT(*) FROM issues i JOIN projects p ON p.id=i.project_id WHERE i.deleted_at IS NULL AND $where", Long::class.java, *args.toTypedArray()) ?: 0
-            val limit = size.coerceIn(1, 1000)
-            val currentPage = page.coerceAtLeast(0)
-            val items = jdbc.queryForList("$projection AND $where ORDER BY ${sortColumns.getValue(sort)} ${direction.uppercase()},i.id DESC LIMIT ? OFFSET ?", *(args + listOf(limit, currentPage.toLong() * limit)).toTypedArray())
-            return mapOf("items" to items, "total" to total, "page" to currentPage, "size" to limit)
+    private fun searchCondition(projectId: Long, search: IssueSearch): Op<Boolean> {
+        val conditions = mutableListOf<Op<Boolean>>(Issues.projectId eq projectId, Issues.deletedAt.isNull())
+        with(search) {
+            if (!this.search.isNullOrBlank()) {
+                val key = CustomFunction<String>("CONCAT", TextColumnType(), IssueProjects.key, stringLiteral("-"), Issues.number)
+                val pattern = "%${this.search.lowercase()}%"
+                conditions += (Issues.title.lowerCase() like pattern) or (key.lowerCase() like pattern)
+            }
+            if (!status.isNullOrBlank()) conditions += Issues.status eq status
+            if (!type.isNullOrBlank()) conditions += Issues.type eq type
+            if (assigneeId != null) conditions += Issues.assigneeId eq assigneeId
+            if (!priority.isNullOrBlank()) conditions += Issues.priority eq priority
+            if (versionId != null) conditions += Issues.versionId eq versionId
+            if (sprintId != null) conditions += Issues.sprintId eq sprintId
+            if (sprintState == "BACKLOG") conditions += Issues.sprintId.isNull()
+            if (sprintState == "ASSIGNED") conditions += Issues.sprintId.isNotNull()
+        }
+        return conditions.reduce { a, b -> a and b }
+    }
+    fun list(projectId: Long, criteria: IssueSearch): Map<String, Any> = dbQuery {
+        val condition = searchCondition(projectId, criteria)
+        val count = Issues.id.count()
+        val total = joined.select(count).where(condition).single()[count]
+        val size = criteria.size.coerceIn(1, 1000)
+        val page = criteria.page.coerceAtLeast(0)
+        val items = joined.select(projection).where(condition)
+            .orderBy(sortColumns.getValue(criteria.sort) to if (criteria.direction == "asc") SortOrder.ASC else SortOrder.DESC, Issues.id to SortOrder.DESC)
+            .limit(size).offset(page.toLong() * size).map { it.issueView() }
+        mapOf("items" to items, "total" to total, "page" to page, "size" to size)
+    }
+    private fun active(projectId: Long, id: Long) = (Issues.id eq id) and (Issues.projectId eq projectId) and Issues.deletedAt.isNull()
+    fun find(projectId: Long, id: Long) = dbQuery { Issues.selectAll().where(active(projectId, id)).firstOrNull()?.rawIssue() }
+    fun detail(projectId: Long, id: Long) = dbQuery { joined.select(projection).where(active(projectId, id)).firstOrNull()?.issueView() }
+    fun create(projectId: Long, number: Int, actorId: Long, input: IssueInput): Long = dbQuery {
+        Issues.insert {
+            it[Issues.projectId] = projectId; it[Issues.number] = number; it[reporterId] = actorId; it[sortOrder] = number.toLong()
+            it[title] = input.title.trim(); it[description] = input.description; it[type] = input.type; it[status] = input.status; it[priority] = input.priority
+            it[assigneeId] = input.assigneeId; it[startDate] = input.startDate?.let(LocalDate::parse); it[dueDate] = input.dueDate?.let(LocalDate::parse)
+            it[progress] = input.progress.toShort(); it[storyPoints] = input.storyPoints; it[parentId] = input.parentId; it[versionId] = input.versionId
+        }[Issues.id]
+    }
+    fun update(projectId: Long, id: Long, input: IssueInput, expectedVersion: Long): Int = dbQuery {
+        Issues.update({ active(projectId, id) and (Issues.version eq expectedVersion) }) {
+            it[title] = input.title.trim(); it[description] = input.description; it[type] = input.type; it[status] = input.status; it[priority] = input.priority
+            it[assigneeId] = input.assigneeId; it[startDate] = input.startDate?.let(LocalDate::parse); it[dueDate] = input.dueDate?.let(LocalDate::parse)
+            it[progress] = input.progress.toShort(); it[storyPoints] = input.storyPoints; it[parentId] = input.parentId; it[versionId] = input.versionId
+            it[version] = Issues.version + 1
         }
     }
-    fun find(projectId: Long, id: Long) = jdbc.one("SELECT * FROM issues WHERE id=? AND project_id=? AND deleted_at IS NULL", id, projectId)
-    fun detail(projectId: Long, id: Long) = jdbc.one("$projection AND i.project_id=? AND i.id=?", projectId, id)
-    fun create(projectId: Long, number: Int, actorId: Long, input: IssueInput): Long = with(input) {
-        jdbc.insert("INSERT INTO issues(project_id,issue_number,title,description,issue_type,status,priority,reporter_id,assignee_id,start_date,due_date,done_ratio,story_points,parent_issue_id,version_id,sort_order) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
-            projectId, number, title.trim(), description, type, status, priority, actorId, assigneeId, startDate?.let(Date::valueOf), dueDate?.let(Date::valueOf), progress, storyPoints, parentId, versionId, number)
+    fun status(projectId: Long, id: Long, status: String, expectedVersion: Long) = dbQuery {
+        Issues.update({ active(projectId, id) and (Issues.version eq expectedVersion) }) { it[Issues.status] = status; it[version] = Issues.version + 1 }
     }
-    fun update(projectId: Long, id: Long, input: IssueInput, expectedVersion: Long): Int = with(input) {
-        jdbc.update("UPDATE issues SET title=?,description=?,issue_type=?,status=?,priority=?,assignee_id=?,start_date=?,due_date=?,done_ratio=?,story_points=?,parent_issue_id=?,version_id=?,version=version+1 WHERE id=? AND project_id=? AND version=? AND deleted_at IS NULL",
-            title.trim(), description, type, status, priority, assigneeId, startDate?.let(Date::valueOf), dueDate?.let(Date::valueOf), progress, storyPoints, parentId, versionId, id, projectId, expectedVersion)
+    fun delete(id: Long) = dbQuery { Issues.update({ Issues.id eq id }) { it[deletedAt] = utcNow(); it[version] = Issues.version + 1 }; Unit }
+    fun childTypes(id: Long) = dbQuery { Issues.select(Issues.type).where { (Issues.parentId eq id) and Issues.deletedAt.isNull() }.map { it[Issues.type] } }
+    fun activity(id: Long, actorId: Long, event: String) = dbQuery { IssueActivities.insert { it[issueId] = id; it[IssueActivities.actorId] = actorId; it[type] = event }; Unit }
+    fun activities(id: Long): List<Map<String, Any?>> = dbQuery {
+        IssueActivities.join(IssueUsers, JoinType.INNER, IssueActivities.actorId, IssueUsers.id)
+            .select(IssueActivities.id, IssueActivities.type, IssueUsers.displayName, IssueActivities.createdAt)
+            .where { IssueActivities.issueId eq id }.orderBy(IssueActivities.id to SortOrder.DESC)
+            .map { mapOf("id" to it[IssueActivities.id], "type" to it[IssueActivities.type], "actorName" to it[IssueUsers.displayName], "createdAt" to it[IssueActivities.createdAt].toInstant(ZoneOffset.UTC)) }
     }
-    fun status(projectId: Long, id: Long, status: String, expectedVersion: Long) = jdbc.update("UPDATE issues SET status=?,version=version+1 WHERE id=? AND project_id=? AND version=? AND deleted_at IS NULL", status, id, projectId, expectedVersion)
-    fun delete(id: Long) { jdbc.update("UPDATE issues SET deleted_at=UTC_TIMESTAMP(6),version=version+1 WHERE id=?", id) }
-    fun childTypes(id: Long) = jdbc.queryForList("SELECT issue_type FROM issues WHERE parent_issue_id=? AND deleted_at IS NULL", id).map { it["issue_type"] as String }
-    fun activity(id: Long, actorId: Long, event: String) { jdbc.update("INSERT INTO issue_activities(issue_id,actor_id,event_type) VALUES(?,?,?)", id, actorId, event) }
-    fun activities(id: Long) = jdbc.queryForList("SELECT a.id,a.event_type AS type,u.display_name AS actorName,a.created_at AS createdAt FROM issue_activities a JOIN users u ON u.id=a.actor_id WHERE a.issue_id=? ORDER BY a.id DESC", id)
-    fun relations(projectIds: Set<Long>): List<Map<String, Any?>> {
-        val marks = List(projectIds.size) { "?" }.joinToString(",")
-        return jdbc.queryForList("SELECT r.id,r.source_issue_id AS fromId,r.target_issue_id AS toId,r.relation_type AS type,r.lag_days AS lagDays FROM issue_relations r JOIN issues a ON a.id=r.source_issue_id JOIN issues b ON b.id=r.target_issue_id WHERE r.project_id IN ($marks) AND a.deleted_at IS NULL AND b.deleted_at IS NULL", *projectIds.toTypedArray())
+    fun relations(projectIds: Set<Long>): List<Map<String, Any?>> = dbQuery {
+        if (projectIds.isEmpty()) return@dbQuery emptyList()
+        val source = Issues.alias("source")
+        val target = Issues.alias("target")
+        IssueRelations.join(source, JoinType.INNER, IssueRelations.sourceId, source[Issues.id]).join(target, JoinType.INNER, IssueRelations.targetId, target[Issues.id])
+            .select(IssueRelations.columns).where { (IssueRelations.projectId inList projectIds) and source[Issues.deletedAt].isNull() and target[Issues.deletedAt].isNull() }
+            .map { mapOf("id" to it[IssueRelations.id], "fromId" to it[IssueRelations.sourceId], "toId" to it[IssueRelations.targetId], "type" to it[IssueRelations.type], "lagDays" to it[IssueRelations.lagDays]) }
     }
-    fun createRelation(projectId: Long, id: Long, targetId: Long, type: String) = jdbc.insert("INSERT INTO issue_relations(project_id,source_issue_id,target_issue_id,relation_type) VALUES(?,?,?,?)", projectId, id, targetId, type)
-    fun deleteRelation(projectId: Long, id: Long) { jdbc.update("DELETE FROM issue_relations WHERE id=? AND project_id=?", id, projectId) }
-    fun comment(projectId: Long, id: Long) = jdbc.one("SELECT c.* FROM comments c JOIN issues i ON i.id=c.issue_id WHERE c.id=? AND i.project_id=? AND c.deleted_at IS NULL AND i.deleted_at IS NULL", id, projectId)
-    fun comments(id: Long) = jdbc.queryForList("SELECT c.id,c.body,c.author_id AS authorId,u.display_name AS authorName,c.created_at AS createdAt,c.updated_at AS updatedAt FROM comments c JOIN users u ON u.id=c.author_id WHERE c.issue_id=? AND c.deleted_at IS NULL ORDER BY c.created_at", id)
-    fun addComment(id: Long, actorId: Long, body: String) = jdbc.insert("INSERT INTO comments(issue_id,author_id,body) VALUES(?,?,?)", id, actorId, body)
-    fun editComment(id: Long, body: String) { jdbc.update("UPDATE comments SET body=? WHERE id=?", body, id) }
-    fun deleteComment(id: Long) { jdbc.update("UPDATE comments SET deleted_at=UTC_TIMESTAMP(6) WHERE id=?", id) }
-    fun timeline(projectIds: Set<Long>): List<Map<String, Any?>> {
-        val marks = List(projectIds.size) { "?" }.joinToString(",")
-        return jdbc.queryForList("$projection AND i.project_id IN ($marks) ORDER BY i.project_id,i.issue_number", *projectIds.toTypedArray())
+    fun createRelation(projectId: Long, id: Long, targetId: Long, type: String) = dbQuery {
+        IssueRelations.insert { it[IssueRelations.projectId] = projectId; it[sourceId] = id; it[IssueRelations.targetId] = targetId; it[IssueRelations.type] = type }[IssueRelations.id]
+    }
+    fun deleteRelation(projectId: Long, id: Long) = dbQuery { IssueRelations.deleteWhere { (IssueRelations.id eq id) and (IssueRelations.projectId eq projectId) }; Unit }
+    fun comment(projectId: Long, id: Long): Map<String, Any?>? = dbQuery {
+        IssueComments.join(Issues, JoinType.INNER, IssueComments.issueId, Issues.id).select(IssueComments.columns)
+            .where { (IssueComments.id eq id) and (Issues.projectId eq projectId) and IssueComments.deletedAt.isNull() and Issues.deletedAt.isNull() }
+            .firstOrNull()?.let { row -> IssueComments.columns.associate { it.name to row[it] } }
+    }
+    fun comments(id: Long): List<Map<String, Any?>> = dbQuery {
+        IssueComments.join(IssueUsers, JoinType.INNER, IssueComments.authorId, IssueUsers.id)
+            .select(IssueComments.columns + IssueUsers.displayName).where { (IssueComments.issueId eq id) and IssueComments.deletedAt.isNull() }.orderBy(IssueComments.createdAt)
+            .map { mapOf("id" to it[IssueComments.id], "body" to it[IssueComments.body], "authorId" to it[IssueComments.authorId], "authorName" to it[IssueUsers.displayName], "createdAt" to it[IssueComments.createdAt].toInstant(ZoneOffset.UTC), "updatedAt" to it[IssueComments.updatedAt].toInstant(ZoneOffset.UTC)) }
+    }
+    fun addComment(id: Long, actorId: Long, body: String) = dbQuery { IssueComments.insert { it[issueId] = id; it[authorId] = actorId; it[IssueComments.body] = body }[IssueComments.id] }
+    fun editComment(id: Long, body: String) = dbQuery { IssueComments.update({ IssueComments.id eq id }) { it[IssueComments.body] = body }; Unit }
+    fun deleteComment(id: Long) = dbQuery { IssueComments.update({ IssueComments.id eq id }) { it[deletedAt] = utcNow() }; Unit }
+    fun timeline(projectIds: Set<Long>): List<Map<String, Any?>> = dbQuery {
+        if (projectIds.isEmpty()) emptyList() else joined.select(projection).where { (Issues.projectId inList projectIds) and Issues.deletedAt.isNull() }
+            .orderBy(Issues.projectId to SortOrder.ASC, Issues.number to SortOrder.ASC).map { it.issueView() }
     }
 }
