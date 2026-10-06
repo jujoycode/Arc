@@ -21,6 +21,7 @@ main { flex: 1; width: 100%; max-width: 1700px; margin: 0 auto; padding: 36px 32
 .toolbar-group button, .toolbar-group select, .toolbar-group input, .gantt-filters select, .gantt-filters input[type="search"] { min-height: var(--arc-control-height); padding: 6px 10px; border: 1px solid var(--arc-color-border-control); border-radius: var(--arc-radius-control); background: var(--arc-color-surface); color: var(--arc-color-text); }
 .toolbar-group button { cursor: pointer; }
 .toolbar-group button:hover { border-color: var(--arc-color-action-primary); }
+.toolbar-group button:disabled { cursor: default; color: var(--arc-color-text-muted); border-color: var(--arc-color-border); }
 .range-label { margin-left: 9px; white-space: nowrap; font-size: var(--arc-font-data); }
 .gantt-filters { background: var(--arc-color-canvas); }
 .gantt-filters label:not(.check-field) { display: inline-flex; align-items: center; gap: 8px; }
@@ -48,6 +49,7 @@ main { flex: 1; width: 100%; max-width: 1700px; margin: 0 auto; padding: 36px 32
 .kind-dot.kind-bug { background: var(--arc-gantt-bug-complete); }
 .issue-text { display: flex; flex-direction: column; min-width: 0; line-height: 1.3; }
 .issue-key { color: var(--arc-color-text-muted); font-size: var(--arc-font-meta); font-weight: 700; }
+.collapsed-label { color: var(--arc-color-selected-text); }
 .issue-title { overflow: hidden; white-space: nowrap; text-overflow: ellipsis; font-size: var(--arc-font-data); font-weight: 650; }
 .row-progress { flex: 0 0 42px; margin-right: 14px; color: var(--arc-color-text-muted); text-align: right; font-size: var(--arc-font-meta); }
 .empty-state { padding: 30px 18px; color: var(--arc-color-text-muted); font-size: var(--arc-font-data); }

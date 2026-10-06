@@ -60,7 +60,8 @@ export function GanttChart({ issues, relations, onOpenIssue, onOpenProject, onOp
   const gridRef = useRef<HTMLDivElement>(null)
 
   const byId = useMemo(() => new Map(issues.map((issue) => [issue.id, issue])), [issues])
-  const children = useMemo(() => new Set(issues.map((issue) => issue.parentId).filter(Boolean)), [issues])
+  const children = useMemo(() => new Set(issues.map((issue) => issue.parentId).filter((id): id is string => !!id)), [issues])
+  const collapsedCount = [...children].filter(id => collapsed.has(id)).length
   const rows = useMemo(() => visibleIssues(issues, collapsed, query, kind, status, { assignee, priority, version, sprintState: filters.sprintState }), [issues, collapsed, query, kind, status, assignee, priority, version, filters.sprintState])
   const assignees = useMemo(() => Array.from(new Map(issues.filter(issue => issue.assigneeId).map(issue => [issue.assigneeId!, issue.assignee ?? '이름 없음'])).entries()), [issues])
   const versions = useMemo(() => issues.filter(issue => issue.kind === 'VERSION' && issue.id.startsWith('version-')).map(issue => [issue.id.slice(8), issue.title] as const), [issues])
@@ -231,6 +232,10 @@ export function GanttChart({ issues, relations, onOpenIssue, onOpenProject, onOp
             {ZOOM_WIDTHS.map((_, index) => <option key={index} value={index}>{index + 1}단계</option>)}
           </select>
         </div>
+        <div className="toolbar-group" role="group" aria-label="계층 접기·펼치기">
+          <button type="button" disabled={children.size === 0 || collapsedCount === children.size} onClick={() => setCollapsed(new Set(children))}>모두 접기</button>
+          <button type="button" disabled={collapsedCount === 0} onClick={() => setCollapsed(new Set())}>모두 펼치기</button>
+        </div>
       <div className="export-bar"><span>현재 필터·기간으로 내보내기</span><button type="button" disabled={exporting} onClick={() => exportChart('png')}>PNG</button><button type="button" disabled={exporting} onClick={() => exportChart('pdf')}>PDF</button>{exporting && <span role="status">내보내는 중…</span>}</div>
       </div>
 
@@ -271,7 +276,7 @@ export function GanttChart({ issues, relations, onOpenIssue, onOpenProject, onOp
 </div></details>
 
       {onSaveView && <details className="saved-view-options"><summary>개인 보기 저장 · 불러오기</summary><div className="saved-view-bar"><form onSubmit={saveView}><input aria-label="보기 이름" placeholder="개인 보기 이름" value={viewName} onChange={event => setViewName(event.target.value)} required maxLength={120} /><button type="submit">현재 보기 저장</button></form><label>저장된 보기<select aria-label="저장된 보기" defaultValue="" onChange={event => { loadView(Number(event.target.value)); event.target.value = '' }}><option value="">선택</option>{savedViews.map(view => <option key={view.id} value={view.id}>{view.name}</option>)}</select></label>{savedViews.map(view => <button type="button" key={view.id} className="delete-view" onClick={() => deleteView(view.id)} aria-label={`${view.name} 보기 삭제`}>× {view.name}</button>)}{viewError && <span role="alert">{viewError}</span>}</div></details>}
-      <div className="gantt-hint" role="status">{rows.length}개 항목 표시{Object.values(filters).some(Boolean) || structuralKind ? ' · 필터 적용' : ''} · 막대를 선택하면 날짜와 관계를 읽을 수 있습니다.</div>
+      <div className="gantt-hint" role="status">{rows.length}개 항목 표시{Object.values(filters).some(Boolean) || structuralKind ? ' · 필터 적용' : ''} · 부모의 화살표로 하위 계층을 접고 펼칩니다. 막대를 선택하면 날짜와 관계를 읽을 수 있습니다.</div>
       <div className="gantt-grid-scroller"><div className="gantt-grid" ref={gridRef} style={{ gridTemplateColumns: `${paneWidth}px minmax(0,1fr)` }}>
         <div className="issue-pane">
           <div className="issue-header"><span>이슈 / 버전</span><div className="issue-columns">{showAssigneeColumn && <span className="assignee-column">담당자</span>}{showPriorityColumn && <span className="priority-column">우선순위</span>}<span className="progress-column">완료율</span></div></div>
@@ -279,10 +284,10 @@ export function GanttChart({ issues, relations, onOpenIssue, onOpenProject, onOp
             const depth = issueDepth(issue, byId)
             return <div className={`issue-row ${selectedId === issue.id ? 'is-selected' : ''}`} key={issue.id}>
               <div className="issue-name" style={{ paddingLeft: Math.min(depth, 5) * 15 + 12 }}>
-                {children.has(issue.id) ? <button className="fold-button" type="button" onClick={() => toggleCollapsed(issue.id)} aria-label={`${issue.title} ${collapsed.has(issue.id) ? '펼치기' : '접기'}`} aria-expanded={!collapsed.has(issue.id)}>{collapsed.has(issue.id) ? '▸' : '▾'}</button> : <span className="fold-spacer" />}
+                {children.has(issue.id) ? <button className="fold-button" type="button" onClick={() => toggleCollapsed(issue.id)} aria-label={`${issue.key} ${issue.title} 하위 항목 ${collapsed.has(issue.id) ? '펼치기' : '접기'}`} aria-expanded={!collapsed.has(issue.id)}>{collapsed.has(issue.id) ? '▸' : '▾'}</button> : <span className="fold-spacer" />}
                 <button className="issue-select" type="button" onClick={() => setSelectedId(issue.id)} aria-label={`${issue.key} ${issue.title}, ${KIND_LABEL[issue.kind]}, ${STATUS_LABEL[issue.status]}, ${issue.startDate ? `${dateLabel(issue.startDate)}부터 ` : ''}${dateLabel(issue.dueDate)}까지, 완료율 ${issue.progress ?? 0}%`}>
                   <span className={`kind-dot kind-${issue.kind.toLowerCase()}`} aria-hidden="true" />
-                  <span className="issue-text"><span className="issue-key">{issue.key} · {KIND_LABEL[issue.kind]}</span><span className="issue-title">{issue.title}</span></span>
+                  <span className="issue-text"><span className="issue-key">{issue.key} · {KIND_LABEL[issue.kind]}{children.has(issue.id) && collapsed.has(issue.id) && <span className="collapsed-label"> · 접힘</span>}</span><span className="issue-title">{issue.title}</span></span>
                 </button>
               </div>
               <div className="issue-columns">{showAssigneeColumn && <span className="assignee-column">{issue.assignee ?? '—'}</span>}{showPriorityColumn && <span className="priority-column">{issue.priority ? PRIORITY_LABEL[issue.priority] : '—'}</span>}<span className="row-progress">{issue.progress ?? 0}%</span></div>

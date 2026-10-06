@@ -1,6 +1,6 @@
 # Arc 기능 명세 — 팀용 MVP
 
-> 상태: 구현 기준 초안 · 2026-10-04  
+> 상태: 구현 기준 · 갱신일 2026-10-07
 > 관련 문서: [프로젝트 계획](PLAN.md), [디자인 가이드](DESIGN_GUIDE.md), [Redmine 간트 기능 기준](GANTT_REFERENCE.md), [GitHub·GitLab 연동 설계](INTEGRATIONS.md)
 
 ## 1. 목적과 범위
