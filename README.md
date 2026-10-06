@@ -118,3 +118,5 @@ python3 scripts/smoke.py  # API, MySQL, Mailpit 실행 필요
 - [Redmine 간트 기준](docs/GANTT_REFERENCE.md) · [팀용 MVP 계획](docs/PLAN.md)
 - [백엔드 구조](docs/BACKEND_ARCHITECTURE.md) · [프런트 구조와 pnpm 선택](docs/FRONTEND_ARCHITECTURE.md)
 - [작업 목록](docs/TODO.md) · [디자인 재기획](docs/DESIGN_REPLAN.md)
+
+대량 데이터는 [성능 점검](docs/PERFORMANCE.md)에 측정 범위와 재현 명령을 기록했습니다. 5,000개 실제 이슈와 20,000개 간트 모델, 백로그 페이지·전체 정렬·실패 재시도를 확인했습니다.

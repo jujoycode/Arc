@@ -3,17 +3,16 @@ import { api } from '@/shared/api/client'
 import type { Issue } from './types'
 
 export function useIssues(projectId: number) {
-  return useQuery({ queryKey: ['issues', projectId], queryFn: async () => {
-    const items: Issue[] = []
-    let page = 0, total = 0
-    do {
-      const result = await api<{ items: Issue[]; total: number }>(`/projects/${projectId}/issues?size=1000&page=${page}`)
-      total = result.total
-      items.push(...result.items)
-      if (!result.items.length) break
-      page += 1
-    } while (items.length < total)
-    return { items, total }
+  return useQuery({ queryKey: ['issues', projectId], queryFn: async ({ signal }) => {
+    const fetchPage = (page: number) => api<{ items: Issue[]; total: number }>(`/projects/${projectId}/issues?size=1000&page=${page}`, { signal })
+    const first = await fetchPage(0)
+    const items = [...first.items]
+    const pages = Math.ceil(first.total / 1000)
+    // Bound concurrent requests; Promise.all keeps the server's page ordering.
+    for (let page = 1; page < pages; page += 4) {
+      const batch = await Promise.all(Array.from({ length: Math.min(4, pages - page) }, (_, index) => fetchPage(page + index)))
+      for (const result of batch) items.push(...result.items)
+    }
+    return { items, total: first.total }
   } })
 }
-

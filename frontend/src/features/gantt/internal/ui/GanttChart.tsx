@@ -14,7 +14,8 @@ const STATUS_LABEL: Record<IssueStatus, string> = {
 const ZOOM_WIDTHS = [18, 24, 34, 48]
 const PRIORITY_LABEL: Record<string, string> = { LOW: '낮음', NORMAL: '보통', HIGH: '높음', URGENT: '긴급' }
 const ROW_HEIGHT = 48
-const dateLabel = (key?: string) => key ? parseDate(key).toLocaleDateString('ko-KR', { timeZone: 'UTC', year: 'numeric', month: 'long', day: 'numeric' }) : '날짜 없음'
+const dateFormatter = new Intl.DateTimeFormat('ko-KR', { timeZone: 'UTC', year: 'numeric', month: 'long', day: 'numeric' })
+const dateLabel = (key?: string) => key ? dateFormatter.format(parseDate(key)) : '날짜 없음'
 
 interface Props {
   issues: GanttIssue[]

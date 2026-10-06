@@ -204,6 +204,11 @@ main { flex: 1; width: 100%; max-width: 1700px; margin: 0 auto; padding: 36px 32
 .activity-list { padding-left: 17px; color: var(--arc-color-text-muted); font-size: var(--arc-font-meta); line-height: 2; }
 .relation-entry { font-size: var(--arc-font-label); }
 .backlog-list, .sprint-list { display: grid; gap: 8px; }
+.list-pagination { display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: 8px; padding: 16px 0; }
+.list-pagination > span { margin-right: auto; color: var(--arc-color-text-muted); font-size: var(--arc-font-label); }
+/* Native containment skips offscreen paint while keeping links and keyboard access. */
+.board-card { content-visibility: auto; contain-intrinsic-block-size: auto 180px; }
+@media print { .board-card { content-visibility: visible; } }
 .backlog-row, .sprint-tile, .sprint-issue, .sprint-assigned { display: flex; align-items: center; gap: 15px; padding: 13px 17px; border: 1px solid var(--arc-color-border); border-radius: 9px; background: var(--arc-color-surface); }
 .backlog-row a { display: flex; flex-direction: column; gap: 3px; min-width: 0; flex: 1; text-decoration: none; }
 .backlog-row a small { color: var(--arc-color-text-muted); }

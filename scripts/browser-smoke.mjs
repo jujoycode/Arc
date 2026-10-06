@@ -208,6 +208,21 @@ try {
 
   const sprint = await api(`projects/${projectId}/sprints`, { name: '첫 스프린트', goal: '검증 완료', startOn: '2026-10-01', endOn: '2026-10-14' }, ownerToken)
   await nav('백로그')
+  const orderBefore = await page.locator('.backlog-row small').allTextContents()
+  let failNextOrder = true
+  await page.route(`**/api/projects/${projectId}/backlog/order`, async route => {
+    if (failNextOrder && route.request().method() === 'PUT') {
+      failNextOrder = false
+      await route.fulfill({ status: 409, contentType: 'application/json', body: JSON.stringify({ error: '백로그 정렬 충돌 검증' }) })
+    } else await route.continue()
+  })
+  await page.getByRole('button', { name: `${epic.key} 아래로`, exact: true }).click()
+  await page.getByRole('alert').getByText('백로그 정렬 충돌 검증').waitFor()
+  await page.waitForFunction(key => !document.querySelector(`[aria-label="${key} 아래로"]`)?.disabled, epic.key)
+  assert.deepEqual(await page.locator('.backlog-row small').allTextContents(), orderBefore, 'Failed ordering must preserve the visible backlog')
+  await page.getByRole('button', { name: `${epic.key} 아래로`, exact: true }).click()
+  await page.waitForFunction(key => document.querySelector('.backlog-row small')?.textContent?.startsWith(key), story.key)
+  assert.equal(await page.getByRole('alert').count(), 0, 'Successful retry clears the ordering error')
   await page.getByLabel(`${story.key} 스프린트 편성`, { exact: true }).selectOption(String(sprint.id))
   await api(`projects/${projectId}/issues/${done.id}/sprint`, { sprintId: sprint.id }, ownerToken, 'PUT')
   await nav('스프린트')

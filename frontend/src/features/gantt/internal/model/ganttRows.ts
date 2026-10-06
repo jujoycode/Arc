@@ -6,14 +6,19 @@ import type { GanttIssue } from './gantt'
 export function ganttRows(rootId: number, projects: Project[], issues: Issue[], versions: GanttBundle['versions']): GanttIssue[] {
   const rows: GanttIssue[] = []
   const projectChildren = new Map<number, Project[]>()
-  for (const project of projects) if (project.parentProjectId) projectChildren.set(project.parentProjectId, [...(projectChildren.get(project.parentProjectId) ?? []), project])
+  function append<K, T>(groups: Map<K, T[]>, key: K, item: T) {
+    const group = groups.get(key)
+    if (group) group.push(item)
+    else groups.set(key, [item])
+  }
+  for (const project of projects) if (project.parentProjectId) append(projectChildren, project.parentProjectId, project)
   const byParent = new Map<string, Issue[]>()
   for (const issue of [...issues].sort((a, b) => a.number - b.number)) {
     const parent = issue.parentId ? `issue-${issue.parentId}` : issue.versionId ? `version-${issue.versionId}` : `project-${issue.projectId}`
-    byParent.set(parent, [...(byParent.get(parent) ?? []), issue])
+    append(byParent, parent, issue)
   }
   const childrenByIssue = new Map<number, Issue[]>()
-  for (const issue of issues) if (issue.parentId) childrenByIssue.set(issue.parentId, [...(childrenByIssue.get(issue.parentId) ?? []), issue])
+  for (const issue of issues) if (issue.parentId) append(childrenByIssue, issue.parentId, issue)
   const aggregateCache = new Map<number, { start?: string; end?: string; progress: number }>()
   const byVersion = new Map(versions.map(version => [version.id, version]))
   function aggregate(issue: Issue): { start?: string; end?: string; progress: number } {
@@ -63,4 +68,3 @@ export function ganttRows(rootId: number, projects: Project[], issues: Issue[], 
   for (const row of rows) if (row.parentId?.startsWith('issue-')) row.parentId = row.parentId.slice(6)
   return rows
 }
-

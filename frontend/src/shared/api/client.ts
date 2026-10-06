@@ -4,11 +4,12 @@ export const tokenStore = {
   clear: () => localStorage.removeItem('arc-token'),
 }
 
-export async function api<T>(path: string, options: { method?: string; body?: unknown } = {}): Promise<T> {
+export async function api<T>(path: string, options: { method?: string; body?: unknown; signal?: AbortSignal } = {}): Promise<T> {
   const response = await fetch(`/api${path}`, {
     method: options.method ?? (options.body === undefined ? 'GET' : 'POST'),
     headers: { 'Content-Type': 'application/json', ...(tokenStore.get() ? { Authorization: `Bearer ${tokenStore.get()}` } : {}) },
     body: options.body === undefined ? undefined : JSON.stringify(options.body),
+    signal: options.signal,
   })
   if (!response.ok) {
     let message = `요청에 실패했습니다 (${response.status}).`
@@ -20,4 +21,3 @@ export async function api<T>(path: string, options: { method?: string; body?: un
   const text = await response.text()
   return (text ? JSON.parse(text) : undefined) as T
 }
-
