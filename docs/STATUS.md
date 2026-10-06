@@ -4,7 +4,7 @@
 
 | 영역 | 구현된 기능 | 남은 작업 |
 | --- | --- | --- |
-| 디자인·기술 | KRDS 기반 Arc 토큰, shadcn/ui, Tailwind v4, TanStack Query·Table·Router, React 19, Kotlin/Spring Boot 4, MySQL 8, Flyway, Exposed DSL | 접근성 검증 확대와 배포 구성 |
+| 디자인·기술 | KRDS 기반 Arc 토큰, shadcn/ui, Tailwind v4, TanStack Query·Table·Router, React 19, Kotlin/Spring Boot 4, MySQL 8, Flyway, Exposed DSL, Docker Compose 설치 | 실기기 접근성·운영 도메인·SMTP 설정 |
 | 인증·팀 | 이메일 검증·로그인, 초대·수락·취소, 역할 변경, 소유권 이전, 워크스페이스 삭제 | 운영 SMTP 및 세션 관리 보강 |
 | 프로젝트·이슈 | 프로젝트 계층·보관과 보관 중 변경 제한, 첫 이슈 이전 키 변경, Epic/Story/Task/Bug/하위 작업, 댓글·활동·관계·버전, 낙관적 잠금, 부모 삭제·유형 변경 무결성 검증 | 대량 보드·백로그 성능 점검 |
 | 검색·목록 | 서버 검색·다중 필터·정렬·페이지 조회, 간트·보드·백로그의 전체 페이지 취합, 목록·보드·간트·백로그·스프린트의 공통 필터 유지 | 대량 데이터 사용성 개선 |
@@ -32,3 +32,5 @@ API 수용 스크립트 `scripts/smoke.py`는 이메일 인증·팀 초대·권�
 Exposed 전환을 완료했습니다. 인증·팀·프로젝트에 이어 이슈·댓글·활동·관계·스프린트와 종료 이력까지 DSL로 옮겼습니다. SpringTransactionManager와 dbQuery가 유스케이스의 같은 연결에 참여하며 행 잠금과 낙관적 버전을 유지합니다. H2 커밋·롤백·중복 키 변환 테스트, MySQL의 동시 번호 발급·중간 실패 시 정렬과 버전의 전체 롤백, 스프린트 포인트 합계·종료 이력·미완료 이월, 전체 API·브라우저 수용 검사와 Gradle check·bootJar가 통과했습니다. MySQL 포인트 합계는 호환되는 DECIMAL 변환으로 정수 오버플로를 방지합니다.
 
 5,000개 실제 이슈의 API·간트·보드·백로그와 20,000개 간트 모델을 점검했습니다. 반복 그룹 복사·날짜 포맷 비용을 줄이고, 페이지 병렬 취합·백로그 100개 페이지·변경 중 중복 방지·정렬 실패 재시도를 적용했습니다. 백로그 첫·마지막 페이지와 5,000개 전체 순서 저장도 통과했습니다. [성능 문서](PERFORMANCE.md)에 관찰값과 대량 DOM·출력의 제한을 기록했습니다.
+
+Docker Compose 설치 구성을 준비했습니다. 비관리자 웹·API 이미지, 내부 MySQL, 선택적 Mailpit, SMTP 인증·TLS 변수, 상태 검사와 볼륨을 제공합니다. 새 DB에서 Flyway와 nginx 경유 API·브라우저 전체 수용 검사가 통과했고, 백업을 별도 DB에 복원하여 사용자·이슈·마이그레이션 수를 비교했습니다. [배포 문서](DEPLOYMENT.md)와 설치 검증 전용 CI를 추가했습니다. 외부 서버 공개·실제 도메인·운영 메일 발송은 해당 환경에서 설정·확인해야 합니다.

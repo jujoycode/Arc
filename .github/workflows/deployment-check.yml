@@ -1,0 +1,86 @@
+name: Compose deployment check
+
+on:
+  workflow_dispatch:
+  pull_request:
+    branches: [main]
+    paths:
+      - '**/Dockerfile'
+      - '.dockerignore'
+      - 'frontend/nginx.conf'
+      - 'compose.deploy.yaml'
+      - 'deploy.env.example'
+      - 'scripts/deploy/**'
+      - '.github/workflows/deployment-check.yml'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: arc-compose-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  compose:
+    name: Build images and verify fresh Compose installation
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    env:
+      ARC_COMPOSE_PROJECT: arc-ci-deploy
+      ARC_API_URL: http://127.0.0.1:8085/api/
+      ARC_WEB_URL: http://127.0.0.1:8085
+      ARC_MAIL_URL: http://127.0.0.1:8026/api/v1/
+      CHROMIUM_PATH: ''
+      ARC_TEST_OUTPUT: .ci-artifacts/deploy-browser
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+      - uses: ./.github/actions/setup-frontend
+      - name: Install browser
+        run: pnpm --dir frontend exec playwright install --with-deps chromium
+      - name: Create disposable installation configuration
+        run: |
+          python3 - <<'PY'
+          import os, pathlib, secrets
+          config = pathlib.Path(os.environ['RUNNER_TEMP']) / 'arc-deploy.env'
+          config.write_text('DB_PASSWORD=' + secrets.token_hex(24) + '\nMYSQL_ROOT_PASSWORD=' + secrets.token_hex(24) + '\nARC_PUBLIC_URL=http://127.0.0.1:8085\nSMTP_HOST=mailpit\nSMTP_PORT=1025\nSMTP_AUTH=false\nSMTP_STARTTLS=false\n')
+          config.chmod(0o600)
+          with open(os.environ['GITHUB_ENV'], 'a') as env:
+              env.write('ARC_DEPLOY_ENV_FILE=' + str(config) + '\n')
+          PY
+          mkdir -p .ci-artifacts
+      - name: Build and start web API MySQL and test mail
+        run: |
+          docker compose --env-file "$ARC_DEPLOY_ENV_FILE" -p "$ARC_COMPOSE_PROJECT" -f compose.deploy.yaml --profile local-mail up -d --build --wait --wait-timeout 180 >.ci-artifacts/compose-build.log 2>&1
+      - name: Verify API and browser through nginx
+        run: |
+          python3 scripts/smoke.py | tee .ci-artifacts/deploy-api.log
+          pnpm --dir frontend check:browser | tee .ci-artifacts/deploy-browser.log
+      - name: Verify database backup restores into a separate database
+        run: |
+          bash scripts/deploy/backup.sh "$RUNNER_TEMP/arc-backup.sql"
+          docker compose --env-file "$ARC_DEPLOY_ENV_FILE" -p "$ARC_COMPOSE_PROJECT" -f compose.deploy.yaml exec -T mysql sh -c \
+            'MYSQL_PWD="$MYSQL_ROOT_PASSWORD" mysql -u root -e "CREATE DATABASE arc_restore_check"'
+          docker compose --env-file "$ARC_DEPLOY_ENV_FILE" -p "$ARC_COMPOSE_PROJECT" -f compose.deploy.yaml exec -T mysql sh -c \
+            'MYSQL_PWD="$MYSQL_ROOT_PASSWORD" mysql -u root arc_restore_check' < "$RUNNER_TEMP/arc-backup.sql"
+          result="$(docker compose --env-file "$ARC_DEPLOY_ENV_FILE" -p "$ARC_COMPOSE_PROJECT" -f compose.deploy.yaml exec -T mysql sh -c \
+            'MYSQL_PWD="$MYSQL_ROOT_PASSWORD" mysql -u root --batch --skip-column-names -e "SELECT ((SELECT COUNT(*) FROM arc.issues) = (SELECT COUNT(*) FROM arc_restore_check.issues)) AND ((SELECT COUNT(*) FROM arc.users) = (SELECT COUNT(*) FROM arc_restore_check.users)) AND ((SELECT COUNT(*) FROM arc.flyway_schema_history) = (SELECT COUNT(*) FROM arc_restore_check.flyway_schema_history))"')"
+          test "$result" = 1
+          rm "$RUNNER_TEMP/arc-backup.sql"
+      - name: Collect container diagnostics
+        if: always()
+        run: |
+          mkdir -p .ci-artifacts
+          test -n "${ARC_DEPLOY_ENV_FILE:-}" || exit 0
+          docker compose --env-file "$ARC_DEPLOY_ENV_FILE" -p "$ARC_COMPOSE_PROJECT" -f compose.deploy.yaml ps -a >.ci-artifacts/compose-status.txt || true
+          docker compose --env-file "$ARC_DEPLOY_ENV_FILE" -p "$ARC_COMPOSE_PROJECT" -f compose.deploy.yaml logs --no-color >.ci-artifacts/compose-runtime.log 2>&1 || true
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        if: always()
+        with:
+          name: compose-installation-check
+          path: .ci-artifacts/
+          retention-days: 7
+      - name: Remove disposable installation
+        if: always()
+        run: |
+          test -n "${ARC_DEPLOY_ENV_FILE:-}" || exit 0
+          docker compose --env-file "$ARC_DEPLOY_ENV_FILE" -p "$ARC_COMPOSE_PROJECT" -f compose.deploy.yaml --profile local-mail down -v

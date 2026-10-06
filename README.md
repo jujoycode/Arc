@@ -29,6 +29,16 @@ GitHub·GitLab 연결은 [설계 기준](docs/INTEGRATIONS.md)을 마련한 후�
 
 ## Get started
 
+앱 전체를 Docker로 설치하려면 Java·Node를 호스트에 설치할 필요 없이 아래 명령을 사용합니다. `.env.deploy`의 두 DB 비밀번호를 바꾼 뒤 실행하세요. 웹은 http://localhost:8085, 확인 메일은 http://localhost:8026에서 볼 수 있습니다. 운영 도메인·SMTP·백업은 [배포 문서](docs/DEPLOYMENT.md)를 따릅니다.
+
+```bash
+cp deploy.env.example .env.deploy
+chmod 600 .env.deploy
+docker compose --env-file .env.deploy -f compose.deploy.yaml --profile local-mail up -d --build --wait
+```
+
+코드를 수정하며 실행하는 개발 환경은 다음과 같습니다.
+
 필요한 도구: **Java 21**, **Node.js 22.13 이상**, **pnpm 11.19.0**, **Docker Compose**. 로컬 DB는 MySQL 8.4, 개발용 메일함은 Mailpit입니다.
 
 ```bash
@@ -64,7 +74,7 @@ pnpm dev
 | API 상태 확인 | http://localhost:8080/actuator/health |
 | MySQL | `localhost:3307` · DB/사용자 `arc` |
 
-운영 환경의 SMTP와 배포 대상은 아직 확정하지 않았습니다. 서버 환경 변수는 [백엔드 실행 문서](backend/README.md)를 참고하세요.
+Docker Compose 기반 자체 서버 배포 구성을 제공합니다. 실제 운영 도메인과 SMTP 계정은 설치할 서버에서 설정합니다. 서버 환경 변수는 [백엔드 실행 문서](backend/README.md)를 참고하세요.
 
 ### 첫 프로젝트 사용하기
 

@@ -1,0 +1,11 @@
+.git
+**/node_modules
+**/dist
+**/build
+**/.gradle
+.ci-artifacts
+.ci-build
+.env
+.env.*
+docs/screenshots
+*.log

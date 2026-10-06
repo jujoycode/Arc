@@ -89,3 +89,13 @@ bash scripts/ci/acceptance.sh backend/build/libs/arc-backend-0.0.1-SNAPSHOT.jar
 3. **단위·DB 테스트:** 날짜 집계와 계층 규칙, 트랜잭션·잠금처럼 변경 위험이 큰 부분부터 추가한다.
 4. **대량 데이터:** 간트·보드·백로그 응답 시간과 브라우저 표시 비용을 측정한다. PR 기능 검사와 분리한 수동·정기 실행이 적합하다.
 5. **접근성과 배포:** 디자인 시스템 재구성과 함께 접근성 검사를 추가한다. 운영 대상이 확정되면 환경별 배포·상태 확인을 연결한다.
+
+## Compose 설치 검증
+
+`deployment-check.yml`은 Dockerfile·nginx·Compose·설치 스크립트를 바꾸는 PR 또는 수동 실행에서 이미지를 직접 빌드합니다. 새 MySQL·Mailpit와 웹·API를 띄워 nginx 경유 API·브라우저 수용 흐름을 검사하고, DB 백업을 별도 DB에 복원해 사용자·이슈·Flyway 기록 수를 비교합니다. 테스트 설치는 종료 시 볼륨과 함께 제거합니다. 실제 서버에 배포하거나 이미지를 레지스트리에 게시하지 않습니다. 기존 `CI gate`는 프런트·백엔드·수용 검사를 계속 요구합니다.
+
+```bash
+gh workflow run deployment-check.yml --repo jujoycode/Arc
+```
+
+환경 파일과 백업은 runner의 임시 디렉터리에만 두며 설치 로그·브라우저 실패 자료만 7일간 보관합니다.
