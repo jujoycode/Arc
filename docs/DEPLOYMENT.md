@@ -77,3 +77,5 @@ docker build --secret id=proxy_ca,src="$CODEX_PROXY_CERT" \
 ```
 
 설치할 서버·도메인·실제 SMTP 자격 증명이 아직 제공되지 않았으므로, 여기서 확인하는 것은 로컬의 새 Compose 설치와 Mailpit 수신이다. 외부 서버 공개와 운영 메일 발송은 해당 환경에서 마지막으로 확인한다.
+
+저장소 연동은 `.env.deploy`의 `ARC_INTEGRATION_ENCRYPTION_KEY`를 한 번 생성해 설정한 뒤 활성화한다. [연결 방법](INTEGRATIONS.md)을 따른다. 암호화 키는 DB 덤프에 포함되지 않으므로 복구 시 필요한 서버 환경 파일을 별도로 안전하게 보관한다.

@@ -6,6 +6,7 @@ import { createRequire } from 'node:module'
 const { default: AxeBuilder } = await import(createRequire(new URL('../frontend/package.json', import.meta.url)).resolve('@axe-core/playwright'))
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
+import { createHmac } from 'node:crypto'
 
 const web = process.env.ARC_WEB_URL ?? 'http://localhost:5173'
 const backend = process.env.ARC_API_URL ?? 'http://localhost:8080/api/'
@@ -261,6 +262,40 @@ try {
   assert.equal((await api(`projects/${projectId}/sprints/${sprint.id}/history`, undefined, ownerToken)).length, 2)
 
   await page.keyboard.press('Escape')
+  if (process.env.ARC_PROVIDER_FIXTURE_URL) {
+    await page.goto(`${web}/projects/${projectId}/settings`)
+    await heading('프로젝트와 팀 설정')
+    const integration = page.locator('.integration-settings')
+    await integration.getByLabel('저장소 경로', { exact: true }).fill('arc-fixture/repo')
+    await integration.getByLabel('저장소 접근 토큰', { exact: true }).fill('arc-fixture-token-123')
+    const webhookSecret = 'browser-fixture-secret-1234567890abcdefgh'
+    await integration.getByLabel('웹훅 검증키', { exact: true }).fill(webhookSecret)
+    await integration.getByRole('button', { name: '저장소 연결 저장', exact: true }).click()
+    await integration.getByRole('status').filter({ hasText: '저장소를 연결했습니다.' }).waitFor()
+    assert.equal(await integration.getByLabel('저장소 접근 토큰', { exact: true }).inputValue(), '')
+    const connection = (await api(`projects/${projectId}/repository-connections`, undefined, ownerToken)).items.find(item => item.provider === 'GITHUB')
+    const raw = JSON.stringify({ repository: { id: 101 }, commits: [{ id: 'c'.repeat(40), message: `${story.key} Browser 연결`, timestamp: '2026-10-06T12:00:00Z' }] })
+    const response = await http.post(`integrations/webhooks/${connection.id}`, { data: raw, headers: { 'Content-Type': 'application/json', 'X-GitHub-Event': 'push', 'X-GitHub-Delivery': `browser-${suffix}`, 'X-Hub-Signature-256': 'sha256=' + createHmac('sha256', webhookSecret).update(raw).digest('hex') } })
+    assert.equal(response.status(), 202)
+    let linked = []
+    for (let attempt = 0; attempt < 30; attempt++) {
+      linked = await api(`projects/${projectId}/issues/${storyId}/development-links`, undefined, ownerToken)
+      if (linked.length) break
+      await new Promise(resolve => setTimeout(resolve, 200))
+    }
+    assert.equal(linked.length, 1)
+    await page.goto(`${web}/projects/${projectId}/issues/${storyId}`)
+    await heading('일정 관리 구현')
+    await page.locator('.development-list a').filter({ hasText: `${story.key} Browser 연결` }).waitFor()
+    assert.equal(await page.locator('.development-list a').getAttribute('href'), 'https://github.com/arc-fixture/repo/commit/' + 'c'.repeat(40))
+    await audit('development-links')
+    await reflow('development-links')
+    await page.goto(`${web}/projects/${projectId}/settings`)
+    await integration.getByRole('button', { name: '전달 기록 보기', exact: true }).click()
+    await integration.locator('.delivery-records').getByText(/push · 처리됨/).waitFor()
+    await audit('repository-connections')
+    await reflow('repository-connections')
+  }
   for (const view of ['gantt', 'board', 'backlog', 'sprints', 'issues', 'settings']) {
     await page.goto(`${web}/projects/${projectId}/${view}`)
     await page.locator('h1').waitFor()

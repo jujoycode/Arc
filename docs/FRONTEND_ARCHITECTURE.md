@@ -82,3 +82,5 @@ pnpm check:browser  # API·MySQL·Mailpit·Chromium 필요
 ```
 
 경계 검사는 디렉터리 규칙, 로컬 import 유효성, 기능의 비공개 경로 참조, shared의 기능 의존, 모델의 직접 HTTP 호출, 런타임 의존 순환을 확인한다. 실제 상태 변경·출력·권한·충돌은 브라우저 수용 스크립트가 확인한다.
+
+저장소 연동은 9번째 `integration` 기능으로 추가했다. 공개 `IntegrationSettings`와 `DevelopmentLinks`를 settings·issue에서 조합한다. integration은 project의 권한 조회만 참조하며 issue 기능을 import하지 않아 순환을 만들지 않는다. 자격 증명 입력은 화면의 로컬 상태만 사용하고 조회 캐시에 넣지 않는다.
