@@ -48,6 +48,10 @@ backend/src/main/kotlin/io/arcapp/backend/
 ├── savedview/                 # 사용자별 간트 보기
 │   ├── web/
 │   └── internal/persistence/
+├── integration/               # GitHub·GitLab 연결·개발 활동·웹훅 큐
+│   ├── api/                   # RepositoryProvider 외부 시스템 경계
+│   ├── web/                   # 연결 관리·웹훅 수신
+│   └── internal/              # 서비스·worker·암호화·client·persistence
 └── mail/
     ├── api/                   # MailSender 외부 시스템 포트
     └── internal/client/       # SMTP 구현
@@ -101,7 +105,7 @@ flowchart LR
 - Handler는 독립적인 변경 흐름이나 복잡한 분기가 서비스의 책임을 흐릴 때 도입한다. 작업마다 파일을 하나씩 만드는 규칙은 두지 않는다.
 - 인터페이스는 외부 시스템 경계나 실제로 여러 구현이 필요할 때 둔다. 모든 Service·Repository에 인터페이스를 만들지 않는다.
 - 별도 읽기 DB·이벤트 저장소가 필요하기 전에는 Full CQRS를 도입하지 않는다.
-- GitHub·GitLab 구현 시 `integration/api`, `internal/client`, 웹훅 `web`을 둔다. 이슈 연결은 `issue/api` 계약으로 처리하며 상세 범위는 [연동 명세](INTEGRATIONS.md)를 따른다.
+- GitHub·GitLab은 `integration/api` 제공자 계약, `internal/client` HTTP·서명·이벤트 변환, `web` 수신, `internal/persistence` 큐·링크로 분리했다. 이슈 연결은 `IssueDevelopmentQueries`, 프로젝트 상태·잠금은 `ProjectAccess` 공개 계약을 사용한다. 네트워크 호출은 DB 트랜잭션 밖에서 처리하며 worker의 링크·전달 결과는 함께 커밋한다. 상세 범위는 [연동 명세](INTEGRATIONS.md)를 따른다.
 
 ## 검증
 

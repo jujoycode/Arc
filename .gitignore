@@ -151,3 +151,4 @@ vite.config.ts.timestamp-*
 # CI build inputs and diagnostic artifacts
 .ci-build/
 .ci-artifacts/
+__pycache__/

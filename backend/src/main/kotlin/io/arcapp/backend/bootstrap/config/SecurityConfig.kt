@@ -25,7 +25,7 @@ class SecurityConfig(private val sessions: SessionAuthenticator) {
 
 class BearerFilter(private val sessions: SessionAuthenticator) : OncePerRequestFilter() {
     override fun shouldNotFilter(request: HttpServletRequest): Boolean =
-        !request.requestURI.startsWith("/api/") || request.requestURI in setOf(
+        !request.requestURI.startsWith("/api/") || request.requestURI.startsWith("/api/integrations/webhooks/") || request.requestURI in setOf(
             "/api/auth/register", "/api/auth/verify", "/api/auth/login"
         )
 

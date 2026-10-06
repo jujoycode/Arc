@@ -25,6 +25,12 @@ private fun ResultRow.version(): Map<String, Any?> = mapOf(
 
 @Repository
 class ProjectRepository {
+    /** Queue workers use a configured connection; serialize linking with project writes. */
+    fun externalKey(projectId: Long): String? = dbQuery {
+        Projects.join(ProjectWorkspaces, JoinType.INNER, Projects.workspaceId, ProjectWorkspaces.id)
+            .select(Projects.key).where { (Projects.id eq projectId) and Projects.archivedAt.isNull() and ProjectWorkspaces.deletedAt.isNull() }
+            .forUpdate().firstOrNull()?.get(Projects.key)
+    }
     fun find(id: Long) = dbQuery { Projects.selectAll().where { Projects.id eq id }.firstOrNull()?.raw() }
     fun view(id: Long) = dbQuery { Projects.selectAll().where { Projects.id eq id }.firstOrNull()?.view() }
     fun list(workspaceId: Long) = dbQuery { Projects.selectAll().where { Projects.workspaceId eq workspaceId }.orderBy(Projects.name to SortOrder.ASC, Projects.id to SortOrder.ASC).map { it.view() } }

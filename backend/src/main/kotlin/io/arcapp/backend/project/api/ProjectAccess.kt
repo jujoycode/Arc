@@ -30,4 +30,6 @@ class ProjectAccess(private val repository: ProjectRepository, private val works
 
     fun allocateIssueNumber(project: ProjectContext): IssueNumber = IssueNumber(repository.allocateIssueNumber(project.id), project.key)
     fun containsVersion(projectId: Long, versionId: Long): Boolean = repository.containsVersion(projectId, versionId)
+    /** Background integration caller must hold a verified connection and a transaction. */
+    fun externalKey(projectId: Long): String? = repository.externalKey(projectId)
 }

@@ -26,4 +26,4 @@ internal object Versions : Table("versions") {
     override val primaryKey = PrimaryKey(id)
 }
 /** Workspace lock projection; membership writes belong to workspace. */
-internal object ProjectWorkspaces : Table("workspaces") { val id = long("id") }
+internal object ProjectWorkspaces : Table("workspaces") { val id = long("id"); val deletedAt = datetime("deleted_at").nullable() }

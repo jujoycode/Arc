@@ -19,6 +19,10 @@ spring:
 arc:
   public-url: ${ARC_PUBLIC_URL:http://localhost:5173}
   mail-from: ${ARC_MAIL_FROM:Arc <no-reply@localhost>}
+  integrations:
+    encryption-key: ${ARC_INTEGRATION_ENCRYPTION_KEY:}
+    github-api-url: ${ARC_PROVIDER_GITHUB_API_URL:https://api.github.com}
+    gitlab-api-url: ${ARC_PROVIDER_GITLAB_API_URL:https://gitlab.com/api/v4}
 
 management:
   endpoints:

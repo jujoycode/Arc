@@ -99,3 +99,5 @@ gh workflow run deployment-check.yml --repo jujoycode/Arc
 ```
 
 환경 파일과 백업은 runner의 임시 디렉터리에만 두며 설치 로그·브라우저 실패 자료만 7일간 보관합니다.
+
+Compose 설치 검증은 [GitHub 실행](https://github.com/jujoycode/Arc/actions/runs/37477976978)에서 이미지 빌드·전체 API/브라우저·백업 복원을 통과했습니다. 기본 수용 검사는 로컬 제공자 모형을 함께 띄워 GitHub·GitLab 인증 계약·서명·큐·중복·이슈 범위·권한 상실도 검사합니다. 모형의 키와 토큰은 테스트 전용이며 외부 제공자에 요청하지 않습니다.

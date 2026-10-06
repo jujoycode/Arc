@@ -34,6 +34,10 @@ class IssueRepository {
         "status" to Issues.status, "priority" to Issues.priority, "assigneeName" to IssueUsers.displayName, "dueDate" to Issues.dueDate,
     )
     fun supportsSort(sort: String) = sort in sortColumns
+    fun findNumbers(projectId: Long, numbers: Set<Int>): Map<Int, Long> = dbQuery {
+        if (numbers.isEmpty()) emptyMap() else Issues.select(Issues.number, Issues.id)
+            .where { (Issues.projectId eq projectId) and (Issues.number inList numbers) and Issues.deletedAt.isNull() }.associate { it[Issues.number] to it[Issues.id] }
+    }
     private fun searchCondition(projectId: Long, search: IssueSearch): Op<Boolean> {
         val conditions = mutableListOf<Op<Boolean>>(Issues.projectId eq projectId, Issues.deletedAt.isNull())
         with(search) {
