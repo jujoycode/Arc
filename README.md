@@ -2,39 +2,49 @@
 
 [![Arc CI](https://github.com/jujoycode/Arc/actions/workflows/ci.yml/badge.svg)](https://github.com/jujoycode/Arc/actions/workflows/ci.yml)
 
-Arc는 소규모 팀이 하나의 티켓을 WBS, 간트, 타임라인, 테이블, 칸반, 스프린트에서 함께 관리하는 웹 앱입니다. Epic·Story·Task·Bug·하위 작업은 티켓의 유형이며, 기존 이슈 키로 일정·관계·진행률을 연결합니다.
+**팀의 계획과 개발자의 실행을 같은 티켓으로 연결하는 프로젝트 관리 도구.**
 
-### 간트 차트
+관리자는 WBS에서 범위를 분해하고 업무를 배정합니다. 개발자는 내 티켓과 팀 진척을 확인하고 상태·완료율을 기록합니다. 일정은 간트와 타임라인으로, 실행은 테이블·칸반·스프린트로 확인합니다. Epic·Story·Task·Bug·하위 작업은 공통 티켓의 유형입니다.
 
-프로젝트·버전·Epic·하위 작업의 일정과 집계 완료율, 이슈 관계와 진행선을 함께 표시합니다.
+**[전체 제품 화면 둘러보기 →](docs/product/README.md)** · [기능과 권한 확인](docs/product/FEATURES.md) · [설치 방법](#바로-시작하기)
 
-![실제 프로젝트 데이터로 표시한 Arc 간트 차트](docs/screenshots/gantt.png)
+## WBS로 계획하고 팀 진척 확인하기
 
-### 칸반 보드
+계층별 업무, 담당자, 일정, 말단 완료 비율과 포인트를 함께 확인합니다. 개발자는 ‘내 업무’로 담당 티켓과 부모 맥락을 볼 수 있습니다.
 
-동일한 이슈를 상태별로 표시합니다. 드래그, 상태 선택 메뉴, 키보드로 이동할 수 있습니다.
+[![Arc 관리자 WBS — 실제 제품 화면, 1920×1080](docs/product/images/wbs-manager.png)](docs/product/02-planning-and-schedule.md#wbs-manager)
 
-![같은 이슈를 상태별로 표시한 Arc 칸반 보드](docs/screenshots/board.png)
+## 간트로 일정과 관계 확인하기
 
-위 화면은 2026-10-07에 실행한 앱을 **1920×1080** 해상도로 촬영한 것입니다. 두 화면은 MySQL에 저장된 같은 11개 데모 이슈를 사용합니다. 새 설치에는 데모 계정이나 데이터가 자동으로 생성되지 않습니다.
+프로젝트·버전·Epic·Story·하위 작업을 계층별로 접고 펼칩니다. 일정·완료율·선행/차단 관계·오늘 선을 표시하고 개인 보기 저장과 PNG/PDF 출력을 제공합니다.
 
-## 주요 기능
+[![Arc 간트 차트 — 실제 제품 화면, 1920×1080](docs/product/images/gantt.png)](docs/product/02-planning-and-schedule.md#gantt)
 
-- **WBS:** 관리자 범위 분해·배정, 개발자의 팀 진척·내 업무 조회, 계층 코드·중첩 접기, 간트와 같은 집계·말단 완료 비율·포인트
-- **타임라인:** 월/3개월 일정 개요, Epic·버전 그룹, 미계획·기간 밖·상속 일정 충돌 목록, 상세 편집 반영
-- **테이블:** 서버 검색·필터·정렬·페이지, 시작일·완료율·포인트를 포함한 열 선택과 보기 이동 중 설정 유지
-- **간트:** 프로젝트·버전·Epic·하위 이슈 계층, 일정·완료율·오늘 선·주말·선행/차단 관계, 월 이동·확대, 필터·개인 보기 저장, PNG/PDF 출력
-- **이슈:** Epic/Story/Task/Bug/하위 작업, 담당자·우선순위·기한·버전, 댓글·변경 기록·이슈 관계, 검색·필터
-- **칸반과 스크럼:** 상태별 보드, 백로그 정렬·스프린트 편성, 스프린트 시작·종료와 이력
-- **팀 관리:** 이메일 가입·검증·로그인, 워크스페이스 초대, 기본 소유자·관리자와 프로젝트별 추가 관리자 지정
+위 사진은 동일한 데모 팀의 실제 앱 화면입니다. 모든 제품 사진은 **1920×1080 원본**이며, [화면 안내](docs/product/README.md)에 촬영일·사용자 역할·기능 설명을 함께 기록했습니다. 새 설치에는 데모 계정·데이터가 자동으로 생성되지 않습니다.
 
-상태·완료율은 티켓 담당자와 관리자가 수정하며, 댓글은 모든 팀원이 작성할 수 있습니다. 개발자의 계획 변경은 API에서도 제한합니다. [WBS 역할·권한과 업무 흐름](docs/WORK_VIEWS_PLAN.md)을 참고하세요.
+## 어떤 업무를 할 수 있나요?
 
-GitHub·GitLab 저장소를 연결해 커밋과 PR·MR을 이슈의 개발 활동으로 표시합니다. 서버에서 연동 키를 활성화하고 제공자의 웹훅을 설정해야 합니다. [연결 방법과 구현 범위](docs/INTEGRATIONS.md)를 참고하세요. 실제 계정·외부 웹훅은 설치 환경에서 확인합니다.
+| 업무 | 제공 기능 | 화면 안내 |
+| --- | --- | --- |
+| 팀 시작 | 이메일 가입·확인·로그인, 초대, 워크스페이스·프로젝트 계층 | [팀 공간](docs/product/01-team-and-access.md) |
+| 범위와 일정 계획 | 관리자 WBS, 개발자 내 업무, 중첩 간트, Epic/버전 타임라인 | [WBS·일정](docs/product/02-planning-and-schedule.md) |
+| 업무 실행과 협업 | 티켓 테이블·열 선택, 칸반, 상세, 댓글, 관계·변경 기록, 충돌 안내 | [티켓·보기](docs/product/03-tickets-and-views.md) |
+| 스프린트 운영 | 백로그 정렬·편성, 계획·시작·종료, 미완료 이월, 과거 결과 | [스크럼](docs/product/04-sprints.md) |
+| 팀·개발 도구 관리 | 프로젝트 관리자 지정, 버전, 팀 역할, 보관, GitHub·GitLab 커밋/PR/MR | [설정·연동](docs/product/05-settings-and-integrations.md) |
 
-## Get started
+### 역할에 맞는 업무 흐름
 
-앱 전체를 Docker로 설치하려면 Java·Node를 호스트에 설치할 필요 없이 아래 명령을 사용합니다. `.env.deploy`의 두 DB 비밀번호를 바꾼 뒤 실행하세요. 웹은 http://localhost:8085, 확인 메일은 http://localhost:8026에서 볼 수 있습니다. 운영 도메인·SMTP·백업은 [배포 문서](docs/DEPLOYMENT.md)를 따릅니다.
+1. 워크스페이스 소유자·관리자가 팀과 프로젝트를 만들고 팀원을 초대합니다.
+2. 기본 관리자는 소유자·워크스페이스 관리자이며, 프로젝트별 추가 관리자를 지정할 수 있습니다.
+3. 관리자가 WBS에서 티켓의 범위·계층·담당자·일정·추정을 정하고 스프린트에 편성합니다.
+4. 개발자는 팀 전체와 내 업무를 조회하고 담당 티켓의 상태·완료율을 수정합니다. 댓글은 모든 팀원이 작성합니다.
+5. 간트·타임라인에서 일정과 관계를 확인하고, 스프린트 종료 시 미완료 업무를 이월합니다.
+
+프로젝트별 관리자는 지정된 프로젝트의 계획만 관리합니다. 팀 역할·프로젝트 설정·저장소 자격 증명 관리는 워크스페이스 소유자·관리자가 담당합니다. 보관 프로젝트는 읽기 전용입니다. [상세 권한표](docs/product/FEATURES.md#역할과-권한)를 참고하세요.
+
+## 바로 시작하기
+
+Docker Compose로 웹·API·MySQL을 함께 설치할 수 있습니다. `.env.deploy`의 **DB 비밀번호 두 개를 변경**한 뒤 실행하세요.
 
 ```bash
 cp deploy.env.example .env.deploy
@@ -42,100 +52,34 @@ chmod 600 .env.deploy
 docker compose --env-file .env.deploy -f compose.deploy.yaml --profile local-mail up -d --build --wait
 ```
 
-코드를 수정하며 실행하는 개발 환경은 다음과 같습니다.
+- 웹 앱: http://localhost:8085
+- 이메일 확인·초대 메일함: http://localhost:8026
 
-필요한 도구: **Java 21**, **Node.js 22.13 이상**, **pnpm 11.19.0**, **Docker Compose**. 로컬 DB는 MySQL 8.4, 개발용 메일함은 Mailpit입니다.
+가입 → 확인 메일 링크 → 로그인 → 워크스페이스·프로젝트 생성 → 팀 초대 → 버전·티켓 등록 순서로 시작합니다. 프로젝트 키는 `ARC`처럼 대문자로 시작하는 2~10자의 영문 대문자·숫자입니다.
 
-```bash
-cp .env.example .env
-# .env의 DB_PASSWORD와 MYSQL_ROOT_PASSWORD를 각자 변경
-docker compose up -d --wait
-```
+운영 서버의 도메인·HTTPS·SMTP·백업은 [배포 안내](docs/DEPLOYMENT.md), 코드를 수정하며 실행하는 방법과 검사 명령은 [개발 안내](docs/DEVELOPMENT.md)에 있습니다. `frontend/index.html`은 Vite 시작 파일이므로 실행한 웹 주소로 접속하세요.
 
-저장소 루트에서 첫 번째 터미널을 열고 `.env`를 불러온 뒤 API를 실행합니다. Flyway가 필요한 테이블을 생성합니다.
+## 현재 범위
 
-```bash
-set -a
-source .env
-set +a
-cd backend
-./gradlew bootRun
-```
+버전 일정과 목표 날짜 표시는 제공합니다. **독립 마일스톤의 선행 조건·달성·증빙 관리는 기획 완료, 구현 대기**입니다. [마일스톤 기획](docs/MILESTONE_PLAN.md)을 참고하세요.
 
-저장소 루트에서 두 번째 터미널을 열고 웹 앱을 실행합니다.
+일정 편집은 티켓 상세에서 합니다. 간트 막대 드래그 편집, WBS 직접 재정렬·시간/원가·기준선은 후속 범위입니다. 공통 필터와 테이블 표시 열은 같은 프로젝트의 보기 이동 중 유지되며, 새로고침 복원은 후속 범위입니다. 간트 개인 보기는 사용자별로 저장합니다.
 
-```bash
-cd frontend
-corepack enable  # pnpm이 이미 설치되어 있으면 생략
-# Corepack이 없다면: npm install --global pnpm@11.19.0
-pnpm install --frozen-lockfile
-pnpm dev
-```
+GitHub·GitLab 연동의 화면 자료는 로컬 제공자 모형으로 촬영했습니다. 실계정·공개 웹훅·운영 SMTP는 설치 환경에서 설정합니다. [지원 범위 전체](docs/product/FEATURES.md#선택하기-전에-확인할-범위)와 [구현 현황](docs/STATUS.md)을 확인하세요.
 
-| 서비스 | 주소 |
-| --- | --- |
-| 웹 앱 | http://localhost:5173 |
-| 개발용 메일함 | http://localhost:8025 |
-| API 상태 확인 | http://localhost:8080/actuator/health |
-| MySQL | `localhost:3307` · DB/사용자 `arc` |
-
-Docker Compose 기반 자체 서버 배포 구성을 제공합니다. 실제 운영 도메인과 SMTP 계정은 설치할 서버에서 설정합니다. 서버 환경 변수는 [백엔드 실행 문서](backend/README.md)를 참고하세요.
-
-### 첫 프로젝트 사용하기
-
-1. 웹 앱에서 이메일과 12자 이상의 비밀번호로 가입합니다. Mailpit의 확인 메일 링크를 열어 검증하고 로그인합니다.
-2. 워크스페이스와 프로젝트를 만듭니다. 프로젝트 키는 `ARC`처럼 대문자로 시작하는 2~10자의 영문 대문자·숫자입니다.
-3. 설정에서 팀원을 초대합니다. 초대받은 팀원은 해당 이메일 계정으로 가입·검증·로그인한 뒤 초대 링크를 엽니다.
-4. 버전을 만들고 Epic·Story·Task·하위 작업을 등록합니다. 담당자, 시작일·완료일, 완료율, 스토리 포인트와 관계를 지정합니다.
-5. WBS에서 작업 범위를 분해하고 하위 티켓을 추가합니다. 타임라인에서 일정 개요를, 간트에서 관계와 정밀 일정을 확인합니다. 간트는 개인 보기 저장과 PNG/PDF 출력을 제공하며 일정 수정은 공통 상세에서 합니다.
-6. 칸반에서 상태를 변경합니다. 검색·필터는 프로젝트 안에서 보기 전환 시 유지됩니다.
-7. 백로그에서 이슈를 스프린트에 편성합니다. 관리자가 시작·종료하면 완료/미완료 이슈와 포인트 결과, 과거 참여 이력이 보존됩니다.
-
-멤버는 이슈와 백로그를 관리할 수 있고, 팀·프로젝트 설정과 스프린트 시작·종료는 관리자 이상에게 제공됩니다. 보관한 프로젝트는 읽기 전용입니다.
-
-테이블은 프로젝트 메뉴의 ‘이슈 목록’에서 엽니다. ‘표시할 열’에서 선택한 설정과 공통 필터는 같은 프로젝트 안의 보기 이동 동안 유지됩니다. 새로고침 후의 복원·사용자별 서버 저장은 후속 범위입니다. WBS 코드는 계층 위치이며 구성 변경 시 바뀔 수 있으므로, 영구 참조에는 티켓 키를 사용합니다.
-
-`frontend/index.html`은 Vite가 React를 불러오는 시작 파일입니다. 파일을 직접 열면 브라우저 모듈 제한으로 앱이 표시되지 않을 수 있으므로 개발 서버 주소를 사용하세요. 로그인 없이 화면 구조를 검토하려면 [독립형 디자인 시안](frontend/public/design-preview.html)을 직접 열거나 개발 서버의 `/design-preview.html`로 접속할 수 있습니다. 재기획 방향은 [디자인 재기획 v2](docs/DESIGN_REPLAN.md)에 기록했습니다.
-
-## 기술 구성
+## 기술과 개발 문서
 
 | 영역 | 기술 |
 | --- | --- |
-| 웹 | React 19, TypeScript, Vite, Tailwind CSS v4, shadcn/ui, TanStack Query·Table·Router |
-| 패키지 관리 | pnpm 11.19.0, 고정 잠금 파일 설치 |
-| API | Kotlin, Spring Boot 4, Exposed DSL, Flyway |
-| 저장·메일 | MySQL 8.4, 로컬 Mailpit |
-| 디자인 | KRDS를 바탕으로 확장한 [Arc 디자인 가이드](docs/DESIGN_GUIDE.md) |
+| 프런트엔드 | React 19, TypeScript, Vite, shadcn/ui, Tailwind CSS v4, TanStack Query·Table·Router, pnpm 11.19.0 |
+| 백엔드 | Kotlin, Spring Boot 4, Exposed DSL, Flyway |
+| 데이터·설치 | MySQL 8.4, Docker Compose, 로컬 Mailpit |
+| 디자인 | KRDS를 바탕으로 확장한 [Arc 디자인 시스템](docs/DESIGN_GUIDE.md) |
 
-프런트는 `app / features / shared`, 백엔드는 기능별 `api / internal / web` 경계를 사용합니다. 프런트의 기능 간 참조는 공개 `index.ts`로 제한합니다. 모든 저장소를 Exposed DSL로 전환하고 Arc 디자인 시스템 v2를 적용했습니다. 후속 작업은 [작업 목록](docs/TODO.md)에서 추적합니다.
+GitHub Actions는 프런트·백엔드 검사와 빌드, 새 MySQL·Mailpit에서 실제 API·브라우저 수용 검사를 수행합니다. [CI 안내](docs/CI.md)에서 범위와 결과를 확인할 수 있습니다.
 
-## 검증과 문서
-
-GitHub Actions는 PR과 main 변경에서 프런트·백엔드를 검사한 뒤, 생성한 웹 번들과 실행 JAR를 새 MySQL·Mailpit에서 API·브라우저로 검증합니다. [CI 구성과 운영 방법](docs/CI.md)에서 검사 범위와 실패 자료 확인 방법을 설명합니다.
-
-```bash
-(cd frontend && pnpm build)
-(cd backend && ./gradlew check)  # Python 3 필요: 패키지 경계 검사 포함
-python3 scripts/smoke.py  # API, MySQL, Mailpit 실행 필요
-(cd frontend && pnpm exec playwright install chromium)
-(cd frontend && pnpm check:browser)  # 웹 앱·API·MySQL·Mailpit 실행 필요
-```
-
-빌드는 프런트 경계 검사와 TypeScript 검사를 포함합니다. `gradlew check`는 백엔드 경계 검사와 트랜잭션 커밋·롤백·중복 키 변환 테스트를 수행합니다. 실제 API와 화면 동작은 MySQL 수용 스크립트로 확인하며, 잘못된 백로그 정렬의 부분 변경도 전체 롤백되는지 검사합니다. 각 스크립트는 별도 테스트 워크스페이스를 만들고 정상 종료 또는 브라우저 테스트 정리 단계에서 삭제합니다.
-
-브라우저 검증은 가입·초대, 티켓·댓글·관계, 공통 필터, WBS 코드·중첩 접기·하위 생성, 타임라인 경계·그룹·미계획·상속·상세 편집, 테이블 열·정렬·설정 유지, 간트 집계·저장 보기·출력, 이동 실패 복원, 편집 충돌, 스프린트 결과, 멤버 권한, 모바일 키보드 조작을 확인합니다. 생성 대화상자와 8개 주요 화면의 자동 접근성 검사, 360/768/1280px·확대 재배치·고대비 검사도 포함합니다. [디자인 검증 범위](docs/DESIGN_VERIFICATION.md)를 참고하세요. 다른 포트를 사용하면 `ARC_WEB_URL`, `ARC_API_URL`, `ARC_MAIL_URL`을 지정하세요. API·메일 주소는 각각 `/api/`, `/api/v1/`까지 포함합니다. 시스템 Chromium을 사용하려면 `CHROMIUM_PATH`를 지정할 수 있습니다.
-
-### 실행 문제 확인
-
-- 앱이 표시되지 않으면 파일 대신 Vite 주소를 열고, API의 `/actuator/health`와 터미널 로그를 확인합니다.
-- DB 접속이 실패하면 `.env`와 API 프로세스의 `DB_PASSWORD`, Compose의 MySQL 상태를 확인합니다. 기본 DB 포트는 `3307`입니다.
-- 확인·초대 메일은 로컬 Mailpit에서 확인합니다. 이 링크의 기본 웹 주소는 `localhost:5173`이며 `ARC_PUBLIC_URL`로 바꿀 수 있습니다.
-
-- [기능 명세](docs/FUNCTIONAL_SPEC.md) · [명세 대비 구현 현황](docs/STATUS.md)
-- [Redmine 간트 기준](docs/GANTT_REFERENCE.md) · [팀용 MVP 계획](docs/PLAN.md)
-- [티켓·WBS·다양한 뷰 기획과 명세](docs/WORK_VIEWS_PLAN.md)
-- [마일스톤 공식 기능 비교](docs/MILESTONE_RESEARCH.md) · [Arc 마일스톤 기획 — 구현 대기](docs/MILESTONE_PLAN.md)
-- [백엔드 구조](docs/BACKEND_ARCHITECTURE.md) · [프런트 구조와 pnpm 선택](docs/FRONTEND_ARCHITECTURE.md)
-- [작업 목록](docs/TODO.md) · [디자인 재기획](docs/DESIGN_REPLAN.md)
-
-대량 데이터는 [성능 점검](docs/PERFORMANCE.md)에 측정 범위와 재현 명령을 기록했습니다. 5,000개 실제 이슈와 20,000개 간트 모델, 백로그 페이지·전체 정렬·실패 재시도를 확인했습니다.
+- [개발·검증](docs/DEVELOPMENT.md) · [배포](docs/DEPLOYMENT.md) · [저장소 연동](docs/INTEGRATIONS.md)
+- [기능 명세](docs/FUNCTIONAL_SPEC.md) · [구현 현황](docs/STATUS.md) · [작업 목록](docs/TODO.md)
+- [WBS·티켓·다양한 뷰 기획](docs/WORK_VIEWS_PLAN.md) · [Redmine 간트 기준](docs/GANTT_REFERENCE.md)
+- [프런트 구조](docs/FRONTEND_ARCHITECTURE.md) · [백엔드 구조](docs/BACKEND_ARCHITECTURE.md)
+- [디자인 검증](docs/DESIGN_VERIFICATION.md) · [디자인 재기획](docs/DESIGN_REPLAN.md) · [성능 점검](docs/PERFORMANCE.md)
