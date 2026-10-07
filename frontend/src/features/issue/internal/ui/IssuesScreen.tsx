@@ -21,7 +21,7 @@ export function IssuesScreen({ projectId }: { projectId: number }) {
   const navigate = useNavigate()
   const { filters, tableColumns, setTableColumns, resetTableColumns } = useProjectFilters()
   const { search, status, type: kind, priority, assigneeId, versionId, sprintState } = filters
-  const { archived } = useProjectAccess(projectId)
+  const { archived, manager } = useProjectAccess(projectId)
   const [sorting, setSorting] = useState<SortingState>([])
   const [pagination, setPagination] = useState<PaginationState>({ pageIndex: 0, pageSize: 20 })
   const [createOpen, setCreateOpen] = useState(false)
@@ -48,7 +48,7 @@ export function IssuesScreen({ projectId }: { projectId: number }) {
     { accessorKey: 'storyPoints', header: '스토리 포인트', cell: ({ row }) => row.original.storyPoints ?? '미추정' },
   ], [projectId])
   const table = useReactTable({ data: issues.data?.items ?? [], columns, state: { sorting, pagination, columnVisibility: tableColumns }, onColumnVisibilityChange: setTableColumns, onSortingChange: updater => { setSorting(updater); setPagination(current => ({ ...current, pageIndex: 0 })) }, onPaginationChange: setPagination, getCoreRowModel: getCoreRowModel(), manualSorting: true, manualPagination: true, rowCount: issues.data?.total ?? 0 })
-  return <section className="view-page"><div className="view-heading"><div><p className="eyebrow">TICKET TABLE</p><h1>이슈 목록</h1><p>공통 티켓의 필터·정렬·표시 열을 선택하고 상세에서 편집하세요.</p></div><Button disabled={archived} onClick={() => setCreateOpen(true)}><Plus size={16} /> 이슈 만들기</Button></div>
+  return <section className="view-page"><div className="view-heading"><div><p className="eyebrow">TICKET TABLE</p><h1>이슈 목록</h1><p>공통 티켓의 필터·정렬·표시 열을 선택하고 상세에서 편집하세요.</p></div>{manager && <Button disabled={archived} onClick={() => setCreateOpen(true)}><Plus size={16} /> 이슈 만들기</Button>}</div>
     <ProjectIssueFilters projectId={projectId} onChange={() => setPagination(current => ({ ...current, pageIndex: 0 }))} />
     <details className="table-column-options"><summary>표시할 열</summary><div className="table-column-fields">{table.getAllLeafColumns().map(column => <label key={column.id}><input type="checkbox" aria-label={`${column.columnDef.header} 열`} checked={column.getIsVisible()} disabled={!column.getCanHide()} onChange={column.getToggleVisibilityHandler()} />{String(column.columnDef.header)}{!column.getCanHide() ? ' · 필수' : ''}</label>)}<Button variant="outline" size="sm" onClick={resetTableColumns}>기본 열로 복원</Button></div><p className="view-note">표시 설정은 이 프로젝트의 보기 이동 동안 유지됩니다. 완료율·포인트는 티켓 자체 값이며, 하위 집계는 WBS에서 확인하세요.</p></details>
     <div className="table-toolbar"><span>{issues.data?.total ?? 0}개 결과{filtersApplied ? ' · 필터 적용' : ''}{issues.isFetching ? ' · 불러오는 중…' : ''}</span><label>페이지 크기<select value={pagination.pageSize} onChange={event => setPagination({ pageIndex: 0, pageSize: Number(event.target.value) })}><option value={20}>20개</option><option value={50}>50개</option><option value={100}>100개</option></select></label></div>

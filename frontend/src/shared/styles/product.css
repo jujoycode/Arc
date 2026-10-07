@@ -305,7 +305,10 @@ main { flex: 1; width: 100%; max-width: 1700px; margin: 0 auto; padding: 36px 32
 .wbs-ticket strong { font-size: var(--arc-font-data); font-weight: 650; }
 .wbs-spacer { width: 32px; flex-shrink: 0; }
 .wbs-code { font-variant-numeric: tabular-nums; font-weight: 700; }
-.wbs-collapse-actions button { transition-property: background-color, border-color, color; }
+.wbs-scope-actions { flex-wrap: wrap; }
+.wbs-scope-actions .view-note { flex-basis: 100%; margin: 0; }
+.wbs-scope-actions button[aria-pressed="true"] { background: var(--arc-color-selected); border-color: var(--arc-color-action-primary); }
+.wbs-collapse-actions button, .wbs-scope-actions button { transition-property: background-color, border-color, color; }
 .context-label { padding: 3px 6px; border: 1px solid var(--arc-color-border); border-radius: 4px; color: var(--arc-color-text-muted); font-size: var(--arc-font-meta); }
 .work-label { display: block; margin-top: 3px; }
 

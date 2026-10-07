@@ -12,7 +12,7 @@ const deliveryStates = { PENDING: '대기', FAILED: '실패', COMPLETED: '처리
 
 export function IntegrationSettings({ projectId }: { projectId: number }) {
   const client = useQueryClient()
-  const { manager, archived } = useProjectAccess(projectId)
+  const { workspaceManager: manager, archived } = useProjectAccess(projectId)
   const connections = useQuery({ queryKey: ['repository-connections', projectId], queryFn: () => api<ConnectionList>(`/projects/${projectId}/repository-connections`) })
   const [provider, setProvider] = useState<RepositoryConnection['provider']>('GITHUB')
   const [repository, setRepository] = useState('')
