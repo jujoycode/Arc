@@ -26,6 +26,8 @@ class IssueController(private val service: IssueService, private val queries: Is
     fun update(request: HttpServletRequest, @PathVariable projectId: Long, @PathVariable id: Long, @RequestBody input: IssueEdit) = service.update(request.userId(), projectId, id, input)
     @PatchMapping("/api/projects/{projectId}/issues/{id}/status")
     fun status(request: HttpServletRequest, @PathVariable projectId: Long, @PathVariable id: Long, @RequestBody input: StatusInput) = service.status(request.userId(), projectId, id, input)
+    @PatchMapping("/api/projects/{projectId}/issues/{id}/execution")
+    fun execution(request: HttpServletRequest, @PathVariable projectId: Long, @PathVariable id: Long, @RequestBody input: ExecutionInput) = service.execution(request.userId(), projectId, id, input)
     @DeleteMapping("/api/projects/{projectId}/issues/{id}")
     fun delete(request: HttpServletRequest, @PathVariable projectId: Long, @PathVariable id: Long) = service.delete(request.userId(), projectId, id)
     @GetMapping("/api/projects/{projectId}/relations")

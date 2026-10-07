@@ -1,5 +1,6 @@
 package io.arcapp.backend.issue.internal.persistence
 
+import io.arcapp.backend.issue.internal.ExecutionInput
 import io.arcapp.backend.issue.internal.IssueInput
 import io.arcapp.backend.issue.internal.IssueSearch
 import io.arcapp.backend.shared.persistence.dbQuery
@@ -90,6 +91,11 @@ class IssueRepository {
     }
     fun status(projectId: Long, id: Long, status: String, expectedVersion: Long) = dbQuery {
         Issues.update({ active(projectId, id) and (Issues.version eq expectedVersion) }) { it[Issues.status] = status; it[version] = Issues.version + 1 }
+    }
+    fun execution(projectId: Long, id: Long, input: ExecutionInput, expectedVersion: Long) = dbQuery {
+        Issues.update({ active(projectId, id) and (Issues.version eq expectedVersion) }) {
+            it[status] = input.status; it[progress] = input.progress.toShort(); it[version] = Issues.version + 1
+        }
     }
     fun delete(id: Long) = dbQuery { Issues.update({ Issues.id eq id }) { it[deletedAt] = utcNow(); it[version] = Issues.version + 1 }; Unit }
     fun childTypes(id: Long) = dbQuery { Issues.select(Issues.type).where { (Issues.parentId eq id) and Issues.deletedAt.isNull() }.map { it[Issues.type] } }

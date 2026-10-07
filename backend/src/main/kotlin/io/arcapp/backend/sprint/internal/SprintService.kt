@@ -50,13 +50,13 @@ class SprintService(private val repository: SprintRepository, private val projec
 
     @Transactional
     fun assign(actorId: Long, projectId: Long, issueId: Long, input: SprintAssignment) {
-        activeProject(actorId, projectId)
+        managedProject(actorId, projectId)
         if (input.sprintId != null && sprint(projectId, input.sprintId)["status"] != "PLANNED") throw ApiError(HttpStatus.BAD_REQUEST, "계획 중인 스프린트에만 편성할 수 있습니다.")
         issues.assign(actorId, projectId, issueId, input.sprintId)
     }
 
     @Transactional
-    fun reorder(actorId: Long, projectId: Long, input: BacklogOrder) { activeProject(actorId, projectId); issues.reorder(projectId, input.issueIds) }
+    fun reorder(actorId: Long, projectId: Long, input: BacklogOrder) { managedProject(actorId, projectId); issues.reorder(projectId, input.issueIds) }
     private fun sprint(projectId: Long, id: Long): Map<String, Any?> = repository.find(projectId, id) ?: throw ApiError(HttpStatus.NOT_FOUND, "스프린트가 없습니다.")
     private fun activeProject(actorId: Long, projectId: Long): ProjectContext = projects.forUpdate(projectId, actorId).also { it.requireActive() }
     private fun managedProject(actorId: Long, projectId: Long): ProjectContext = activeProject(actorId, projectId).also { workspaces.requireManager(it.workspaceId, actorId) }

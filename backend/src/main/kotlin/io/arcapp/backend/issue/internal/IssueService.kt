@@ -15,7 +15,7 @@ import java.sql.Date
 class IssueService(private val repository: IssueRepository, private val projects: ProjectAccess, private val workspaces: WorkspaceAccess) {
     @Transactional
     fun create(actorId: Long, projectId: Long, input: IssueInput): Map<String, Any> {
-        val project = activeProject(actorId, projectId)
+        val project = managedProject(actorId, projectId)
         validate(project, input, null)
         val number = projects.allocateIssueNumber(project)
         val id = repository.create(projectId, number.number, actorId, input)
@@ -25,7 +25,7 @@ class IssueService(private val repository: IssueRepository, private val projects
 
     @Transactional
     fun update(actorId: Long, projectId: Long, id: Long, input: IssueEdit): Map<String, Any> {
-        val project = activeProject(actorId, projectId)
+        val project = managedProject(actorId, projectId)
         val old = issue(projectId, id)
         validate(project, input.fields(), id)
         if (old.long("version") != input.version || repository.update(projectId, id, input.fields(), input.version) == 0) conflict()
@@ -35,11 +35,22 @@ class IssueService(private val repository: IssueRepository, private val projects
 
     @Transactional
     fun status(actorId: Long, projectId: Long, id: Long, input: StatusInput): Map<String, Any> {
-        activeProject(actorId, projectId)
-        issue(projectId, id)
+        val project = activeProject(actorId, projectId)
+        requireExecutor(project, actorId, issue(projectId, id))
         if (input.status !in setOf("TODO", "IN_PROGRESS", "REVIEW", "DONE")) throw ApiError(HttpStatus.BAD_REQUEST, "상태가 올바르지 않습니다.")
         if (repository.status(projectId, id, input.status, input.version) == 0) conflict()
         repository.activity(id, actorId, "STATUS_CHANGED")
+        return mapOf("version" to input.version + 1)
+    }
+
+    @Transactional
+    fun execution(actorId: Long, projectId: Long, id: Long, input: ExecutionInput): Map<String, Any> {
+        val project = activeProject(actorId, projectId)
+        requireExecutor(project, actorId, issue(projectId, id))
+        if (input.status !in setOf("TODO", "IN_PROGRESS", "REVIEW", "DONE") || input.progress !in 0..100)
+            throw ApiError(HttpStatus.BAD_REQUEST, "상태와 완료율을 확인해 주세요.")
+        if (repository.execution(projectId, id, input, input.version) == 0) conflict()
+        repository.activity(id, actorId, "EXECUTION_UPDATED")
         return mapOf("version" to input.version + 1)
     }
 
@@ -55,7 +66,7 @@ class IssueService(private val repository: IssueRepository, private val projects
 
     @Transactional
     fun addRelation(actorId: Long, projectId: Long, id: Long, input: RelationInput): Map<String, Long> {
-        activeProject(actorId, projectId)
+        managedProject(actorId, projectId)
         issue(projectId, id); issue(projectId, input.targetId)
         if (id == input.targetId || input.type !in setOf("BLOCKS", "PRECEDES")) throw ApiError(HttpStatus.BAD_REQUEST, "관계가 올바르지 않습니다.")
         val edges = repository.relations(setOf(projectId))
@@ -72,7 +83,7 @@ class IssueService(private val repository: IssueRepository, private val projects
     }
 
     @Transactional
-    fun deleteRelation(actorId: Long, projectId: Long, relationId: Long) { activeProject(actorId, projectId); repository.deleteRelation(projectId, relationId) }
+    fun deleteRelation(actorId: Long, projectId: Long, relationId: Long) { managedProject(actorId, projectId); repository.deleteRelation(projectId, relationId) }
 
     @Transactional
     fun addComment(actorId: Long, projectId: Long, id: Long, input: CommentInput): Map<String, Long> {
@@ -99,6 +110,12 @@ class IssueService(private val repository: IssueRepository, private val projects
     }
 
     private fun activeProject(actorId: Long, projectId: Long): ProjectContext = projects.forUpdate(projectId, actorId).also { it.requireActive() }
+    private fun managedProject(actorId: Long, projectId: Long): ProjectContext = activeProject(actorId, projectId).also { workspaces.requireManager(it.workspaceId, actorId) }
+    private fun requireExecutor(project: ProjectContext, actorId: Long, ticket: Map<String, Any?>) {
+        val role = workspaces.role(project.workspaceId, actorId)
+        if (role !in setOf("OWNER", "ADMIN") && (ticket["assignee_id"] as? Number)?.toLong() != actorId)
+            throw ApiError(HttpStatus.FORBIDDEN, "본인에게 배정된 티켓의 상태와 완료율만 수정할 수 있습니다.")
+    }
     private fun issue(projectId: Long, id: Long): Map<String, Any?> = repository.find(projectId, id) ?: throw ApiError(HttpStatus.NOT_FOUND, "이슈가 없습니다.")
     private fun comment(projectId: Long, id: Long): Map<String, Any?> = repository.comment(projectId, id) ?: throw ApiError(HttpStatus.NOT_FOUND, "댓글이 없습니다.")
     private fun requireBody(body: String) { if (body.isBlank()) throw ApiError(HttpStatus.BAD_REQUEST, "댓글을 입력해 주세요.") }

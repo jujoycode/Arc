@@ -16,6 +16,7 @@ data class IssueEdit(
     fun fields() = IssueInput(title, type, description, status, priority, assigneeId, startDate, dueDate, progress, storyPoints, parentId, versionId)
 }
 data class StatusInput(val status: String, val version: Long)
+data class ExecutionInput(val status: String, val progress: Int, val version: Long)
 data class RelationInput(val targetId: Long, val type: String)
 data class CommentInput(val body: String)
 data class IssueSearch(
