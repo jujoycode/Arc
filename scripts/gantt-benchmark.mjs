@@ -1,7 +1,15 @@
 // Node 24 type stripping; synthetic model timing, independent of API and DOM.
 import { performance } from 'node:perf_hooks'
-import { ganttRows } from '../frontend/src/features/gantt/internal/model/ganttRows.ts'
-import { visibleIssues } from '../frontend/src/features/gantt/internal/model/gantt.ts'
+import { registerHooks } from 'node:module'
+// This standalone model benchmark does not load the public barrel's React UI.
+// Resolve the two runtime exports to their original pure implementations.
+const aliases = new Map([
+ ['@/features/issue', new URL('../frontend/src/features/issue/internal/model/workBreakdown.ts', import.meta.url).href],
+ ['@/shared/lib/calendarDate', new URL('../frontend/src/shared/lib/calendarDate.ts', import.meta.url).href],
+])
+registerHooks({ resolve: (specifier, context, next) => next(aliases.get(specifier) ?? specifier, context) })
+const { ganttRows } = await import('../frontend/src/features/gantt/internal/model/ganttRows.ts')
+const { visibleIssues } = await import('../frontend/src/features/gantt/internal/model/gantt.ts')
 const projects = [{ id: 1, workspaceId: 1, name: 'Performance', key: 'PERF' }]
 const versions = Array.from({length: 100}, (_, i) => ({ id: i+1, projectId: 1, name: `Version ${i+1}`, startDate: '2026-10-01', dueDate: '2026-12-31', status: 'OPEN' }))
 for (const count of [1000, 5000, 20000]) {

@@ -24,10 +24,12 @@ frontend/src/
 │   ├── auth/                       # 가입·이메일 확인·로그인
 │   ├── workspace/                  # 팀·프로젝트 선택
 │   ├── project/                    # 프로젝트 계약·접근 상태
-│   ├── issue/                      # 이슈·댓글·관계·공통 필터
+│   ├── issue/                      # 공통 티켓·계층 집계·댓글·관계·필터·표
 │   ├── kanban/                     # 상태별 보드
 │   ├── gantt/                      # 일정 집계·관계·출력
 │   ├── sprint/                     # 백로그·스프린트
+│   ├── planning/                   # WBS와 일정 개요 타임라인
+│   ├── integration/                # 저장소 설정·개발 활동
 │   └── settings/                   # 팀·프로젝트 설정 화면 조립
 └── shared/
     ├── api/client.ts               # HTTP·토큰 저장
@@ -84,3 +86,11 @@ pnpm check:browser  # API·MySQL·Mailpit·Chromium 필요
 경계 검사는 디렉터리 규칙, 로컬 import 유효성, 기능의 비공개 경로 참조, shared의 기능 의존, 모델의 직접 HTTP 호출, 런타임 의존 순환을 확인한다. 실제 상태 변경·출력·권한·충돌은 브라우저 수용 스크립트가 확인한다.
 
 저장소 연동은 9번째 `integration` 기능으로 추가했다. 공개 `IntegrationSettings`와 `DevelopmentLinks`를 settings·issue에서 조합한다. integration은 project의 권한 조회만 참조하며 issue 기능을 import하지 않아 순환을 만들지 않는다. 자격 증명 입력은 화면의 로컬 상태만 사용하고 조회 캐시에 넣지 않는다.
+
+## 공통 티켓과 계획 보기
+
+2026-10-07에 10번째 기능 `planning`을 추가했다. WBS와 타임라인은 issue 공개 계약을 사용하며, issue는 planning을 참조하지 않는다. `Ticket`은 기존 `Issue`의 별칭으로 동일한 DB·HTTP 계약·키를 유지한다. `workBreakdown.ts`는 순수 계층 코드·말단 합계·일정 집계를 제공하고 gantt도 같은 집계를 사용한다. 공유 달력 계산은 `shared/lib/calendarDate.ts`에 둔다.
+
+공통 필터와 테이블 표시 열은 프로젝트 provider가 소유한다. 프로젝트 이동·새로고침 시 초기화되며 다른 사용자의 설정과 서버에서 공유하지 않는다. WBS의 접힘과 타임라인의 기간·그룹은 화면 상태다. WBS·타임라인·간트는 모든 티켓을 읽으므로 대규모 DOM 가상화는 후속 작업이다.
+
+타임라인 UI 클래스는 `overview-*`를 사용해 기존 간트의 `timeline-*` 행 배치와 충돌하지 않는다. `planning`의 비공개 파일을 다른 기능에서 import하지 않고 app이 공개 화면을 조립한다.
