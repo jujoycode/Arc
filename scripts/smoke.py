@@ -105,6 +105,11 @@ def main():
     assert request(f"/projects/{pid}/issues?search=Story&type=STORY&size=5", token=member)["total"] == 1
     assert request(f"/projects/{pid}/issues?sprintState=BACKLOG", token=member)["total"] == 9
     request(f"/projects/{pid}/issues?sort=drop_table", token=member, expected=400)
+    for field in ("startDate", "progress", "storyPoints"):
+        for direction in ("asc", "desc"):
+            sorted_page = request(f"/projects/{pid}/issues?size=1000&sort={field}&direction={direction}", token=member)
+            values = [item[field] for item in sorted_page["items"] if item[field] is not None]
+            assert values == sorted(values, reverse=direction == "desc"), f"Server {field} {direction} ordering"
     comment = request(f"/projects/{pid}/issues/{story['id']}/comments", {"body": "Comment"}, member)
     request(f"/projects/{pid}/comments/{comment['id']}", {"body": "Not mine"}, owner, method="PUT", expected=403)
     request(f"/projects/{pid}/comments/{comment['id']}", {"body": "Updated"}, member, method="PUT")

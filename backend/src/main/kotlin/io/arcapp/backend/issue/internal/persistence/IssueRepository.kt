@@ -32,6 +32,7 @@ class IssueRepository {
     private val sortColumns: Map<String, Expression<*>> = mapOf(
         "updatedAt" to Issues.updatedAt, "key" to Issues.number, "title" to Issues.title, "type" to Issues.type,
         "status" to Issues.status, "priority" to Issues.priority, "assigneeName" to IssueUsers.displayName, "dueDate" to Issues.dueDate,
+        "startDate" to Issues.startDate, "progress" to Issues.progress, "storyPoints" to Issues.storyPoints,
     )
     fun supportsSort(sort: String) = sort in sortColumns
     fun findNumbers(projectId: Long, numbers: Set<Int>): Map<Int, Long> = dbQuery {

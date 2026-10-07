@@ -27,32 +27,7 @@ export interface GanttRelation {
   kind: RelationKind
 }
 
-const DAY_MS = 86_400_000
-
-export function parseDate(date: string): Date {
-  const [year, month, day] = date.split('-').map(Number)
-  return new Date(Date.UTC(year, month - 1, day))
-}
-
-export function toDateKey(date: Date): string {
-  return date.toISOString().slice(0, 10)
-}
-
-export function addDays(date: Date, count: number): Date {
-  return new Date(date.getTime() + count * DAY_MS)
-}
-
-export function startOfMonth(date: Date): Date {
-  return new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), 1))
-}
-
-export function addMonths(date: Date, count: number): Date {
-  return new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth() + count, 1))
-}
-
-export function daysBetween(start: Date, end: Date): number {
-  return Math.round((end.getTime() - start.getTime()) / DAY_MS)
-}
+export { parseDate, toDateKey, addDays, startOfMonth, addMonths, daysBetween } from '@/shared/lib/calendarDate'
 
 export function visibleIssues(issues: GanttIssue[], collapsed: Set<string>, query: string, kind: string, status: string, extra: { assignee?: string; priority?: string; version?: string; sprintState?: string } = {}): GanttIssue[] {
   const byId = new Map(issues.map((issue) => [issue.id, issue]))
