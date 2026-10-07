@@ -79,6 +79,17 @@ async function login(email) {
 }
 async function nav(label) { await page.getByRole('navigation', { name: '프로젝트 메뉴' }).getByRole('link', { name: label, exact: true }).click() }
 async function heading(name) { await page.getByRole('heading', { name, exact: true }).waitFor() }
+async function captureWorkView(name) {
+  await page.setViewportSize({ width: 1920, height: 1080 })
+  await page.evaluate(async () => {
+    document.activeElement?.blur()
+    window.scrollTo(0, 0)
+    await document.fonts.ready
+    await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)))
+  })
+  await page.screenshot({ path: join(output, `${name}-1920.png`) })
+  await page.setViewportSize({ width: 1440, height: 1000 })
+}
 async function card(title) { const locator = page.locator('.board-card').filter({ hasText: title }); await locator.waitFor(); return locator }
 async function download(format) {
   const pending = page.waitForEvent('download')
@@ -262,6 +273,18 @@ try {
   // WBS is a different view of the same tickets, with stable codes under filters.
   await nav('WBS')
   await heading('WBS')
+  let releaseWbsLoad
+  const wbsLoad = new Promise(resolve => { releaseWbsLoad = resolve })
+  const wbsPagePattern = `**/api/projects/${projectId}/issues?size=1000*`
+  await page.route(wbsPagePattern, async route => { await wbsLoad; await route.continue() })
+  try {
+    await page.reload()
+    await page.getByRole('status').getByText('작업 분해와 버전 일정을 불러오는 중입니다…', { exact: true }).waitFor()
+    assert.equal(await page.getByRole('button', { name: '모두 접기', exact: true }).count(), 0, 'WBS controls wait for complete ticket and version data')
+    await audit('wbs-loading')
+  } finally { releaseWbsLoad() }
+  await page.locator('.loading-state').waitFor({ state: 'detached' })
+  await page.unroute(wbsPagePattern)
   const wbsRow = id => page.locator(`.wbs-row[data-ticket-id="${id}"]`)
   await wbsRow(subtask.id).waitFor()
   assert.equal(await wbsRow(epic.id).locator('.wbs-code').textContent(), '1')
@@ -357,9 +380,7 @@ try {
   assert.equal(await timelineRow(timelineFixtures[0].id).locator('.overview-bar').evaluate(element => Math.round(element.getBoundingClientRect().width)), 120, 'Detail edits refresh the shared timeline')
   await page.getByLabel('타임라인 그룹', { exact: true }).selectOption('version')
   await audit('timeline'); await reflow('timeline')
-  await page.setViewportSize({ width: 1920, height: 1080 })
-  await page.screenshot({ path: join(output, 'timeline-1920.png') })
-  await page.setViewportSize({ width: 1440, height: 1000 })
+  await captureWorkView('timeline')
   await page.getByLabel('타임라인 이슈 검색', { exact: true }).fill('일정 관리 구현')
   await nav('이슈 목록')
   assert.equal(await page.getByLabel('이슈 검색', { exact: true }).inputValue(), '일정 관리 구현')
@@ -386,9 +407,7 @@ try {
   assert.equal(await page.getByLabel('우선순위 열', { exact: true }).isChecked(), true)
   await page.getByRole('button', { name: '필터 초기화', exact: true }).click()
   await nav('WBS'); await wbsRow(timelineFixtures[0].id).waitFor()
-  await page.setViewportSize({ width: 1920, height: 1080 })
-  await page.screenshot({ path: join(output, 'wbs-1920.png') })
-  await page.setViewportSize({ width: 1440, height: 1000 })
+  await captureWorkView('wbs')
   for (const fixture of timelineFixtures) await api(`projects/${projectId}/issues/${fixture.id}`, undefined, ownerToken, 'DELETE')
   await nav('간트'); await page.reload(); await issueRow('날짜 계산').waitFor()
 
