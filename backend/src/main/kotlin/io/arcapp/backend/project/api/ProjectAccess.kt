@@ -29,6 +29,13 @@ class ProjectAccess(private val repository: ProjectRepository, private val works
     }
 
     fun allocateIssueNumber(project: ProjectContext): IssueNumber = IssueNumber(repository.allocateIssueNumber(project.id), project.key)
+    fun isManager(project: ProjectContext, userId: Long): Boolean {
+        val role = workspaces.role(project.workspaceId, userId)
+        return role in setOf("OWNER", "ADMIN") || repository.isManager(project.id, userId)
+    }
+    fun requireManager(project: ProjectContext, userId: Long) {
+        if (!isManager(project, userId)) throw ApiError(HttpStatus.FORBIDDEN, "프로젝트 관리자 권한이 필요합니다.")
+    }
     fun containsVersion(projectId: Long, versionId: Long): Boolean = repository.containsVersion(projectId, versionId)
     /** Background integration caller must hold a verified connection and a transaction. */
     fun externalKey(projectId: Long): String? = repository.externalKey(projectId)

@@ -5,14 +5,13 @@ import io.arcapp.backend.project.api.ProjectAccess
 import io.arcapp.backend.project.api.ProjectContext
 import io.arcapp.backend.shared.api.ApiError
 import io.arcapp.backend.sprint.internal.persistence.SprintRepository
-import io.arcapp.backend.workspace.api.WorkspaceAccess
 import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.sql.Date
 
 @Service
-class SprintService(private val repository: SprintRepository, private val projects: ProjectAccess, private val workspaces: WorkspaceAccess, private val issues: SprintIssueOperations) {
+class SprintService(private val repository: SprintRepository, private val projects: ProjectAccess, private val issues: SprintIssueOperations) {
     fun list(actorId: Long, projectId: Long): List<Map<String, Any?>> { projects.get(projectId, actorId); return repository.list(projectId) }
 
     @Transactional
@@ -59,5 +58,5 @@ class SprintService(private val repository: SprintRepository, private val projec
     fun reorder(actorId: Long, projectId: Long, input: BacklogOrder) { managedProject(actorId, projectId); issues.reorder(projectId, input.issueIds) }
     private fun sprint(projectId: Long, id: Long): Map<String, Any?> = repository.find(projectId, id) ?: throw ApiError(HttpStatus.NOT_FOUND, "스프린트가 없습니다.")
     private fun activeProject(actorId: Long, projectId: Long): ProjectContext = projects.forUpdate(projectId, actorId).also { it.requireActive() }
-    private fun managedProject(actorId: Long, projectId: Long): ProjectContext = activeProject(actorId, projectId).also { workspaces.requireManager(it.workspaceId, actorId) }
+    private fun managedProject(actorId: Long, projectId: Long): ProjectContext = activeProject(actorId, projectId).also { projects.requireManager(it, actorId) }
 }

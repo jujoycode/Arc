@@ -94,6 +94,8 @@ flowchart LR
 - 쓰기 유스케이스의 `@Transactional`은 Service에 둔다. Exposed의 `SpringTransactionManager`가 JDBC와 Exposed에 같은 연결을 제공하므로 전환 중에도 스프린트 종료 이력·이슈 이동·종료 상태가 함께 커밋·롤백된다.
 - 프로젝트 변경은 프로젝트 행 잠금으로 직렬화한다. 이슈 번호 발급, 계층·관계 변경, 스프린트 시작·종료의 경합을 보호하고 이슈의 낙관적 버전 검사를 유지한다.
 - `ProjectAccess.forUpdate`와 `SprintIssueOperations`의 쓰기는 호출하는 Service의 트랜잭션 안에서 실행한다.
+- 계획 권한은 `ProjectAccess.isManager/requireManager`가 기본 OWNER·ADMIN과 `project_managers`의 프로젝트별 지정을 합쳐 판단한다. issue·sprint는 이 공개 계약을 호출하고 프로젝트 저장소를 직접 참조하지 않는다. 실행 권한은 계획 관리자 또는 해당 티켓 담당자다. 상태·완료율 전용 PATCH는 두 실행 필드와 version만 쓰며 계획 PUT은 관리자 전용이다.
+- 추가 관리자 지정·해제는 workspace 잠금 → project 잠금 순서에서 OWNER·ADMIN 권한을 검사한다. 티켓 변경과 지정 해제는 동일 project 잠금으로 직렬화한다. V7의 멤버 복합 외래 키는 탈퇴 시 프로젝트 지정을 함께 삭제한다. 부모 프로젝트의 추가 권한을 자식에게 상속하지 않는다.
 - Exposed 저장소는 `dbQuery`로 현재 트랜잭션에 참여한다. 인증 필터 등 트랜잭션 밖의 호출만 새 트랜잭션을 연다. 같은 유스케이스 안에서 저장소가 별도로 커밋하지 않는다. 멤버·소유권 변경은 잠금 후 권한과 상태를 재검사한다.
 - 조회 조합에 필요한 다른 기능의 테이블 투영은 해당 기능의 persistence 안에 최소 컬럼으로 선언한다. 다른 기능의 Table을 직접 참조하거나 해당 데이터의 쓰기 책임을 가져오지 않는다.
 - SQL 중복 키 오류는 Spring 예외로 변환하여 기존 HTTP 409 계약을 유지한다. SQL·바인딩 값은 응답에 포함하지 않는다.

@@ -159,6 +159,46 @@ def main():
     request(f"/projects/{pid}/saved-views", {"name": "Invalid JSON", "filters": "{broken", "options": "{}"}, member, expected=400)
     assert len(request(f"/projects/{pid}/saved-views", token=owner)) == 0
 
+    # Comments remain collaborative even on unassigned tickets.
+    team_comment = request(f"/projects/{pid}/issues/{second['id']}/comments", {"body": "Team collaboration"}, member)
+    assert request(f"/projects/{pid}/issues/{second['id']}/comments", token=owner)[0]["id"] == team_comment["id"]
+    request(f"/projects/{pid}/comments/{team_comment['id']}", token=owner, method="DELETE")
+    # Default workspace managers appoint scoped project managers without promoting their workspace role.
+    outsider = account(f"smoke-outsider-{suffix}@example.com", password)
+    outsider_id = request("/auth/me", token=outsider)["id"]
+    request(f"/projects/{pid}/managers/{member_id}", token=member, method="PUT", expected=403)
+    request(f"/projects/{pid}/managers/{outsider_id}", token=owner, method="PUT", expected=400)
+    request(f"/projects/{pid}/managers/{member_id}", token=outsider, method="PUT", expected=403)
+    request(f"/projects/{pid}/issues/{story['id']}/execution", {"status": "DONE", "progress": 100, "version": 1}, outsider, method="PATCH", expected=403)
+    assert request(f"/projects/{pid}", token=member)["managerIds"] == []
+    for _ in range(2):
+        request(f"/projects/{pid}/managers/{member_id}", token=owner, method="PUT")
+    assert request(f"/projects/{pid}", token=member)["managerIds"] == [member_id]
+    assert request("/auth/workspaces", token=member)[0]["role"] == "MEMBER"
+    request(f"/projects/{pid}/managers/{owner_id}", token=member, method="PUT", expected=403)
+    request(f"/projects/{pid}/managers/{member_id}", token=member, method="DELETE", expected=403)
+    request(f"/projects/{child_pid}/issues", {"title": "Denied inherited manager", "type": "TASK"}, member, expected=403)
+    request(f"/projects/{pid}", {"name": "Denied project setting"}, member, method="PUT", expected=403)
+    planned_ticket = request(f"/projects/{pid}/issues", {"title": "Project manager plan", "type": "TASK", "assigneeId": owner_id}, member)
+    planned_before = request(f"/projects/{pid}/issues/{planned_ticket['id']}", token=member)
+    request(f"/projects/{pid}/issues/{planned_ticket['id']}", {**planned_before, "title": "Project manager updated plan", "storyPoints": 8}, member, method="PUT")
+    planned_updated = request(f"/projects/{pid}/issues/{planned_ticket['id']}", token=member)
+    request(f"/projects/{pid}/issues/{planned_ticket['id']}/execution", {"status": "REVIEW", "progress": 80, "version": planned_updated["version"]}, member, method="PATCH")
+    relation = request(f"/projects/{pid}/issues/{epic['id']}/relations", {"targetId": planned_ticket["id"], "type": "PRECEDES"}, member)
+    request(f"/projects/{pid}/relations/{relation['id']}", token=member, method="DELETE")
+    request(f"/projects/{pid}/backlog/order", {"issueIds": [planned_ticket["id"]]}, member, method="PUT")
+    planned_sprint = request(f"/projects/{pid}/sprints", {"name": "Manager sprint", "startOn": "2026-10-01", "endOn": "2026-10-14"}, member)
+    request(f"/projects/{pid}/issues/{planned_ticket['id']}/sprint", {"sprintId": planned_sprint["id"]}, member, method="PUT")
+    request(f"/projects/{pid}/sprints/{planned_sprint['id']}/start", {}, member)
+    request(f"/projects/{pid}/sprints/{planned_sprint['id']}/close", {}, member)
+    request(f"/projects/{pid}/versions", {"name": "Manager release", "dueDate": "2026-10-31"}, member)
+    request(f"/projects/{pid}/issues/{planned_ticket['id']}", token=member, method="DELETE")
+    for _ in range(2):
+        request(f"/projects/{pid}/managers/{member_id}", token=owner, method="DELETE")
+    assert request(f"/projects/{pid}", token=member)["managerIds"] == []
+    request(f"/projects/{pid}/issues", {"title": "Denied after revocation", "type": "TASK"}, member, expected=403)
+    current_second = request(f"/projects/{pid}/issues/{second['id']}", token=member)
+    request(f"/projects/{pid}/issues/{second['id']}/execution", {"status": "DONE", "progress": 100, "version": current_second["version"]}, member, method="PATCH", expected=403)
     sprint = request(f"/projects/{pid}/sprints", {"name": "Sprint 1", "startOn": "2026-10-01", "endOn": "2026-10-14"}, owner)
     next_sprint = request(f"/projects/{pid}/sprints", {"name": "Sprint 2", "startOn": "2026-10-15", "endOn": "2026-10-28"}, owner)
     request(f"/projects/{pid}/issues/{story['id']}/sprint", {"sprintId": sprint["id"]}, owner, method="PUT")
@@ -179,9 +219,18 @@ def main():
     request(f"/projects/{pid}/issues/{story['id']}/execution", {"status": "DONE", "progress": 100, "version": archived_ticket["version"]}, member, method="PATCH", expected=409)
     request(f"/projects/{pid}/issues/{story['id']}/comments", {"body": "Denied while archived"}, member, expected=409)
     request(f"/projects/{pid}/sprints/{next_sprint['id']}/start", {}, owner, expected=409)
+    request(f"/projects/{pid}/managers/{member_id}", token=owner, method="PUT", expected=409)
     request(f"/projects/{pid}/backlog/order", {"issueIds": []}, member, method="PUT", expected=409)
     request(f"/projects/{pid}", {"name": "Smoke project", "archived": False}, owner, method="PUT")
 
+    # Membership deletion cascades explicit project grants; rejoining does not restore them.
+    request(f"/projects/{pid}/managers/{member_id}", token=owner, method="PUT")
+    request(f"/auth/workspaces/{wid}/members/{member_id}", token=owner, method="DELETE")
+    request(f"/projects/{pid}", token=member, expected=403)
+    assert request(f"/projects/{pid}", token=owner)["managerIds"] == []
+    request(f"/auth/workspaces/{wid}/invitations", {"email": member_email, "role": "MEMBER"}, owner)
+    request("/auth/invitations/accept?token=" + mail_token(member_email, "Arc 팀 초대"), method="POST", token=member)
+    request(f"/projects/{pid}/issues", {"title": "Denied after rejoining", "type": "TASK"}, member, expected=403)
     request(f"/auth/workspaces/{wid}/members/{request('/auth/me', token=member)['id']}/role", {"role": "ADMIN"}, owner, method="PATCH")
     admin_ticket = request(f"/projects/{pid}/issues/{second['id']}", token=member)
     request(f"/projects/{pid}/issues/{second['id']}/execution", {"status": "DONE", "progress": 100, "version": admin_ticket["version"]}, member, method="PATCH")
@@ -189,7 +238,7 @@ def main():
     request(f"/auth/workspaces/{wid}/owner/{request('/auth/me', token=member)['id']}", {}, owner)
     request(f"/auth/workspaces/{wid}", {"confirmation": workspace_name}, member, method="DELETE")
     request(f"/projects/{pid}", token=owner, expected=403)
-    print("Arc smoke flow passed: auth, invitation, isolation, project key, child-project gantt, hierarchy, dates, pagination, filters, concurrent issue IDs, conflict, WBS manager/assignee permissions, execution field preservation, reassignment, partial-write rollback, relation, sprint, archive, saved view, ownership, deletion")
+    print("Arc smoke flow passed: auth, invitation, isolation, project key, child-project gantt, hierarchy, dates, pagination, filters, concurrent issue IDs, conflict, WBS default/project manager/assignee permissions, scoped grants and revocation, membership cascade, collaborative comments, execution field preservation, reassignment, partial-write rollback, relation, sprint, archive, saved view, ownership, deletion")
 
 
 if __name__ == "__main__":

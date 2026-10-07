@@ -25,6 +25,12 @@ private fun ResultRow.version(): Map<String, Any?> = mapOf(
 
 @Repository
 class ProjectRepository {
+    fun managers(projectId: Long): List<Long> = dbQuery { ProjectManagers.select(ProjectManagers.userId).where { ProjectManagers.projectId eq projectId }.orderBy(ProjectManagers.userId).map { it[ProjectManagers.userId] } }
+    fun isManager(projectId: Long, userId: Long): Boolean = dbQuery { ProjectManagers.select(ProjectManagers.userId).where { (ProjectManagers.projectId eq projectId) and (ProjectManagers.userId eq userId) }.any() }
+    fun addManager(projectId: Long, workspaceId: Long, userId: Long) = dbQuery {
+        ProjectManagers.insert { it[ProjectManagers.projectId] = projectId; it[ProjectManagers.workspaceId] = workspaceId; it[ProjectManagers.userId] = userId }; Unit
+    }
+    fun removeManager(projectId: Long, userId: Long) = dbQuery { ProjectManagers.deleteWhere { (ProjectManagers.projectId eq projectId) and (ProjectManagers.userId eq userId) }; Unit }
     /** Queue workers use a configured connection; serialize linking with project writes. */
     fun externalKey(projectId: Long): String? = dbQuery {
         Projects.join(ProjectWorkspaces, JoinType.INNER, Projects.workspaceId, ProjectWorkspaces.id)

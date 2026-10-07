@@ -57,7 +57,7 @@ class IssueService(private val repository: IssueRepository, private val projects
     @Transactional
     fun delete(actorId: Long, projectId: Long, id: Long) {
         val project = activeProject(actorId, projectId)
-        workspaces.requireManager(project.workspaceId, actorId)
+        projects.requireManager(project, actorId)
         issue(projectId, id)
         if (repository.childTypes(id).isNotEmpty()) throw ApiError(HttpStatus.CONFLICT, "하위 이슈를 먼저 이동하거나 삭제해 주세요.")
         repository.delete(id)
@@ -105,15 +105,14 @@ class IssueService(private val repository: IssueRepository, private val projects
     fun deleteComment(actorId: Long, projectId: Long, commentId: Long) {
         val project = activeProject(actorId, projectId)
         val comment = comment(projectId, commentId)
-        if (comment.long("author_id") != actorId) workspaces.requireManager(project.workspaceId, actorId)
+        if (comment.long("author_id") != actorId) projects.requireManager(project, actorId)
         repository.deleteComment(commentId)
     }
 
     private fun activeProject(actorId: Long, projectId: Long): ProjectContext = projects.forUpdate(projectId, actorId).also { it.requireActive() }
-    private fun managedProject(actorId: Long, projectId: Long): ProjectContext = activeProject(actorId, projectId).also { workspaces.requireManager(it.workspaceId, actorId) }
+    private fun managedProject(actorId: Long, projectId: Long): ProjectContext = activeProject(actorId, projectId).also { projects.requireManager(it, actorId) }
     private fun requireExecutor(project: ProjectContext, actorId: Long, ticket: Map<String, Any?>) {
-        val role = workspaces.role(project.workspaceId, actorId)
-        if (role !in setOf("OWNER", "ADMIN") && (ticket["assignee_id"] as? Number)?.toLong() != actorId)
+        if (!projects.isManager(project, actorId) && (ticket["assignee_id"] as? Number)?.toLong() != actorId)
             throw ApiError(HttpStatus.FORBIDDEN, "본인에게 배정된 티켓의 상태와 완료율만 수정할 수 있습니다.")
     }
     private fun issue(projectId: Long, id: Long): Map<String, Any?> = repository.find(projectId, id) ?: throw ApiError(HttpStatus.NOT_FOUND, "이슈가 없습니다.")

@@ -13,7 +13,24 @@ import java.sql.Date
 @Service
 class ProjectService(private val repository: ProjectRepository, private val access: ProjectAccess, private val workspaces: WorkspaceAccess) {
     fun list(userId: Long, workspaceId: Long): List<Map<String, Any?>> { workspaces.role(workspaceId, userId); return repository.list(workspaceId) }
-    fun get(userId: Long, id: Long): Map<String, Any?> { access.get(id, userId); return repository.view(id)!! }
+    fun get(userId: Long, id: Long): Map<String, Any?> { access.get(id, userId); return repository.view(id)!! + mapOf("managerIds" to repository.managers(id)) }
+    @Transactional
+    fun addManager(userId: Long, id: Long, managerId: Long) {
+        repository.lockWorkspace(access.get(id, userId).workspaceId)
+        val project = access.forUpdate(id, userId)
+        workspaces.requireManager(project.workspaceId, userId)
+        project.requireActive()
+        if (!workspaces.containsMember(project.workspaceId, managerId)) throw ApiError(HttpStatus.BAD_REQUEST, "프로젝트 관리자는 같은 팀의 멤버여야 합니다.")
+        if (!repository.isManager(id, managerId)) repository.addManager(id, project.workspaceId, managerId)
+    }
+    @Transactional
+    fun removeManager(userId: Long, id: Long, managerId: Long) {
+        repository.lockWorkspace(access.get(id, userId).workspaceId)
+        val project = access.forUpdate(id, userId)
+        workspaces.requireManager(project.workspaceId, userId)
+        project.requireActive()
+        repository.removeManager(id, managerId)
+    }
     @Transactional
     fun create(userId: Long, workspaceId: Long, input: ProjectInput): Map<String, Any> {
         workspaces.requireManager(workspaceId, userId)
@@ -41,7 +58,7 @@ class ProjectService(private val repository: ProjectRepository, private val acce
     @Transactional
     fun createVersion(userId: Long, id: Long, input: VersionInput): Map<String, Long> {
         val project = access.forUpdate(id, userId)
-        workspaces.requireManager(project.workspaceId, userId)
+        access.requireManager(project, userId)
         project.requireActive()
         val start: Date?
         val due: Date

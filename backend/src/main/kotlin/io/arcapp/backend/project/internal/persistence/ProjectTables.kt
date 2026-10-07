@@ -15,6 +15,12 @@ internal object Projects : Table("projects") {
     val archivedAt = datetime("archived_at").nullable()
     override val primaryKey = PrimaryKey(id)
 }
+internal object ProjectManagers : Table("project_managers") {
+    val projectId = long("project_id")
+    val workspaceId = long("workspace_id")
+    val userId = long("user_id")
+    override val primaryKey = PrimaryKey(projectId, userId)
+}
 internal object Versions : Table("versions") {
     val id = long("id").autoIncrement()
     val projectId = long("project_id")
