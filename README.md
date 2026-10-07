@@ -126,6 +126,7 @@ python3 scripts/smoke.py  # API, MySQL, Mailpit 실행 필요
 
 - [기능 명세](docs/FUNCTIONAL_SPEC.md) · [명세 대비 구현 현황](docs/STATUS.md)
 - [Redmine 간트 기준](docs/GANTT_REFERENCE.md) · [팀용 MVP 계획](docs/PLAN.md)
+- [마일스톤 공식 기능 비교](docs/MILESTONE_RESEARCH.md) · [Arc 마일스톤 기획 — 구현 대기](docs/MILESTONE_PLAN.md)
 - [백엔드 구조](docs/BACKEND_ARCHITECTURE.md) · [프런트 구조와 pnpm 선택](docs/FRONTEND_ARCHITECTURE.md)
 - [작업 목록](docs/TODO.md) · [디자인 재기획](docs/DESIGN_REPLAN.md)
 
