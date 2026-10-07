@@ -1,3 +1,4 @@
+import { ticketSummaries } from '@/features/issue'
 import type { Issue } from '@/features/issue'
 import type { Project } from '@/features/project'
 import type { GanttBundle } from '../../api/types'
@@ -19,19 +20,10 @@ export function ganttRows(rootId: number, projects: Project[], issues: Issue[], 
   }
   const childrenByIssue = new Map<number, Issue[]>()
   for (const issue of issues) if (issue.parentId) append(childrenByIssue, issue.parentId, issue)
-  const aggregateCache = new Map<number, { start?: string; end?: string; progress: number }>()
-  const byVersion = new Map(versions.map(version => [version.id, version]))
-  function aggregate(issue: Issue): { start?: string; end?: string; progress: number } {
-    const cached = aggregateCache.get(issue.id)
-    if (cached) return cached
-    const children = childrenByIssue.get(issue.id) ?? []
-    const assignedVersion = issue.versionId ? byVersion.get(issue.versionId) : undefined
-    const childData = children.map(aggregate)
-    const starts = children.length ? childData.map(child => child.start) : [issue.startDate?.slice(0, 10) ?? assignedVersion?.startDate?.slice(0, 10)]
-    const ends = children.length ? childData.map(child => child.end) : [issue.dueDate?.slice(0, 10) ?? assignedVersion?.dueDate.slice(0, 10)]
-    const result = { start: starts.filter((value): value is string => !!value).sort()[0], end: ends.filter((value): value is string => !!value).sort().at(-1), progress: children.length ? Math.round(childData.reduce((sum, child) => sum + child.progress, 0) / children.length) : issue.progress }
-    aggregateCache.set(issue.id, result)
-    return result
+  const summaries = ticketSummaries(issues, versions)
+  function aggregate(issue: Issue) {
+    const summary = summaries.get(issue.id)!
+    return { start: summary.startDate, end: summary.dueDate, progress: summary.progress }
   }
   const seen = new Set<number>()
   function addChildren(parent: string) {

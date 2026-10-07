@@ -14,6 +14,7 @@ const projectRoute = createRoute({ getParentRoute: () => rootRoute, path: '/proj
 const projectIndex = createRoute({ getParentRoute: () => projectRoute, path: '/', component: () => <ProjectView view="gantt" /> })
 const ganttRoute = createRoute({ getParentRoute: () => projectRoute, path: '/gantt', component: () => <ProjectView view="gantt" /> })
 const boardRoute = createRoute({ getParentRoute: () => projectRoute, path: '/board', component: () => <ProjectView view="board" /> })
+const wbsRoute = createRoute({ getParentRoute: () => projectRoute, path: '/wbs', component: () => <ProjectView view="wbs" /> })
 const backlogRoute = createRoute({ getParentRoute: () => projectRoute, path: '/backlog', component: () => <ProjectView view="backlog" /> })
 const sprintsRoute = createRoute({ getParentRoute: () => projectRoute, path: '/sprints', component: () => <ProjectView view="sprints" /> })
 const issuesRoute = createRoute({ getParentRoute: () => projectRoute, path: '/issues', component: () => <ProjectView view="issues" /> })
@@ -22,7 +23,7 @@ const settingsRoute = createRoute({ getParentRoute: () => projectRoute, path: '/
 
 const routeTree = rootRoute.addChildren([
   homeRoute, loginRoute, registerRoute, verifyRoute, inviteRoute,
-  projectRoute.addChildren([projectIndex, ganttRoute, boardRoute, backlogRoute, sprintsRoute, issuesRoute, issueRoute, settingsRoute]),
+  projectRoute.addChildren([projectIndex, ganttRoute, wbsRoute, boardRoute, backlogRoute, sprintsRoute, issuesRoute, issueRoute, settingsRoute]),
 ])
 const router = createRouter({ routeTree })
 declare module '@tanstack/react-router' { interface Register { router: typeof router } }

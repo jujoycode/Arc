@@ -14,7 +14,7 @@ import { Label } from '@/shared/ui/label'
 import { priorityLabels, statusLabels, typeLabels } from '../model/issueLabels'
 export { priorityLabels, statusLabels, typeLabels } from '../model/issueLabels'
 
-export function IssueForm({ projectId, initial, onSaved, onCancel }: { projectId: number; initial?: Issue; onSaved?: (id: number) => void; onCancel?: () => void }) {
+export function IssueForm({ projectId, initial, defaults, onSaved, onCancel }: { projectId: number; initial?: Issue; defaults?: Pick<Issue, 'type' | 'parentId' | 'versionId'>; onSaved?: (id: number) => void; onCancel?: () => void }) {
   const queryClient = useQueryClient()
   const project = useQuery({ queryKey: ['project', String(projectId)], queryFn: () => api<Project>(`/projects/${projectId}`) })
   const members = useQuery({ queryKey: ['members', project.data?.workspaceId], queryFn: () => api<Member[]>(`/auth/workspaces/${project.data!.workspaceId}/members`), enabled: !!project.data })
@@ -23,7 +23,7 @@ export function IssueForm({ projectId, initial, onSaved, onCancel }: { projectId
   const [title, setTitle] = useState(initial?.title ?? '')
   const [baseVersion] = useState(initial?.version)
   const [description, setDescription] = useState(initial?.description ?? '')
-  const [type, setType] = useState<Issue['type']>(initial?.type ?? 'STORY')
+  const [type, setType] = useState<Issue['type']>(initial?.type ?? defaults?.type ?? 'STORY')
   const [status, setStatus] = useState<Issue['status']>(initial?.status ?? 'TODO')
   const [priority, setPriority] = useState<Issue['priority']>(initial?.priority ?? 'NORMAL')
   const [assigneeId, setAssigneeId] = useState(initial?.assigneeId?.toString() ?? '')
@@ -31,8 +31,8 @@ export function IssueForm({ projectId, initial, onSaved, onCancel }: { projectId
   const [dueDate, setDueDate] = useState(initial?.dueDate?.slice(0, 10) ?? '')
   const [progress, setProgress] = useState(initial?.progress?.toString() ?? '0')
   const [storyPoints, setStoryPoints] = useState(initial?.storyPoints?.toString() ?? '')
-  const [parentId, setParentId] = useState(initial?.parentId?.toString() ?? '')
-  const [versionId, setVersionId] = useState(initial?.versionId?.toString() ?? '')
+  const [parentId, setParentId] = useState((initial?.parentId ?? defaults?.parentId)?.toString() ?? '')
+  const [versionId, setVersionId] = useState((initial?.versionId ?? defaults?.versionId)?.toString() ?? '')
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
   async function submit(event: React.FormEvent) {

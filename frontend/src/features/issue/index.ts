@@ -1,4 +1,6 @@
-export type { Issue, Relation, Comment } from './api/types'
+export type { Issue, Ticket, Relation, Comment } from './api/types'
+export type { WorkNode, TicketSummary } from './internal/model/workBreakdown'
+export { buildWorkBreakdown, ticketSummaries, visibleWorkNodes } from './internal/model/workBreakdown'
 export { useIssues } from './api/useIssues'
 export { issuePath, refreshProjectIssues } from './api/issueActions'
 export { statusLabels, typeLabels, priorityLabels } from './internal/model/issueLabels'

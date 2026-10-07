@@ -1,6 +1,6 @@
 import { Link, Navigate, Outlet, useNavigate, useParams } from '@tanstack/react-router'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
-import { CalendarRange, Columns3, List, ListTodo, Settings2, Timer, ArrowLeft } from 'lucide-react'
+import { CalendarRange, Columns3, List, ListTodo, Settings2, Timer, ArrowLeft, Network } from 'lucide-react'
 import { api, tokenStore } from '@/shared/api/client'
 import type { Project } from '@/features/project'
 import type { Workspace } from '@/features/workspace'
@@ -13,9 +13,11 @@ import { BacklogScreen, SprintsScreen } from '@/features/sprint'
 import { SettingsScreen } from '@/features/settings'
 import { IssueDetailScreen } from '@/features/issue'
 import { ProjectFiltersProvider } from '@/features/issue'
+import { WbsScreen } from '@/features/planning'
 
 const nav = [
   { path: 'gantt', label: '간트', icon: CalendarRange },
+  { path: 'wbs', label: 'WBS', icon: Network },
   { path: 'board', label: '칸반', icon: Columns3 },
   { path: 'backlog', label: '백로그', icon: ListTodo },
   { path: 'sprints', label: '스프린트', icon: Timer },
@@ -56,10 +58,11 @@ export function ProjectLayout() {
   </div>
 }
 
-export function ProjectView({ view }: { view: 'gantt' | 'board' | 'backlog' | 'sprints' | 'issues' | 'detail' | 'settings' }) {
+export function ProjectView({ view }: { view: 'gantt' | 'wbs' | 'board' | 'backlog' | 'sprints' | 'issues' | 'detail' | 'settings' }) {
   const { projectId } = useParams({ from: '/projects/$projectId' })
   const id = Number(projectId)
   if (view === 'gantt') return <GanttScreen projectId={id} />
+  if (view === 'wbs') return <WbsScreen key={id} projectId={id} />
   if (view === 'board') return <BoardScreen projectId={id} />
   if (view === 'backlog') return <BacklogScreen projectId={id} />
   if (view === 'sprints') return <SprintsScreen projectId={id} />

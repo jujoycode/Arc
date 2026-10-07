@@ -7,4 +7,7 @@ export interface Issue {
   sortOrder: number; version: number; updatedAt: string
 }
 export interface Relation { id: number; fromId: number; toId: number; type: 'BLOCKS' | 'PRECEDES' }
+
+/** The common work item. Issue remains the existing HTTP/storage contract. */
+export type Ticket = Issue
 export interface Comment { id: number; body: string; authorId: number; authorName: string; createdAt: string }
