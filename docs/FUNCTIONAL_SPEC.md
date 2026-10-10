@@ -1,8 +1,9 @@
 # Arc 기능 명세 — 팀용 MVP
 
-> 상태: 구현 기준 · 갱신일 2026-10-07
+> 상태: 구현 기준 · 갱신일 2026-10-10
 > 관련 문서: [프로젝트 계획](PLAN.md), [디자인 가이드](DESIGN_GUIDE.md), [Redmine 간트 기능 기준](GANTT_REFERENCE.md), [GitHub·GitLab 연동 설계](INTEGRATIONS.md)
 > 추가 기획: [마일스톤 공식 기능 비교](MILESTONE_RESEARCH.md), [Arc 마일스톤 설계](MILESTONE_PLAN.md)
+> 현재 추가 범위: [폼 디자인·검증](FORM_DESIGN.md), [워크스페이스 표준/커스텀 티켓 필드](TICKET_FIELDS_PLAN.md)
 
 ## 1. 목적과 범위
 
