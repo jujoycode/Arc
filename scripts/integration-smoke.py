@@ -60,7 +60,7 @@ def main():
             request(f"/projects/{foreign_pid}/issues", {"title": f"Foreign {i}", "type": "TASK"}, owner)
         foreign_issue = request(f"/projects/{foreign_pid}/issues?sort=key&direction=asc", token=owner)["items"][1]
         request(f"/auth/workspaces/{wid}/invitations", {"email": member_email, "role": "MEMBER"}, owner)
-        request("/auth/invitations/accept?token=" + mail_token(member_email, "Arc 팀 초대"), method="POST", token=member)
+        request("/auth/invitations/accept?token=" + mail_token(member_email, "arcat 팀 초대"), method="POST", token=member)
         data = {"provider": "GITHUB", "repository": "arc-fixture/repo", "token": "arc-fixture-token-123", "webhookSecret": SECRET}
         request(f"/projects/{pid}/repository-connections", data, member, expected=403)
         request(f"/projects/{pid}/repository-connections", {**data, "token": "invalid-fixture-token"}, owner, expected=400)

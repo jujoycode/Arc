@@ -30,6 +30,7 @@ const ownerEmail = `browser-owner-${suffix}@example.com`, memberEmail = `browser
 const password = 'browser-smoke-password-123'
 const workspaceName = `Browser smoke ${suffix}`
 let workspaceId, projectId, ownerToken
+let brandChecked = false
 const output = process.env.ARC_TEST_OUTPUT ?? join(tmpdir(), `arc-browser-${suffix}`)
 mkdirSync(output, { recursive: true })
 
@@ -71,6 +72,23 @@ async function mailToken(email, subject) {
 }
 async function login(email) {
   await page.goto(`${web}/login`)
+  if (!brandChecked) {
+    assert.match(await page.title(), /^arcat\b/, 'The browser title uses the current product name')
+    const favicon = await page.locator('link[rel="icon"]').getAttribute('href')
+    assert.ok(favicon, 'The product supplies a favicon')
+    assert.equal((await http.get(new URL(favicon, web).href)).status(), 200, 'The favicon asset is served')
+    const mascot = page.locator('.arcat-welcome-panel .arcat-mascot-picture img')
+    await mascot.waitFor()
+    await page.waitForFunction(() => {
+      const image = document.querySelector('.arcat-welcome-panel .arcat-mascot-picture img')
+      return image instanceof HTMLImageElement && image.complete && image.naturalWidth > 0
+    })
+    assert.equal(await mascot.getAttribute('alt'), '', 'The welcome mascot is decorative')
+    await page.emulateMedia({ reducedMotion: 'reduce' })
+    assert.equal(await mascot.evaluate(image => getComputedStyle(image).animationName), 'none', 'Reduced motion suppresses the welcome animation')
+    await page.emulateMedia({ reducedMotion: 'no-preference' })
+    brandChecked = true
+  }
   await page.getByLabel('이메일', { exact: true }).fill(email)
   await page.getByLabel('비밀번호', { exact: true }).fill(password)
   await page.getByRole('button', { name: '로그인', exact: true }).click()
@@ -102,7 +120,7 @@ async function download(format) {
 
 try {
   await api('auth/register', { email: ownerEmail, displayName: '검증 관리자', password })
-  await page.goto(`${web}/verify?token=${await mailToken(ownerEmail, 'Arc 이메일 확인')}`)
+  await page.goto(`${web}/verify?token=${await mailToken(ownerEmail, 'arcat 이메일 확인')}`)
   await page.getByText('이메일 확인을 마쳤습니다. 로그인하세요.').waitFor()
   assert.equal(verificationRequests, 1, 'StrictMode must not submit verification twice')
   ownerToken = await login(ownerEmail)
@@ -111,7 +129,7 @@ try {
   await page.locator('.space-item').filter({ hasText: workspaceName }).waitFor()
   workspaceId = (await api('auth/workspaces', undefined, ownerToken)).find(space => space.name === workspaceName).id
   await page.getByPlaceholder('프로젝트 이름', { exact: true }).fill('제품 기능 검증')
-  await page.getByPlaceholder('프로젝트 키 (예: ARC)').fill('CHECK')
+  await page.getByLabel('프로젝트 키', { exact: true }).fill('CHECK')
   await page.getByRole('button', { name: '프로젝트 만들기', exact: true }).click()
   await heading('간트 차트')
   projectId = Number(new URL(page.url()).pathname.split('/')[2])
@@ -464,12 +482,12 @@ try {
   await page.getByRole('status').filter({ hasText: '2개 이슈 · 8점으로 시작했습니다.' }).waitFor()
 
   await api('auth/register', { email: memberEmail, displayName: '검증 팀원', password })
-  await page.goto(`${web}/verify?token=${await mailToken(memberEmail, 'Arc 이메일 확인')}`)
+  await page.goto(`${web}/verify?token=${await mailToken(memberEmail, 'arcat 이메일 확인')}`)
   await page.getByText('이메일 확인을 마쳤습니다. 로그인하세요.').waitFor()
   assert.equal(verificationRequests, 2)
   const memberToken = await login(memberEmail)
   await api(`auth/workspaces/${workspaceId}/invitations`, { email: memberEmail, role: 'MEMBER' }, ownerToken)
-  await page.goto(`${web}/invite?token=${await mailToken(memberEmail, 'Arc 팀 초대')}`)
+  await page.goto(`${web}/invite?token=${await mailToken(memberEmail, 'arcat 팀 초대')}`)
   await page.getByText('초대를 수락했습니다.', { exact: true }).waitFor()
   assert.equal(invitationRequests, 1)
   const member = await api('auth/me', undefined, memberToken)

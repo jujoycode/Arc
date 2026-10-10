@@ -43,7 +43,7 @@ try {
   let verification
   for (let i = 0; i < 30 && !verification; i++) {
     const listing = await (await http.get(`${mail}messages`)).json()
-    const message = listing.messages.find(item => item.Subject === 'Arc 이메일 확인' && item.To.some(to => to.Address === email))
+    const message = listing.messages.find(item => item.Subject === 'arcat 이메일 확인' && item.To.some(to => to.Address === email))
     if (message) verification = (await (await http.get(`${mail}message/${message.ID}`)).json()).Text.match(/token=([^\s]+)/)[1]
     else await new Promise(resolve => setTimeout(resolve, 200))
   }

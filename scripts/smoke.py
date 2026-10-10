@@ -45,7 +45,7 @@ def mail_token(email, subject):
 
 def account(email, password):
     request("/auth/register", {"email": email, "displayName": email.split("@")[0], "password": password})
-    request("/auth/verify?token=" + mail_token(email, "Arc 이메일 확인"), method="POST")
+    request("/auth/verify?token=" + mail_token(email, "arcat 이메일 확인"), method="POST")
     return request("/auth/login", {"email": email, "password": password})["token"]
 
 
@@ -68,7 +68,7 @@ def main():
     request(f"/projects/{child_pid}", {"name": "Child project", "key": "CHILDX", "parentProjectId": pid}, owner, method="PUT")
     request(f"/projects/{pid}", token=member, expected=403)
     request(f"/auth/workspaces/{wid}/invitations", {"email": member_email, "role": "MEMBER"}, owner)
-    invite = mail_token(member_email, "Arc 팀 초대")
+    invite = mail_token(member_email, "arcat 팀 초대")
     request("/auth/invitations/accept?token=" + invite, method="POST", token=owner, expected=403)
     request("/auth/invitations/accept?token=" + invite, method="POST", token=member)
     request(f"/workspaces/{wid}/projects", {"name": "Denied", "key": "DENIED"}, member, expected=403)
@@ -229,7 +229,7 @@ def main():
     request(f"/projects/{pid}", token=member, expected=403)
     assert request(f"/projects/{pid}", token=owner)["managerIds"] == []
     request(f"/auth/workspaces/{wid}/invitations", {"email": member_email, "role": "MEMBER"}, owner)
-    request("/auth/invitations/accept?token=" + mail_token(member_email, "Arc 팀 초대"), method="POST", token=member)
+    request("/auth/invitations/accept?token=" + mail_token(member_email, "arcat 팀 초대"), method="POST", token=member)
     request(f"/projects/{pid}/issues", {"title": "Denied after rejoining", "type": "TASK"}, member, expected=403)
     request(f"/auth/workspaces/{wid}/members/{request('/auth/me', token=member)['id']}/role", {"role": "ADMIN"}, owner, method="PATCH")
     admin_ticket = request(f"/projects/{pid}/issues/{second['id']}", token=member)
