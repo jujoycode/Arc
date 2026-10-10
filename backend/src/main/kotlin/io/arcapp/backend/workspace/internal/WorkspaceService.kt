@@ -44,7 +44,7 @@ class WorkspaceService(
         if (repository.containsEmail(workspaceId, email)) throw ApiError(HttpStatus.CONFLICT, "이미 워크스페이스 멤버입니다.")
         val token = randomToken()
         repository.invite(workspaceId, email, input.role, sha256(token), userId, Instant.now().plus(7, ChronoUnit.DAYS))
-        mail.send(email, "Arc 팀 초대", "다음 주소에서 초대를 수락하세요 (7일 유효):\n${publicUrl.trimEnd('/')}/invite?token=$token")
+        mail.send(email, "arcat 팀 초대", "다음 주소에서 초대를 수락하세요 (7일 유효):\n${publicUrl.trimEnd('/')}/invite?token=$token")
         return mapOf("message" to "초대 메일을 보냈습니다.")
     }
     @Transactional

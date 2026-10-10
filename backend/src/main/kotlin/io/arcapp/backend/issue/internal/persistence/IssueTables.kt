@@ -21,6 +21,7 @@ internal object Issues : Table("issues") {
     val storyPoints = integer("story_points").nullable()
     val parentId = long("parent_issue_id").nullable()
     val versionId = long("version_id").nullable()
+    val customFields = text("custom_fields").databaseGenerated()
     val sprintId = long("sprint_id").nullable()
     val sortOrder = long("sort_order").default(0)
     val version = long("version").default(0)

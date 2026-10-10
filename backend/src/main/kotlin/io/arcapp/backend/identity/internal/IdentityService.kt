@@ -31,7 +31,7 @@ class IdentityService(
         val userId = repository.create(email, input.displayName.trim(), requireNotNull(passwords.encode(input.password)))
         val token = randomToken()
         repository.createToken(userId, sha256(token), "VERIFY", Instant.now().plus(1, ChronoUnit.DAYS))
-        mail.send(email, "Arc 이메일 확인", "다음 주소에서 이메일을 확인하세요 (24시간 유효):\n${publicUrl.trimEnd('/')}/verify?token=$token")
+        mail.send(email, "arcat 이메일 확인", "다음 주소에서 이메일을 확인하세요 (24시간 유효):\n${publicUrl.trimEnd('/')}/verify?token=$token")
         return mapOf("message" to "이메일 확인 링크를 보냈습니다.")
     }
 

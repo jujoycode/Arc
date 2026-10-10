@@ -21,7 +21,7 @@ internal fun providerBase(value: String): String {
 internal fun providerGet(base: String, path: String, token: String, github: Boolean): JsonNode {
     val request = HttpRequest.newBuilder(URI(base + path)).timeout(Duration.ofSeconds(8))
         .header("Accept", "application/json")
-        .header("User-Agent", "Arc")
+        .header("User-Agent", "arcat")
         .header(if (github) "Authorization" else "PRIVATE-TOKEN", if (github) "Bearer $token" else token).GET().build()
     val response = try { http.send(request, HttpResponse.BodyHandlers.ofString()) }
     catch (_: Exception) { throw ApiError(HttpStatus.SERVICE_UNAVAILABLE, "저장소 제공자에 연결할 수 없습니다. 잠시 후 다시 확인하세요.") }

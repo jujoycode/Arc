@@ -11,9 +11,13 @@ import java.time.Clock
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.ZoneOffset
+import tools.jackson.core.type.TypeReference
+import tools.jackson.databind.json.JsonMapper
 
 private fun utcNow() = LocalDateTime.now(Clock.systemUTC())
-private fun ResultRow.rawIssue(): Map<String, Any?> = Issues.columns.associate { it.name to this[it] }
+private val fieldJson = JsonMapper.builder().build()
+private fun decodeCustomFields(value: String): Map<String, Any?> = fieldJson.readValue(value, object : TypeReference<Map<String, Any?>>() {})
+private fun ResultRow.rawIssue(): Map<String, Any?> = Issues.columns.associate { it.name to this[it] } + mapOf("custom_fields" to decodeCustomFields(this[Issues.customFields]))
 private fun ResultRow.issueView(): Map<String, Any?> = mapOf(
     "id" to this[Issues.id], "projectId" to this[Issues.projectId], "key" to "${this[IssueProjects.key]}-${this[Issues.number]}",
     "number" to this[Issues.number], "title" to this[Issues.title], "description" to this[Issues.description], "type" to this[Issues.type],
@@ -22,6 +26,7 @@ private fun ResultRow.issueView(): Map<String, Any?> = mapOf(
     "startDate" to this[Issues.startDate], "dueDate" to this[Issues.dueDate], "progress" to this[Issues.progress],
     "storyPoints" to this[Issues.storyPoints], "parentId" to this[Issues.parentId], "versionId" to this[Issues.versionId],
     "sprintId" to this[Issues.sprintId], "sortOrder" to this[Issues.sortOrder], "version" to this[Issues.version],
+    "customFields" to decodeCustomFields(this[Issues.customFields]),
     "createdAt" to this[Issues.createdAt].toInstant(ZoneOffset.UTC), "updatedAt" to this[Issues.updatedAt].toInstant(ZoneOffset.UTC),
 )
 
@@ -79,6 +84,7 @@ class IssueRepository {
             it[title] = input.title.trim(); it[description] = input.description; it[type] = input.type; it[status] = input.status; it[priority] = input.priority
             it[assigneeId] = input.assigneeId; it[startDate] = input.startDate?.let(LocalDate::parse); it[dueDate] = input.dueDate?.let(LocalDate::parse)
             it[progress] = input.progress.toShort(); it[storyPoints] = input.storyPoints; it[parentId] = input.parentId; it[versionId] = input.versionId
+            it[customFields] = fieldJson.writeValueAsString(input.customFields ?: emptyMap<String, Any?>())
         }[Issues.id]
     }
     fun update(projectId: Long, id: Long, input: IssueInput, expectedVersion: Long): Int = dbQuery {
@@ -86,6 +92,7 @@ class IssueRepository {
             it[title] = input.title.trim(); it[description] = input.description; it[type] = input.type; it[status] = input.status; it[priority] = input.priority
             it[assigneeId] = input.assigneeId; it[startDate] = input.startDate?.let(LocalDate::parse); it[dueDate] = input.dueDate?.let(LocalDate::parse)
             it[progress] = input.progress.toShort(); it[storyPoints] = input.storyPoints; it[parentId] = input.parentId; it[versionId] = input.versionId
+            it[customFields] = fieldJson.writeValueAsString(input.customFields ?: emptyMap<String, Any?>())
             it[version] = Issues.version + 1
         }
     }

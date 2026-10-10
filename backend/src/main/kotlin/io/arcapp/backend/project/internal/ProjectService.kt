@@ -3,6 +3,7 @@ package io.arcapp.backend.project.internal
 import io.arcapp.backend.project.api.ProjectAccess
 import io.arcapp.backend.project.internal.persistence.ProjectRepository
 import io.arcapp.backend.shared.api.ApiError
+import io.arcapp.backend.shared.api.calendarDate
 import io.arcapp.backend.shared.persistence.long
 import io.arcapp.backend.workspace.api.WorkspaceAccess
 import org.springframework.http.HttpStatus
@@ -60,12 +61,13 @@ class ProjectService(private val repository: ProjectRepository, private val acce
         val project = access.forUpdate(id, userId)
         access.requireManager(project, userId)
         project.requireActive()
-        val start: Date?
-        val due: Date
-        try { start = input.startDate?.let(Date::valueOf); due = Date.valueOf(input.dueDate) }
-        catch (_: IllegalArgumentException) { throw ApiError(HttpStatus.BAD_REQUEST, "버전 날짜를 확인해 주세요.") }
-        if (input.name.isBlank() || input.name.length > 120 || start != null && start.after(due)) throw ApiError(HttpStatus.BAD_REQUEST, "버전 이름과 날짜를 확인해 주세요.")
-        return mapOf("id" to repository.createVersion(id, input.name.trim(), input.description, start, due))
+        val start = input.startDate?.let { calendarDate(it, "startDate") }
+        val due = calendarDate(input.dueDate, "dueDate")
+        if (input.name.isBlank() || input.name.length > 120) throw ApiError(HttpStatus.BAD_REQUEST,
+            "버전 이름을 확인해 주세요.", "VALIDATION_FAILED", mapOf("name" to "이름은 1~120자로 입력해 주세요."))
+        if (start != null && due < start) throw ApiError(HttpStatus.BAD_REQUEST,
+            "버전 날짜를 확인해 주세요.", "VALIDATION_FAILED", mapOf("dueDate" to "완료일은 시작일보다 빠를 수 없습니다."))
+        return mapOf("id" to repository.createVersion(id, input.name.trim(), input.description, start?.let(Date::valueOf), Date.valueOf(due)))
     }
     private fun checkParent(workspaceId: Long, parentId: Long?, projectId: Long?) {
         var current = parentId

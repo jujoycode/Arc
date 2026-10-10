@@ -4,6 +4,7 @@ import io.arcapp.backend.issue.api.SprintIssueOperations
 import io.arcapp.backend.project.api.ProjectAccess
 import io.arcapp.backend.project.api.ProjectContext
 import io.arcapp.backend.shared.api.ApiError
+import io.arcapp.backend.shared.api.calendarDate
 import io.arcapp.backend.sprint.internal.persistence.SprintRepository
 import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Service
@@ -17,12 +18,13 @@ class SprintService(private val repository: SprintRepository, private val projec
     @Transactional
     fun create(actorId: Long, projectId: Long, input: SprintInput): Map<String, Long> {
         managedProject(actorId, projectId)
-        val startDate: Date
-        val endDate: Date
-        try { startDate = Date.valueOf(input.startOn); endDate = Date.valueOf(input.endOn) }
-        catch (_: IllegalArgumentException) { throw ApiError(HttpStatus.BAD_REQUEST, "스프린트 이름과 기간을 확인해 주세요.") }
-        if (input.name.isBlank() || input.name.length > 120 || startDate.after(endDate)) throw ApiError(HttpStatus.BAD_REQUEST, "스프린트 이름과 기간을 확인해 주세요.")
-        return mapOf("id" to repository.create(projectId, input.name.trim(), input.goal, startDate, endDate))
+        val startDate = calendarDate(input.startOn, "startOn")
+        val endDate = calendarDate(input.endOn, "endOn")
+        if (input.name.isBlank() || input.name.length > 120) throw ApiError(HttpStatus.BAD_REQUEST,
+            "스프린트 이름을 확인해 주세요.", "VALIDATION_FAILED", mapOf("name" to "이름은 1~120자로 입력해 주세요."))
+        if (endDate < startDate) throw ApiError(HttpStatus.BAD_REQUEST,
+            "스프린트 기간을 확인해 주세요.", "VALIDATION_FAILED", mapOf("endOn" to "종료일은 시작일보다 빠를 수 없습니다."))
+        return mapOf("id" to repository.create(projectId, input.name.trim(), input.goal, Date.valueOf(startDate), Date.valueOf(endDate)))
     }
 
     @Transactional
