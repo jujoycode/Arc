@@ -1,4 +1,4 @@
-name: Set up Arc frontend
+name: Set up arcat frontend
 description: Install the pinned pnpm version, restore its store, and use the lockfile.
 runs:
   using: composite

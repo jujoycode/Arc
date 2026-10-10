@@ -1,4 +1,4 @@
-# Arc 기능과 권한 안내
+# arcat 기능과 권한 안내
 
 [제품 소개](README.md) · [화면별 설명](README.md#전체-화면-안내) · [상세 기능 명세](../FUNCTIONAL_SPEC.md)
 
@@ -9,11 +9,15 @@
 | 영역 | 기능과 동작 | 확인할 사진 |
 | --- | --- | --- |
 | 이메일 인증 | 이름·이메일·12자 이상 비밀번호로 가입, 확인 링크, 검증 후 로그인·로그아웃 | [가입](01-team-and-access.md#register) · [확인](01-team-and-access.md#email-verification) · [로그인](01-team-and-access.md#login) |
+| 첫 사용 안내 | 집배원 고양이와 제품 소개, 첫 워크스페이스 준비, 확인·초대 결과를 텍스트로 함께 안내 | [로그인](01-team-and-access.md#login) · [첫 팀 공간](01-team-and-access.md#workspace-onboarding) |
 | 팀 합류 | 이메일로 MEMBER·ADMIN 초대, 해당 이메일 계정으로 수락, 초대 취소·만료 | [초대 수락](01-team-and-access.md#team-invitation) · [팀 관리](05-settings-and-integrations.md#team-settings) |
 | 워크스페이스·탐색 | 팀 공간 생성·선택, 프로젝트 카드, 프로젝트 간 전환, 계정·로그아웃 | [팀 공간](01-team-and-access.md#workspaces) |
 | 프로젝트 | 이름·키·설명·상위 프로젝트, 보관·복원, 첫 티켓 이후 키 변경 제한 | [프로젝트 생성](01-team-and-access.md#project-creation) · [설정](05-settings-and-integrations.md#project-settings) · [보관](05-settings-and-integrations.md#archived-project) |
 | 프로젝트 관리자 | OWNER·ADMIN이 기본 관리자, 프로젝트별 추가 관리자 지정·해제, 팀 탈퇴 시 지정 해제 | [관리자 명단](05-settings-and-integrations.md#project-settings) |
 | 공통 티켓 | Epic·Story·Task·Bug·하위 작업, 제목·설명·상태·우선순위·담당자·날짜·완료율·포인트·부모·버전, 관리자 삭제 | [생성](03-tickets-and-views.md#ticket-create) · [상세](03-tickets-and-views.md#ticket-detail) · [계획 편집](03-tickets-and-views.md#ticket-plan-edit) |
+| 표준 필드 설정 | 워크스페이스별 표시 이름·입력 안내·표시 여부·필수 여부·그룹 내 순서, 제목·유형·상태·완료율 유지 | [표준 필드](05-settings-and-integrations.md#ticket-fields-standard) |
+| 커스텀 필드 | 텍스트·숫자·날짜·단일 선택, 활성 최대 30개, 입력 구성 미리보기, 타입 고정·비활성화 시 기존 값 보존 | [설정·미리보기](05-settings-and-integrations.md#ticket-fields-custom) · [입력](03-tickets-and-views.md#ticket-custom-form) · [저장 값](03-tickets-and-views.md#ticket-custom-detail) |
+| 폼 검증 | 입력 그룹·필수/선택·안내 통일, Valibot 검증·필드 오류·오류 요약·입력 보존, 숫자 0과 빈 값 구분 | [검증과 입력 보존](03-tickets-and-views.md#ticket-validation) · [실행 폼](03-tickets-and-views.md#ticket-execution) |
 | 담당 업무 실행 | 담당자와 관리자만 상태·완료율 수정, 개발자 전용 폼, 재배정 후 권한 재확인 | [담당자 수정](03-tickets-and-views.md#ticket-execution) |
 | 동시 편집 | 먼저 저장된 수정과 충돌하면 안내하고 입력 보존, 새 데이터 확인 후 재시도 | [편집 충돌](03-tickets-and-views.md#ticket-edit-conflict) |
 | 댓글·기록 | 모든 팀원 댓글 작성, 작성자 수정·삭제, 관리자 삭제, 변경자·종류·시각 기록 | [댓글 편집](03-tickets-and-views.md#ticket-comment-edit) · [변경 기록](03-tickets-and-views.md#ticket-history) |
@@ -43,7 +47,9 @@
 | 작업 | 워크스페이스 소유자·관리자 | 프로젝트별 추가 관리자 | 개발자·일반 팀원 |
 | --- | --- | --- | --- |
 | 프로젝트 업무·일정·팀 진척 조회 | 가능 | 가능 | 가능 |
-| 티켓 생성·삭제, 범위·부모·배정·일정·포인트·관계 관리 | 가능 | 지정 프로젝트만 | 불가 |
+| 티켓 생성·삭제, 범위·부모·배정·일정·포인트·관계·커스텀 값 관리 | 가능 | 지정 프로젝트만 | 불가 |
+| 워크스페이스 티켓 필드 조회 | 가능 | 가능 | 가능 |
+| 표준 필드 설정·커스텀 필드 정의 관리 | 가능 | 불가 | 불가 |
 | 버전·백로그 순서·스프린트 편성·시작·종료 | 가능 | 지정 프로젝트만 | 불가 |
 | 티켓 상태·완료율 변경 | 가능 | 지정 프로젝트만 | 본인 담당 티켓만 |
 | 댓글 작성 | 가능 | 가능 | 가능 |
@@ -55,6 +61,8 @@
 
 추가 관리자는 워크스페이스 역할을 바꾸지 않습니다. 다른 프로젝트와 하위 프로젝트에는 권한이 자동 전파되지 않습니다. 보관 프로젝트의 변경 제한은 관리자에게도 적용됩니다. 화면에서 버튼을 숨기거나 제한하는 동작과 서버 권한 검사가 함께 적용됩니다.
 
+새 필수 필드는 생성·계획 편집에서 입력합니다. 기존 티켓에 값이 없어도 담당자의 상태·완료율 수정과 팀원의 댓글은 계속 사용할 수 있습니다. 숨기거나 비활성화한 필드의 기존 값은 보존합니다.
+
 ## 선택하기 전에 확인할 범위
 
 | 주제 | 현재 제공 | 후속 범위·조건 |
@@ -64,6 +72,7 @@
 | WBS | 티켓 계층·코드, 말단 완료 비율·포인트 | 직접 재정렬·독립 산출물 노드·시간/원가·기준선은 후속 범위. WBS 코드는 구조 변경 시 바뀌며 영구 참조에는 티켓 키를 사용합니다. |
 | 진척 지표 | WBS: 말단의 DONE 수/전체 말단 수. 간트: 하위 항목 완료율 집계 | 전체가 완료된 상태의 비율과 입력 완료율 집계는 서로 다른 지표입니다. |
 | 설정 유지 | 필터·테이블 열은 같은 프로젝트 내 보기 이동 중 유지, 간트 개인 보기는 사용자별 서버 저장 | 필터·테이블의 새로고침 복원·서버 저장 다중 보기와 WBS 접힘 복원은 후속 범위 |
+| 티켓 필드 | 워크스페이스 공통 표준 설정과 텍스트·숫자·날짜·단일 선택 필드, 계획 폼·상세에 적용 | 프로젝트별 재정의·다중 선택·계산·첨부·커스텀 필드 테이블 열/필터는 후속 범위. 저장한 필드 타입은 변경하지 않으며 삭제 대신 비활성화합니다. |
 | 티켓·인증 | 고정 유형·기본 상태, 이메일·비밀번호 로그인 | 사용자 정의 워크플로·SSO·첨부 파일 기능은 현재 미제공 |
 | 코드 연동 | GitHub·GitLab 커밋·PR·MR 표시, 웹훅 처리·재시도 | 화면 자료는 로컬 제공자 모형입니다. 실계정·공개 HTTPS 웹훅은 [설치 환경에서 설정](../INTEGRATIONS.md). 코드 이벤트가 티켓 상태를 자동 변경하지 않습니다. |
 | 설치 | [Docker Compose 앱·DB·메일 구성](../DEPLOYMENT.md) | 운영 도메인·HTTPS·SMTP·백업은 설치 서버에서 준비 |

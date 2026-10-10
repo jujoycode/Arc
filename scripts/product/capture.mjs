@@ -47,7 +47,7 @@ async function mailToken(email, subject) {
 async function account(name, prefix) {
   const email = `${prefix}-${suffix}@example.com`
   await api('auth/register', { email, displayName: name, password })
-  await api(`auth/verify?token=${await mailToken(email, 'Arc 이메일 확인')}`, undefined, undefined, 'POST')
+  await api(`auth/verify?token=${await mailToken(email, 'arcat 이메일 확인')}`, undefined, undefined, 'POST')
   const login = await api('auth/login', { email, password })
   return { ...login.user, email, token: login.token }
 }
@@ -58,7 +58,7 @@ async function actor(user) {
 async function go(path, heading) {
   await page.goto(`${web}/${path}`)
   if (heading) {
-    if (['팀 공간에 로그인', 'Arc 계정 만들기'].includes(heading)) await page.getByText(heading, { exact: true }).waitFor()
+    if (['팀 공간에 로그인', 'arcat 계정 만들기'].includes(heading)) await page.getByText(heading, { exact: true }).waitFor()
     else await page.getByRole('heading', { name: heading, exact: true }).waitFor()
   }
   await page.locator('.loading-state').waitFor({ state: 'detached' })
@@ -78,7 +78,7 @@ async function capture(id, title, chapter, role, purpose, features, anchor) {
   await page.screenshot({ path: join(output, `${id}.png`), fullPage: false, animations: 'disabled' })
   const png = readFileSync(join(output, `${id}.png`))
   assert.equal(png.readUInt32BE(16), 1920); assert.equal(png.readUInt32BE(20), 1080)
-  shots.push({ id, file: `${id}.png`, title, chapter, role, purpose, features, route: new URL(page.url()).pathname.replace(/\/projects\/\d+/g, '/projects/:projectId').replace(/\/issues\/\d+/g, '/issues/:issueId'), frame: anchor ? '화면 하단 기능으로 스크롤' : '화면 상단', width: 1920, height: 1080 })
+  shots.push({ id, file: `${id}.png`, title, chapter, role, purpose, features, route: new URL(page.url()).pathname.replace(/\/workspaces\/\d+/g, '/workspaces/:workspaceId').replace(/\/projects\/\d+/g, '/projects/:projectId').replace(/\/issues\/\d+/g, '/issues/:issueId'), frame: anchor ? '화면 하단 기능으로 스크롤' : '화면 상단', width: 1920, height: 1080 })
   console.log(`Captured ${shots.length}: ${id}.png`)
 }
 async function delivery(connection, provider, payload, event, secret) {
@@ -93,18 +93,22 @@ try {
   await actor(null)
   await go('login', '팀 공간에 로그인')
   await page.getByLabel('이메일', { exact: true }).fill('minji@example.com')
-  await capture('login', '이메일 로그인', '01-team-and-access', '모든 사용자', '검증된 이메일로 팀 공간에 접속합니다.', ['이메일·비밀번호 로그인', '가입 화면 이동'])
-  await go('register', 'Arc 계정 만들기')
+  await capture('login', '이메일 로그인', '01-team-and-access', '모든 사용자', '집배원 고양이가 안내하는 시작 화면에서 검증된 이메일로 팀 공간에 접속합니다.', ['arcat 제품 소개와 집배원 고양이', '이메일·비밀번호 로그인', '가입 화면 이동'])
+  await go('register', 'arcat 계정 만들기')
   await page.getByLabel('이름', { exact: true }).fill('김민지')
   const ownerEmail = `minji-${suffix}@example.com`
   await page.getByLabel('이메일', { exact: true }).fill(ownerEmail)
-  await capture('register', '계정 가입', '01-team-and-access', '모든 사용자', '이름과 이메일로 계정을 만들고 확인 메일을 받습니다.', ['이름·이메일·비밀번호 입력', '12자 이상 비밀번호', '이메일 확인 후 로그인'])
+  await capture('register', '계정 가입', '01-team-and-access', '모든 사용자', '이름과 이메일로 계정을 만들고 확인 메일을 받습니다.', ['집배원 고양이와 팀 시작 안내', '이름·이메일·비밀번호 입력', '12자 이상 비밀번호', '이메일 확인 후 로그인'])
   await api('auth/register', { email: ownerEmail, displayName: '김민지', password })
-  await go(`verify?token=${await mailToken(ownerEmail, 'Arc 이메일 확인')}`)
+  await go(`verify?token=${await mailToken(ownerEmail, 'arcat 이메일 확인')}`)
   await page.getByText('이메일 확인을 마쳤습니다. 로그인하세요.').waitFor()
-  await capture('email-verification', '이메일 확인 완료', '01-team-and-access', '가입 사용자', '실제 확인 메일의 일회용 링크로 이메일을 검증합니다.', ['확인 링크 검증', '확인 결과 안내', '로그인으로 이동'])
+  await capture('email-verification', '이메일 확인 완료', '01-team-and-access', '가입 사용자', '실제 확인 메일의 일회용 링크로 이메일을 검증합니다.', ['확인 링크 검증', '고양이와 텍스트로 확인 결과 안내', '로그인으로 이동'])
   const login = await api('auth/login', { email: ownerEmail, password })
   owner = { ...login.user, token: login.token }
+  await actor(owner)
+  await go('', '함께 일할 공간')
+  await page.getByRole('heading', { name: '팀의 첫 공간을 준비해 볼까요?', exact: true }).waitFor()
+  await capture('workspace-onboarding', '첫 워크스페이스 시작 안내', '01-team-and-access', '새로 가입한 사용자', '집배원 고양이와 안내를 따라 첫 팀 공간을 준비합니다.', ['업무가 없는 가입 직후의 실제 빈 상태', '워크스페이스 이름 입력과 생성', '첫 공간 생성 후 프로젝트 준비', '장식 캐릭터와 텍스트 안내'])
   const developer = await account('이서준', 'seojun')
   const designer = await account('박지우', 'jiwoo')
   const manager = await account('한지훈', 'jihoon')
@@ -112,11 +116,11 @@ try {
   workspace = await api('auth/workspaces', { name: workspaceName }, owner.token)
   for (const user of [developer, designer, manager, admin]) {
     await api(`auth/workspaces/${workspace.id}/invitations`, { email: user.email, role: user === admin ? 'ADMIN' : 'MEMBER' }, owner.token)
-    const invite = await mailToken(user.email, 'Arc 팀 초대')
+    const invite = await mailToken(user.email, 'arcat 팀 초대')
     if (user === developer) {
       await actor(developer); await go(`invite?token=${invite}`)
       await page.getByText('초대를 수락했습니다.', { exact: true }).waitFor()
-      await capture('team-invitation', '팀 초대 수락', '01-team-and-access', '초대받은 팀원', '초대받은 이메일로 로그인한 뒤 팀에 합류합니다.', ['초대 이메일 일치 확인', '초대 수락 결과', '워크스페이스로 이동'])
+      await capture('team-invitation', '팀 초대 수락', '01-team-and-access', '초대받은 팀원', '초대받은 이메일로 로그인한 뒤 팀에 합류합니다.', ['초대 이메일 일치 확인', '고양이와 텍스트로 초대 수락 안내', '워크스페이스로 이동'])
     } else await api(`auth/invitations/accept?token=${invite}`, undefined, user.token, 'POST')
   }
   project = await api(`workspaces/${workspace.id}/projects`, { name: '고객 포털 고도화', key: 'PORTAL', description: '고객이 문의·계정·알림을 한곳에서 관리하는 포털을 개선합니다.' }, owner.token)
@@ -233,7 +237,7 @@ try {
   await page.getByRole('button', { name: '이슈 만들기', exact: true }).click()
   await page.getByRole('dialog').getByLabel('제목', { exact: true }).fill('고객 문의 목록의 키보드 탐색')
   await page.getByRole('dialog').getByLabel('담당자', { exact: true }).selectOption(String(designer.id))
-  await capture('ticket-create', '공통 티켓 생성', '03-tickets-and-views', '기본·프로젝트 관리자', 'Epic·Story·Task·Bug·하위 작업을 하나의 티켓 계약으로 생성합니다.', ['유형·상태·우선순위', '담당자·일정·완료율', '부모·버전·포인트', '모든 보기에서 같은 키 사용'])
+  await capture('ticket-create', '공통 티켓 생성', '03-tickets-and-views', '기본·프로젝트 관리자', 'Epic·Story·Task·Bug·하위 작업을 하나의 티켓 계약으로 생성합니다.', ['기본 정보·계획·일정·진행 상황 그룹', '필수·선택과 입력 안내', '담당자·부모·버전·포인트', '담당자 선택 시 집배원 고양이와 배정 안내', '모든 보기에서 같은 키 사용'])
   await page.getByRole('dialog').getByRole('button', { name: '취소', exact: true }).click()
   await go(path(`issues/${story.id}`), story.title)
   await capture('ticket-detail', '티켓 상세와 팀 협업', '03-tickets-and-views', '모든 팀원', '한 티켓에서 완료 기준·속성·댓글·변경 기록·관계·개발 활동을 확인합니다.', ['설명·상태·담당자·일정', '댓글 협업', '변경 기록', '선행·차단 관계', '관리자 삭제'])
@@ -288,6 +292,58 @@ try {
   await go(path(`issues/${story.id}`), story.title)
   await page.getByRole('region', { name: '개발 활동', exact: true }).getByText('병합됨', { exact: true }).first().waitFor()
   await capture('development-activity', '티켓에 연결된 커밋·PR·MR', '05-settings-and-integrations', '모든 팀원', '티켓 키로 연결된 GitHub·GitLab 개발 기록을 업무 상세에서 확인합니다.', ['커밋·PR·MR 연결', '열림·닫힘·병합 상태', '제공자 원본 링크', '이슈 상태 자동 변경 없음'], page.getByRole('region', { name: '개발 활동', exact: true }))
+
+  // Apply the workspace policy after the original product flow. Newly required
+  // planning fields do not interfere with existing execution or comments.
+  const fieldPath = `auth/workspaces/${workspace.id}/ticket-fields`
+  const originalPolicy = await api(fieldPath, undefined, owner.token)
+  const fieldPolicy = await api(fieldPath, {
+    revision: originalPolicy.revision,
+    standardFields: originalPolicy.standardFields.map(field => ({ ...field,
+      ...(field.key === 'title' ? { label: '티켓 제목', description: '팀원이 결과를 알아볼 수 있는 제목을 입력하세요.' } : {}),
+      ...(field.key === 'priority' ? { visible: false, required: false } : {}),
+      ...(field.key === 'assigneeId' ? { description: '실행 상태와 완료율을 기록할 담당자를 지정하세요.' } : {}),
+    })),
+    customFields: [
+      { key: 'customer_group', type: 'TEXT', label: '고객군', description: '이 업무가 지원하는 고객군을 적어 주세요.', active: true, required: true, order: 0, options: [] },
+      { key: 'estimated_hours', type: 'NUMBER', label: '예상 시간', description: '시간 단위입니다. 0은 추가 작업 없음, 빈 값은 미추정입니다.', active: true, required: false, order: 1, options: [] },
+      { key: 'review_date', type: 'DATE', label: '목표 검토일', description: '팀과 함께 결과를 확인할 날짜입니다.', active: true, required: false, order: 2, options: [] },
+      { key: 'release_channel', type: 'SELECT', label: '출시 채널', description: '업무가 적용될 채널을 선택하세요.', active: true, required: true, order: 3, options: [{ value: 'web', label: '웹 포털', active: true }, { value: 'mobile', label: '모바일', active: true }] },
+    ],
+  }, owner.token, 'PUT')
+  const plannedTicket = await api(`projects/${project.id}/issues/${story.id}`, undefined, owner.token)
+  await api(`projects/${project.id}/issues/${story.id}`, {
+    title: plannedTicket.title, type: plannedTicket.type, description: plannedTicket.description,
+    status: plannedTicket.status, priority: plannedTicket.priority, assigneeId: plannedTicket.assigneeId,
+    startDate: plannedTicket.startDate, dueDate: plannedTicket.dueDate, progress: plannedTicket.progress,
+    storyPoints: plannedTicket.storyPoints, parentId: plannedTicket.parentId, versionId: plannedTicket.versionId,
+    version: plannedTicket.version, fieldRevision: fieldPolicy.revision,
+    customFields: { customer_group: '고객 포털 이용자', estimated_hours: 12.5, review_date: date(10), release_channel: 'web' },
+  }, owner.token, 'PUT')
+  await go(`workspaces/${workspace.id}/ticket-fields`, '티켓 필드 설정')
+  await page.getByRole('button', { name: '설정 저장', exact: true }).waitFor()
+  await page.locator('.field-definition').filter({ has: page.locator('summary strong').filter({ hasText: /^티켓 제목$/ }) }).locator('summary').click()
+  await capture('ticket-fields-standard', '팀에 맞는 표준 티켓 필드', '05-settings-and-integrations', '워크스페이스 소유자·관리자', '필드 이름·입력 안내·표시 여부·필수 여부·순서를 워크스페이스 단위로 정합니다.', ['모든 프로젝트에 같은 양식 적용', '핵심 제목·유형·상태·완료율 유지', '숨긴 필드의 기존 값 보존', '저장 전 입력 구성 미리보기'])
+  const customSection = page.getByRole('group', { name: '커스텀 필드', exact: true })
+  await customSection.locator('.field-definition').first().locator('summary').click()
+  await page.locator('.field-preview').evaluate(element => element.scrollTo(0, element.scrollHeight))
+  await capture('ticket-fields-custom', '커스텀 필드와 입력 구성 미리보기', '05-settings-and-integrations', '워크스페이스 소유자·관리자', '텍스트·숫자·날짜·단일 선택 정보를 추가하고 팀의 입력 양식을 확인합니다.', ['활성 필드 최대 30개', '필수·선택·설명·순서 설정', '저장 후 타입 고정', '필드·선택지 비활성화와 기존 값 보존'], customSection)
+
+  await go(path(`issues/${story.id}`), story.title)
+  await page.getByRole('button', { name: '이슈 편집', exact: true }).click()
+  await page.getByLabel('고객군', { exact: true }).waitFor()
+  const ticketExtras = page.getByRole('group', { name: '추가 정보', exact: true })
+  await capture('ticket-custom-form', '티켓 계획에 팀별 추가 정보 입력', '03-tickets-and-views', '기본·프로젝트 관리자', '팀이 정한 필드와 필수 조건을 티켓 생성·계획 편집에 적용합니다.', ['텍스트·숫자·날짜·선택 입력', '0과 미추정 구분', '필드별 입력 안내', '담당자의 실행 수정은 기존 범위 유지'], ticketExtras)
+  await page.getByLabel('티켓 제목', { exact: true }).fill('')
+  await page.getByLabel('고객군', { exact: true }).fill('')
+  await page.getByLabel('출시 채널', { exact: true }).selectOption('')
+  await page.getByRole('button', { name: '변경 저장', exact: true }).click()
+  await page.getByLabel('티켓 제목', { exact: true }).and(page.locator('[aria-invalid="true"]')).waitFor()
+  assert.equal(await page.getByLabel('예상 시간', { exact: true }).inputValue(), '12.5', 'Validation must preserve other inputs')
+  await capture('ticket-validation', '필드별 검증과 입력 내용 보존', '03-tickets-and-views', '티켓 편집 사용자', '잘못된 입력을 저장하기 전에 오류 요약과 해당 필드의 설명으로 안내합니다.', ['Valibot 입력 검증', '필수 오류·필드 오류 연결', '오류 요약에서 입력으로 이동', '오류에도 작성한 다른 값 보존'])
+  await page.getByRole('button', { name: '취소', exact: true }).click()
+  await page.getByRole('heading', { name: '추가 정보', exact: true }).waitFor()
+  await capture('ticket-custom-detail', '저장된 팀별 추가 정보 확인', '03-tickets-and-views', '모든 팀원', '티켓 상세에서 팀이 정한 추가 정보를 읽고 계획·실행 맥락을 공유합니다.', ['표시 이름과 타입별 값', '단일 선택의 선택지 이름', '일반 팀원의 조회', '필드 비활성화 후 기존 값 보존'], page.getByRole('heading', { name: '추가 정보', exact: true }))
   await go(`projects/${empty.id}/wbs`, 'WBS')
   await capture('empty-project', '프로젝트 시작 전 빈 상태', '05-settings-and-integrations', '모든 팀원·관리자', '업무가 없는 프로젝트에서는 0건과 업무 없음을 표시하고 첫 티켓을 만들 수 있습니다.', ['빈 결과 안내', '완료로 오해하지 않는 팀 집계', '첫 티켓 생성'])
   await api(`projects/${project.id}`, { name: project.name, description: '고객 포털 고도화', archived: true }, owner.token, 'PUT')

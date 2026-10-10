@@ -1,12 +1,12 @@
 # arcat 백엔드 구조
 
-> 2026-10-06 · Kotlin / Spring Boot · 하나의 Gradle 애플리케이션 안에서 기능별 경계를 유지한다.
+> 갱신 2026-10-11 · Kotlin / Spring Boot · 하나의 Gradle 애플리케이션 안에서 기능별 경계를 유지한다.
 
 ## 설계 방향
 
-사용자가 공유한 **백엔드 구조 비교** 대화의 캐시 미리보기를 참고했다. 전체 대화 및 handoff 파일은 이번 환경에서 읽을 수 없었으므로, 확인 가능한 원칙인 기능별 구조, `api/internal` 경계, 필요에 따른 QueryService, 과도한 추상화 방지를 Arc에 적용했다.
+사용자가 공유한 **백엔드 구조 비교** 대화의 캐시 미리보기를 참고했다. 전체 대화 및 handoff 파일은 이번 환경에서 읽을 수 없었으므로, 확인 가능한 원칙인 기능별 구조, `api/internal` 경계, 필요에 따른 QueryService, 과도한 추상화 방지를 arcat에 적용했다.
 
-Arc는 modular monolith로 시작한다. 배포 단위는 하나이며 기능 모듈은 Kotlin 패키지로 구분한다. 독립적인 빌드·배포나 컴파일 경계가 실제로 필요해질 때 Gradle 모듈로 분리한다.
+arcat는 modular monolith로 시작한다. 배포 단위는 하나이며 기능 모듈은 Kotlin 패키지로 구분한다. 독립적인 빌드·배포나 컴파일 경계가 실제로 필요해질 때 Gradle 모듈로 분리한다.
 
 ```text
 backend/src/main/kotlin/io/arcapp/backend/
@@ -40,6 +40,10 @@ backend/src/main/kotlin/io/arcapp/backend/
 │       ├── IssueQueryService.kt
 │       └── persistence/
 ├── sprint/                    # 계획·시작·종료
+├── ticketfield/               # 워크스페이스 양식·커스텀 값 정책
+│   ├── api/                   # TicketFields 공개 검증·정책 계약
+│   ├── web/                   # 워크스페이스 설정 GET/PUT
+│   └── internal/persistence/  # revision·표준/커스텀 정의 JSON
 │   ├── web/
 │   └── internal/persistence/
 ├── gantt/                     # 공개 조회 계약을 조합한 통합 간트
@@ -83,6 +87,7 @@ flowchart LR
 ```
 
 - 이슈 생성: `IssueController → IssueService → ProjectAccess / WorkspaceAccess → IssueRepository`.
+- 티켓 계획 저장은 `TicketFields` 공개 계약으로 워크스페이스의 현재 필드 정책·revision·값을 검사한다. 정책 쓰기와 계획 쓰기는 워크스페이스→프로젝트 순서로 잠가 충돌·필수 정책을 일관되게 적용한다. 담당자의 실행 전용 수정은 추가 계획 필수값에서 분리한다. 비활성·숨김·이전 요청의 누락된 값은 보존한다.
 - 스프린트 종료: `SprintService`가 프로젝트 권한과 상태를 검증한 뒤 `SprintIssueOperations`로 참여 이력·포인트·미완료 이월을 처리한다. 스프린트 모듈이 이슈 저장소를 직접 호출하지 않는다.
 - 간트 조회: `GanttQueryService → ProjectTimelineQueries + IssueTimelineQueries`. 프로젝트 하위 트리와 이슈·관계를 통합한다.
 - 인증 필터는 `SessionAuthenticator`를 호출하고, 메일 발송은 `MailSender`를 호출한다.

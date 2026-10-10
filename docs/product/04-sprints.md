@@ -4,7 +4,7 @@
 
 관리자는 백로그와 스프린트를 편성하고, 담당자는 진행 중 업무를 수행합니다. 종료 시 미완료 업무를 이월하고 당시 결과를 보존합니다.
 
-> 2026-10-08 · Asia/Seoul · 실제 앱 촬영 · 모든 원본 1920×1080
+> 2026-10-11 · Asia/Seoul · 실제 앱 촬영 · 모든 원본 1920×1080
 
 사진을 누르면 원본을 볼 수 있습니다. 동일한 데모 팀의 업무 흐름을 순서대로 촬영했으며 스프린트 종료·보관 전후에는 상태가 달라집니다.
 
@@ -14,7 +14,7 @@
 
 미편성 업무의 우선순위를 정하고 계획 중 스프린트에 넣습니다.
 
-[![백로그와 스프린트 편성 — Arc 실제 제품 화면, 1920×1080](images/backlog.png)](images/backlog.png)
+[![백로그와 스프린트 편성 — arcat 실제 제품 화면, 1920×1080](images/backlog.png)](images/backlog.png)
 
 **사용자:** 모든 팀원·관리자 · **화면:** `/projects/:projectId/backlog` · 화면 상단
 
@@ -31,7 +31,7 @@
 
 스프린트 목표·기간·완료 수·포인트와 상태별 업무를 확인합니다.
 
-[![진행 중 스프린트 — Arc 실제 제품 화면, 1920×1080](images/sprint-active.png)](images/sprint-active.png)
+[![진행 중 스프린트 — arcat 실제 제품 화면, 1920×1080](images/sprint-active.png)](images/sprint-active.png)
 
 **사용자:** 모든 팀원 · **화면:** `/projects/:projectId/sprints` · 화면 상단
 
@@ -48,7 +48,7 @@
 
 목표와 기간을 지정해 다음 스프린트를 준비합니다.
 
-[![새 스프린트 계획 — Arc 실제 제품 화면, 1920×1080](images/sprint-plan.png)](images/sprint-plan.png)
+[![새 스프린트 계획 — arcat 실제 제품 화면, 1920×1080](images/sprint-plan.png)](images/sprint-plan.png)
 
 **사용자:** 기본·프로젝트 관리자 · **화면:** `/projects/:projectId/sprints` · 화면 상단
 
@@ -65,7 +65,7 @@
 
 미완료 티켓을 백로그 또는 다음 계획 스프린트로 이월합니다.
 
-[![스프린트 종료와 이월 — Arc 실제 제품 화면, 1920×1080](images/sprint-close.png)](images/sprint-close.png)
+[![스프린트 종료와 이월 — arcat 실제 제품 화면, 1920×1080](images/sprint-close.png)](images/sprint-close.png)
 
 **사용자:** 기본·프로젝트 관리자 · **화면:** `/projects/:projectId/sprints` · 화면 상단
 
@@ -82,7 +82,7 @@
 
 티켓이 다음 스프린트로 이동해도 종료 당시 상태와 포인트를 다시 확인합니다.
 
-[![종료 당시 스프린트 결과 — Arc 실제 제품 화면, 1920×1080](images/sprint-history.png)](images/sprint-history.png)
+[![종료 당시 스프린트 결과 — arcat 실제 제품 화면, 1920×1080](images/sprint-history.png)](images/sprint-history.png)
 
 **사용자:** 모든 팀원 · **화면:** `/projects/:projectId/sprints` · 화면 상단
 

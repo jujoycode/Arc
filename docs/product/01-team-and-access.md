@@ -2,9 +2,9 @@
 
 [제품 소개](README.md) · [전체 기능 안내](FEATURES.md)
 
-가입과 이메일 확인을 거쳐 팀에 합류하고 워크스페이스·프로젝트를 선택합니다.
+집배원 고양이가 안내하는 로그인·가입 화면에서 시작합니다. 이메일 확인을 거쳐 첫 워크스페이스를 준비하거나 팀 초대를 수락하고, 함께 일할 프로젝트를 선택합니다.
 
-> 2026-10-08 · Asia/Seoul · 실제 앱 촬영 · 모든 원본 1920×1080
+> 2026-10-11 · Asia/Seoul · 실제 앱 촬영 · 모든 원본 1920×1080
 
 사진을 누르면 원본을 볼 수 있습니다. 동일한 데모 팀의 업무 흐름을 순서대로 촬영했으며 스프린트 종료·보관 전후에는 상태가 달라집니다.
 
@@ -12,14 +12,15 @@
 
 ## 이메일 로그인
 
-검증된 이메일로 팀 공간에 접속합니다.
+집배원 고양이가 안내하는 시작 화면에서 검증된 이메일로 팀 공간에 접속합니다.
 
-[![이메일 로그인 — Arc 실제 제품 화면, 1920×1080](images/login.png)](images/login.png)
+[![이메일 로그인 — arcat 실제 제품 화면, 1920×1080](images/login.png)](images/login.png)
 
 **사용자:** 모든 사용자 · **화면:** `/login` · 화면 상단
 
 이 기능에서 할 수 있는 일:
 
+- arcat 제품 소개와 집배원 고양이
 - 이메일·비밀번호 로그인
 - 가입 화면 이동
 
@@ -29,12 +30,13 @@
 
 이름과 이메일로 계정을 만들고 확인 메일을 받습니다.
 
-[![계정 가입 — Arc 실제 제품 화면, 1920×1080](images/register.png)](images/register.png)
+[![계정 가입 — arcat 실제 제품 화면, 1920×1080](images/register.png)](images/register.png)
 
 **사용자:** 모든 사용자 · **화면:** `/register` · 화면 상단
 
 이 기능에서 할 수 있는 일:
 
+- 집배원 고양이와 팀 시작 안내
 - 이름·이메일·비밀번호 입력
 - 12자 이상 비밀번호
 - 이메일 확인 후 로그인
@@ -45,15 +47,32 @@
 
 실제 확인 메일의 일회용 링크로 이메일을 검증합니다.
 
-[![이메일 확인 완료 — Arc 실제 제품 화면, 1920×1080](images/email-verification.png)](images/email-verification.png)
+[![이메일 확인 완료 — arcat 실제 제품 화면, 1920×1080](images/email-verification.png)](images/email-verification.png)
 
 **사용자:** 가입 사용자 · **화면:** `/verify` · 화면 상단
 
 이 기능에서 할 수 있는 일:
 
 - 확인 링크 검증
-- 확인 결과 안내
+- 고양이와 텍스트로 확인 결과 안내
 - 로그인으로 이동
+
+<a id="workspace-onboarding"></a>
+
+## 첫 워크스페이스 시작 안내
+
+집배원 고양이와 안내를 따라 첫 팀 공간을 준비합니다.
+
+[![첫 워크스페이스 시작 안내 — arcat 실제 제품 화면, 1920×1080](images/workspace-onboarding.png)](images/workspace-onboarding.png)
+
+**사용자:** 새로 가입한 사용자 · **화면:** `/` · 화면 상단
+
+이 기능에서 할 수 있는 일:
+
+- 업무가 없는 가입 직후의 실제 빈 상태
+- 워크스페이스 이름 입력과 생성
+- 첫 공간 생성 후 프로젝트 준비
+- 장식 캐릭터와 텍스트 안내
 
 <a id="team-invitation"></a>
 
@@ -61,14 +80,14 @@
 
 초대받은 이메일로 로그인한 뒤 팀에 합류합니다.
 
-[![팀 초대 수락 — Arc 실제 제품 화면, 1920×1080](images/team-invitation.png)](images/team-invitation.png)
+[![팀 초대 수락 — arcat 실제 제품 화면, 1920×1080](images/team-invitation.png)](images/team-invitation.png)
 
 **사용자:** 초대받은 팀원 · **화면:** `/invite` · 화면 상단
 
 이 기능에서 할 수 있는 일:
 
 - 초대 이메일 일치 확인
-- 초대 수락 결과
+- 고양이와 텍스트로 초대 수락 안내
 - 워크스페이스로 이동
 
 <a id="workspaces"></a>
@@ -77,7 +96,7 @@
 
 팀 공간과 프로젝트를 선택하고 프로젝트 간 이동을 시작합니다.
 
-[![워크스페이스와 프로젝트 선택 — Arc 실제 제품 화면, 1920×1080](images/workspaces.png)](images/workspaces.png)
+[![워크스페이스와 프로젝트 선택 — arcat 실제 제품 화면, 1920×1080](images/workspaces.png)](images/workspaces.png)
 
 **사용자:** 팀원·관리자 · **화면:** `/` · 화면 상단
 
@@ -94,7 +113,7 @@
 
 프로젝트 이름·키·상위 프로젝트를 정해 관리 범위를 나눕니다.
 
-[![새 프로젝트 준비 — Arc 실제 제품 화면, 1920×1080](images/project-creation.png)](images/project-creation.png)
+[![새 프로젝트 준비 — arcat 실제 제품 화면, 1920×1080](images/project-creation.png)](images/project-creation.png)
 
 **사용자:** 워크스페이스 소유자·관리자 · **화면:** `/` · 화면 상단
 

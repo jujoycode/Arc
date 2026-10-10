@@ -1,4 +1,4 @@
-name: Arc CI
+name: arcat CI
 
 on:
   push:

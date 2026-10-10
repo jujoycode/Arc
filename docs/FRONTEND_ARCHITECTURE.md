@@ -1,10 +1,10 @@
 # arcat 프런트 구조
 
-> React 19 / TypeScript / Vite / pnpm 11.19.0 · 2026-10-05
+> React 19 / TypeScript / Vite / pnpm 11.19.0 · 갱신 2026-10-11
 
 ## 패키지 관리
 
-Arc는 Node 기반 Vite와 TypeScript를 사용하며, Kotlin 서버와 브라우저 앱으로 구성된다. 현재 프런트에 Bun 런타임에 의존하는 기능은 없다. 설치와 실행의 차이가 제품에 주는 이점이 작으므로 사용자 기본 선택에 따라 pnpm을 채택했다.
+arcat는 Node 기반 Vite와 TypeScript를 사용하며, Kotlin 서버와 브라우저 앱으로 구성된다. 현재 프런트에 Bun 런타임에 의존하는 기능은 없다. 설치와 실행의 차이가 제품에 주는 이점이 작으므로 사용자 기본 선택에 따라 pnpm을 채택했다.
 
 - `packageManager`에 pnpm 11.19.0을 고정하고 Node 22.13 이상을 사용한다.
 - npm 잠금 파일의 버전을 `pnpm-lock.yaml`로 가져왔다. 설치는 `pnpm install --frozen-lockfile`로 재현한다.
@@ -30,6 +30,7 @@ frontend/src/
 │   ├── sprint/                     # 백로그·스프린트
 │   ├── planning/                   # WBS와 일정 개요 타임라인
 │   ├── integration/                # 저장소 설정·개발 활동
+│   ├── ticketfield/                # 워크스페이스 필드 정책·검증·설정 UI
 │   └── settings/                   # 팀·프로젝트 설정 화면 조립
 └── shared/
     ├── api/client.ts               # HTTP·토큰 저장
@@ -39,6 +40,10 @@ frontend/src/
 ```
 
 각 기능은 실제 필요한 부분만 다음처럼 둔다.
+
+입력과 변경 API 응답은 Valibot 스키마로 검사한다. `issue/api/types.ts`는 런타임 응답 스키마에서 타입을 도출하며, 폼 문자열에서 날짜·정수·빈 값·커스텀 값을 명시적으로 변환한다. `shared/ui/form.tsx`는 레이블·설명·필드 오류·요약과 포커스 연결을 담당하고 `shared/api/client.ts`는 응답 검사와 `APIError(status, code, fieldErrors)`를 제공한다. `ticketfield` 공개 계약은 정책 쿼리·타입·커스텀 값 검사만 다른 기능에 노출한다. 폼 상세 규칙은 [FORM_DESIGN](FORM_DESIGN.md)을 따른다.
+
+브랜드 자산은 `public/brand`, 정지·짧은 모션 공통 구성 요소는 `shared/ui/Mascot.tsx`에 둔다. 장식과 업무 텍스트를 구분하고 모션 감소 설정을 지원한다.
 
 ```text
 features/issue/

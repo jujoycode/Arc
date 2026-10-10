@@ -1,4 +1,4 @@
-# Arc 프런트엔드
+# arcat 프런트엔드
 
 React 19, TypeScript, Vite, Tailwind CSS v4, shadcn/ui, TanStack Query·Table·Router로 구현했습니다. 실행 방법과 기능은 [루트 README](../README.md)를 참고하세요.
 

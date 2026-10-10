@@ -4,7 +4,7 @@
 
 관리자는 WBS로 범위와 배정을 정하고, 개발자는 내 업무와 팀 진척을 함께 봅니다. 같은 티켓을 간트와 타임라인에서 일정으로 확인합니다.
 
-> 2026-10-08 · Asia/Seoul · 실제 앱 촬영 · 모든 원본 1920×1080
+> 2026-10-11 · Asia/Seoul · 실제 앱 촬영 · 모든 원본 1920×1080
 
 사진을 누르면 원본을 볼 수 있습니다. 동일한 데모 팀의 업무 흐름을 순서대로 촬영했으며 스프린트 종료·보관 전후에는 상태가 달라집니다.
 
@@ -16,7 +16,7 @@ WBS 완료 비율은 말단 티켓의 완료 상태로 계산합니다. 간트 �
 
 프로젝트·버전·티켓의 일정과 진행률, 선행·차단 관계를 한 화면에서 확인합니다.
 
-[![간트로 일정과 관계 확인 — Arc 실제 제품 화면, 1920×1080](images/gantt.png)](images/gantt.png)
+[![간트로 일정과 관계 확인 — arcat 실제 제품 화면, 1920×1080](images/gantt.png)](images/gantt.png)
 
 **사용자:** 모든 팀원 · **화면:** `/projects/:projectId/gantt` · 화면 상단
 
@@ -35,7 +35,7 @@ WBS 완료 비율은 말단 티켓의 완료 상태로 계산합니다. 간트 �
 
 부모를 기준으로 자손을 접어 일정의 큰 흐름에 집중합니다.
 
-[![계층별 간트 접기 — Arc 실제 제품 화면, 1920×1080](images/gantt-collapse.png)](images/gantt-collapse.png)
+[![계층별 간트 접기 — arcat 실제 제품 화면, 1920×1080](images/gantt-collapse.png)](images/gantt-collapse.png)
 
 **사용자:** 모든 팀원 · **화면:** `/projects/:projectId/gantt` · 화면 상단
 
@@ -52,7 +52,7 @@ WBS 완료 비율은 말단 티켓의 완료 상태로 계산합니다. 간트 �
 
 반복해서 확인할 필터·기간·표시 옵션을 개인 보기로 저장합니다.
 
-[![간트 옵션과 개인 보기 — Arc 실제 제품 화면, 1920×1080](images/gantt-personal-view.png)](images/gantt-personal-view.png)
+[![간트 옵션과 개인 보기 — arcat 실제 제품 화면, 1920×1080](images/gantt-personal-view.png)](images/gantt-personal-view.png)
 
 **사용자:** 모든 팀원 · **화면:** `/projects/:projectId/gantt` · 화면 상단
 
@@ -69,7 +69,7 @@ WBS 완료 비율은 말단 티켓의 완료 상태로 계산합니다. 간트 �
 
 일정 항목을 선택해 속성과 관계를 읽고 원래 티켓으로 이동합니다.
 
-[![간트 선택 항목 상세 — Arc 실제 제품 화면, 1920×1080](images/gantt-item-detail.png)](images/gantt-item-detail.png)
+[![간트 선택 항목 상세 — arcat 실제 제품 화면, 1920×1080](images/gantt-item-detail.png)](images/gantt-item-detail.png)
 
 **사용자:** 모든 팀원 · **화면:** `/projects/:projectId/gantt` · 화면 하단 기능으로 스크롤
 
@@ -85,7 +85,7 @@ WBS 완료 비율은 말단 티켓의 완료 상태로 계산합니다. 간트 �
 
 범위를 분해하고 담당자를 배정하며 팀의 말단 완료와 추정 현황을 확인합니다.
 
-[![관리자의 WBS 계획 — Arc 실제 제품 화면, 1920×1080](images/wbs-manager.png)](images/wbs-manager.png)
+[![관리자의 WBS 계획 — arcat 실제 제품 화면, 1920×1080](images/wbs-manager.png)](images/wbs-manager.png)
 
 **사용자:** 기본·프로젝트 관리자 · **화면:** `/projects/:projectId/wbs` · 화면 상단
 
@@ -103,7 +103,7 @@ WBS 완료 비율은 말단 티켓의 완료 상태로 계산합니다. 간트 �
 
 선택한 부모 아래로 작업을 분해하면서 같은 티켓을 다른 보기와 공유합니다.
 
-[![WBS 하위 티켓 추가 — Arc 실제 제품 화면, 1920×1080](images/wbs-child-ticket.png)](images/wbs-child-ticket.png)
+[![WBS 하위 티켓 추가 — arcat 실제 제품 화면, 1920×1080](images/wbs-child-ticket.png)](images/wbs-child-ticket.png)
 
 **사용자:** 기본·프로젝트 관리자 · **화면:** `/projects/:projectId/wbs` · 화면 상단
 
@@ -120,7 +120,7 @@ WBS 완료 비율은 말단 티켓의 완료 상태로 계산합니다. 간트 �
 
 내 담당 티켓과 부모 맥락을 보면서 팀 전체 진척을 함께 확인합니다.
 
-[![개발자의 내 업무와 팀 진척 — Arc 실제 제품 화면, 1920×1080](images/wbs-developer.png)](images/wbs-developer.png)
+[![개발자의 내 업무와 팀 진척 — arcat 실제 제품 화면, 1920×1080](images/wbs-developer.png)](images/wbs-developer.png)
 
 **사용자:** 개발자 · **화면:** `/projects/:projectId/wbs` · 화면 상단
 
@@ -138,7 +138,7 @@ WBS 완료 비율은 말단 티켓의 완료 상태로 계산합니다. 간트 �
 
 Epic별 일정 개요를 읽고 기간 막대로 티켓 상세를 엽니다.
 
-[![Epic별 타임라인 — Arc 실제 제품 화면, 1920×1080](images/timeline-epic.png)](images/timeline-epic.png)
+[![Epic별 타임라인 — arcat 실제 제품 화면, 1920×1080](images/timeline-epic.png)](images/timeline-epic.png)
 
 **사용자:** 모든 팀원 · **화면:** `/projects/:projectId/timeline` · 화면 상단
 
@@ -156,7 +156,7 @@ Epic별 일정 개요를 읽고 기간 막대로 티켓 상세를 엽니다.
 
 릴리스 버전으로 일정을 묶고 3개월 범위에서 계획을 비교합니다.
 
-[![버전별 분기 일정 — Arc 실제 제품 화면, 1920×1080](images/timeline-version.png)](images/timeline-version.png)
+[![버전별 분기 일정 — arcat 실제 제품 화면, 1920×1080](images/timeline-version.png)](images/timeline-version.png)
 
 **사용자:** 모든 팀원 · **화면:** `/projects/:projectId/timeline` · 화면 상단
 
@@ -173,7 +173,7 @@ Epic별 일정 개요를 읽고 기간 막대로 티켓 상세를 엽니다.
 
 차트에 나타나지 않는 업무도 별도 목록에서 찾아 계획 누락을 확인합니다.
 
-[![미계획·기간 밖 업무 — Arc 실제 제품 화면, 1920×1080](images/timeline-unscheduled.png)](images/timeline-unscheduled.png)
+[![미계획·기간 밖 업무 — arcat 실제 제품 화면, 1920×1080](images/timeline-unscheduled.png)](images/timeline-unscheduled.png)
 
 **사용자:** 모든 팀원 · **화면:** `/projects/:projectId/timeline` · 화면 하단 기능으로 스크롤
 

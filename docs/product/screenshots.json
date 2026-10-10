@@ -1,7 +1,7 @@
 {
-  "capturedAt": "2026-10-08",
+  "capturedAt": "2026-10-11",
   "timezone": "Asia/Seoul",
-  "sourceCommit": "3b01b8411fd60ebd2a2539753acba44550b5fe03",
+  "sourceCommit": "2d30e3742b18519d257fb748b4e7b083cdc23a41",
   "demo": "Aurora 제품팀 / 고객 포털 고도화",
   "providerMode": "local signed GitHub/GitLab provider fixture; no live provider account",
   "viewport": {
@@ -16,8 +16,9 @@
       "title": "이메일 로그인",
       "chapter": "01-team-and-access",
       "role": "모든 사용자",
-      "purpose": "검증된 이메일로 팀 공간에 접속합니다.",
+      "purpose": "집배원 고양이가 안내하는 시작 화면에서 검증된 이메일로 팀 공간에 접속합니다.",
       "features": [
+        "arcat 제품 소개와 집배원 고양이",
         "이메일·비밀번호 로그인",
         "가입 화면 이동"
       ],
@@ -34,6 +35,7 @@
       "role": "모든 사용자",
       "purpose": "이름과 이메일로 계정을 만들고 확인 메일을 받습니다.",
       "features": [
+        "집배원 고양이와 팀 시작 안내",
         "이름·이메일·비밀번호 입력",
         "12자 이상 비밀번호",
         "이메일 확인 후 로그인"
@@ -52,10 +54,28 @@
       "purpose": "실제 확인 메일의 일회용 링크로 이메일을 검증합니다.",
       "features": [
         "확인 링크 검증",
-        "확인 결과 안내",
+        "고양이와 텍스트로 확인 결과 안내",
         "로그인으로 이동"
       ],
       "route": "/verify",
+      "frame": "화면 상단",
+      "width": 1920,
+      "height": 1080
+    },
+    {
+      "id": "workspace-onboarding",
+      "file": "workspace-onboarding.png",
+      "title": "첫 워크스페이스 시작 안내",
+      "chapter": "01-team-and-access",
+      "role": "새로 가입한 사용자",
+      "purpose": "집배원 고양이와 안내를 따라 첫 팀 공간을 준비합니다.",
+      "features": [
+        "업무가 없는 가입 직후의 실제 빈 상태",
+        "워크스페이스 이름 입력과 생성",
+        "첫 공간 생성 후 프로젝트 준비",
+        "장식 캐릭터와 텍스트 안내"
+      ],
+      "route": "/",
       "frame": "화면 상단",
       "width": 1920,
       "height": 1080
@@ -69,7 +89,7 @@
       "purpose": "초대받은 이메일로 로그인한 뒤 팀에 합류합니다.",
       "features": [
         "초대 이메일 일치 확인",
-        "초대 수락 결과",
+        "고양이와 텍스트로 초대 수락 안내",
         "워크스페이스로 이동"
       ],
       "route": "/invite",
@@ -358,9 +378,10 @@
       "role": "기본·프로젝트 관리자",
       "purpose": "Epic·Story·Task·Bug·하위 작업을 하나의 티켓 계약으로 생성합니다.",
       "features": [
-        "유형·상태·우선순위",
-        "담당자·일정·완료율",
-        "부모·버전·포인트",
+        "기본 정보·계획·일정·진행 상황 그룹",
+        "필수·선택과 입력 안내",
+        "담당자·부모·버전·포인트",
+        "담당자 선택 시 집배원 고양이와 배정 안내",
         "모든 보기에서 같은 키 사용"
       ],
       "route": "/projects/:projectId/issues",
@@ -705,6 +726,96 @@
         "열림·닫힘·병합 상태",
         "제공자 원본 링크",
         "이슈 상태 자동 변경 없음"
+      ],
+      "route": "/projects/:projectId/issues/:issueId",
+      "frame": "화면 하단 기능으로 스크롤",
+      "width": 1920,
+      "height": 1080
+    },
+    {
+      "id": "ticket-fields-standard",
+      "file": "ticket-fields-standard.png",
+      "title": "팀에 맞는 표준 티켓 필드",
+      "chapter": "05-settings-and-integrations",
+      "role": "워크스페이스 소유자·관리자",
+      "purpose": "필드 이름·입력 안내·표시 여부·필수 여부·순서를 워크스페이스 단위로 정합니다.",
+      "features": [
+        "모든 프로젝트에 같은 양식 적용",
+        "핵심 제목·유형·상태·완료율 유지",
+        "숨긴 필드의 기존 값 보존",
+        "저장 전 입력 구성 미리보기"
+      ],
+      "route": "/workspaces/:workspaceId/ticket-fields",
+      "frame": "화면 상단",
+      "width": 1920,
+      "height": 1080
+    },
+    {
+      "id": "ticket-fields-custom",
+      "file": "ticket-fields-custom.png",
+      "title": "커스텀 필드와 입력 구성 미리보기",
+      "chapter": "05-settings-and-integrations",
+      "role": "워크스페이스 소유자·관리자",
+      "purpose": "텍스트·숫자·날짜·단일 선택 정보를 추가하고 팀의 입력 양식을 확인합니다.",
+      "features": [
+        "활성 필드 최대 30개",
+        "필수·선택·설명·순서 설정",
+        "저장 후 타입 고정",
+        "필드·선택지 비활성화와 기존 값 보존"
+      ],
+      "route": "/workspaces/:workspaceId/ticket-fields",
+      "frame": "화면 하단 기능으로 스크롤",
+      "width": 1920,
+      "height": 1080
+    },
+    {
+      "id": "ticket-custom-form",
+      "file": "ticket-custom-form.png",
+      "title": "티켓 계획에 팀별 추가 정보 입력",
+      "chapter": "03-tickets-and-views",
+      "role": "기본·프로젝트 관리자",
+      "purpose": "팀이 정한 필드와 필수 조건을 티켓 생성·계획 편집에 적용합니다.",
+      "features": [
+        "텍스트·숫자·날짜·선택 입력",
+        "0과 미추정 구분",
+        "필드별 입력 안내",
+        "담당자의 실행 수정은 기존 범위 유지"
+      ],
+      "route": "/projects/:projectId/issues/:issueId",
+      "frame": "화면 하단 기능으로 스크롤",
+      "width": 1920,
+      "height": 1080
+    },
+    {
+      "id": "ticket-validation",
+      "file": "ticket-validation.png",
+      "title": "필드별 검증과 입력 내용 보존",
+      "chapter": "03-tickets-and-views",
+      "role": "티켓 편집 사용자",
+      "purpose": "잘못된 입력을 저장하기 전에 오류 요약과 해당 필드의 설명으로 안내합니다.",
+      "features": [
+        "Valibot 입력 검증",
+        "필수 오류·필드 오류 연결",
+        "오류 요약에서 입력으로 이동",
+        "오류에도 작성한 다른 값 보존"
+      ],
+      "route": "/projects/:projectId/issues/:issueId",
+      "frame": "화면 상단",
+      "width": 1920,
+      "height": 1080
+    },
+    {
+      "id": "ticket-custom-detail",
+      "file": "ticket-custom-detail.png",
+      "title": "저장된 팀별 추가 정보 확인",
+      "chapter": "03-tickets-and-views",
+      "role": "모든 팀원",
+      "purpose": "티켓 상세에서 팀이 정한 추가 정보를 읽고 계획·실행 맥락을 공유합니다.",
+      "features": [
+        "표시 이름과 타입별 값",
+        "단일 선택의 선택지 이름",
+        "일반 팀원의 조회",
+        "필드 비활성화 후 기존 값 보존"
       ],
       "route": "/projects/:projectId/issues/:issueId",
       "frame": "화면 하단 기능으로 스크롤",
