@@ -1,11 +1,13 @@
 import { createRootRoute, createRoute, createRouter, Outlet, RouterProvider } from '@tanstack/react-router'
 import { AuthPage, VerifyPage, InvitePage } from '@/features/auth'
 import { WorkspacePage } from '@/features/workspace'
+import { TicketFieldsPage } from '@/features/ticketfield'
 import { ProjectLayout, ProjectView } from './layouts/ProjectLayout'
 import '@/shared/styles/product.css'
 
 const rootRoute = createRootRoute({ component: () => <><a className="skip-link" href="#main-content">본문으로 건너뛰기</a><Outlet /></> })
 const homeRoute = createRoute({ getParentRoute: () => rootRoute, path: '/', component: WorkspacePage })
+const ticketFieldsRoute = createRoute({ getParentRoute: () => rootRoute, path: '/workspaces/$workspaceId/ticket-fields', component: TicketFieldsPage })
 const loginRoute = createRoute({ getParentRoute: () => rootRoute, path: '/login', component: () => <AuthPage mode="login" /> })
 const registerRoute = createRoute({ getParentRoute: () => rootRoute, path: '/register', component: () => <AuthPage mode="register" /> })
 const verifyRoute = createRoute({ getParentRoute: () => rootRoute, path: '/verify', component: VerifyPage })
@@ -23,7 +25,7 @@ const issueRoute = createRoute({ getParentRoute: () => projectRoute, path: '/iss
 const settingsRoute = createRoute({ getParentRoute: () => projectRoute, path: '/settings', component: () => <ProjectView view="settings" /> })
 
 const routeTree = rootRoute.addChildren([
-  homeRoute, loginRoute, registerRoute, verifyRoute, inviteRoute,
+  homeRoute, ticketFieldsRoute, loginRoute, registerRoute, verifyRoute, inviteRoute,
   projectRoute.addChildren([projectIndex, ganttRoute, wbsRoute, timelineRoute, boardRoute, backlogRoute, sprintsRoute, issuesRoute, issueRoute, settingsRoute]),
 ])
 const router = createRouter({ routeTree })

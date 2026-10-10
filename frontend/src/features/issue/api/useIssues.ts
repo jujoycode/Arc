@@ -1,10 +1,11 @@
 import { useQuery } from '@tanstack/react-query'
 import { api } from '@/shared/api/client'
 import type { Issue } from './types'
+import { issuePageSchema } from './schemas'
 
 export function useIssues(projectId: number) {
   return useQuery({ queryKey: ['issues', projectId], queryFn: async ({ signal }) => {
-    const fetchPage = (page: number) => api<{ items: Issue[]; total: number }>(`/projects/${projectId}/issues?size=1000&page=${page}`, { signal })
+    const fetchPage = (page: number) => api<{ items: Issue[]; total: number }>(`/projects/${projectId}/issues?size=1000&page=${page}`, { signal, schema: issuePageSchema })
     const first = await fetchPage(0)
     const items = [...first.items]
     const pages = Math.ceil(first.total / 1000)

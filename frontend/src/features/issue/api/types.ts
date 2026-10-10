@@ -1,11 +1,8 @@
-export interface Issue {
-  id: number; projectId: number; key: string; number: number; title: string; description?: string | null;
-  type: 'EPIC' | 'STORY' | 'TASK' | 'BUG' | 'SUBTASK'; status: 'TODO' | 'IN_PROGRESS' | 'REVIEW' | 'DONE';
-  priority: 'LOW' | 'NORMAL' | 'HIGH' | 'URGENT'; reporterId: number; assigneeId?: number | null;
-  assigneeName?: string | null; startDate?: string | null; dueDate?: string | null; progress: number;
-  storyPoints?: number | null; parentId?: number | null; versionId?: number | null; sprintId?: number | null;
-  sortOrder: number; version: number; updatedAt: string
-}
+import type * as v from 'valibot'
+import type { issueSchema } from './schemas'
+
+/** Server shape is derived from runtime validation; legacy fixtures may omit custom values. */
+export type Issue = Omit<v.InferOutput<typeof issueSchema>, 'customFields'> & { customFields?: Record<string, string | number | null> }
 export interface Relation { id: number; fromId: number; toId: number; type: 'BLOCKS' | 'PRECEDES' }
 
 /** The common work item. Issue remains the existing HTTP/storage contract. */

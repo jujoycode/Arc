@@ -17,6 +17,7 @@ export function WbsScreen({ projectId }: { projectId: number }) {
   const { filters, update } = useProjectFilters(), { archived, manager, actorId, ready } = useProjectAccess(projectId)
   const [collapsed, setCollapsed] = useState<Set<number>>(new Set())
   const [draft, setDraft] = useState<Pick<Ticket, 'type' | 'parentId' | 'versionId'> | null>(null)
+  const [formBusy, setFormBusy] = useState(false)
   const nodes = useMemo(() => buildWorkBreakdown(tickets.data?.items ?? [], versions.data ?? []), [tickets.data, versions.data])
   const pending = tickets.isPending || versions.isPending
   const matches = useMemo(() => new Set(nodes.filter(node => matchesIssue(node.ticket, filters)).map(node => node.ticket.id)), [nodes, filters])
@@ -45,6 +46,6 @@ export function WbsScreen({ projectId }: { projectId: number }) {
       {!visible.length && <TableRow><TableCell colSpan={manager ? 11 : 10}>{tickets.isPending || versions.isPending ? '티켓을 불러오는 중입니다…' : tickets.isError || versions.isError ? '작업표를 불러오지 못했습니다.' : '조건에 맞는 티켓이 없습니다.'}</TableCell></TableRow>}
     </TableBody></Table></div>
     </>}
-    <Dialog open={!!draft} onOpenChange={open => { if (!open) setDraft(null) }}><DialogContent className="sm:max-w-2xl"><DialogHeader><DialogTitle>{draft?.parentId ? '하위 티켓 추가' : '새 티켓'}</DialogTitle><DialogDescription>동일한 티켓을 WBS·간트·테이블·칸반에서 확인할 수 있습니다.</DialogDescription></DialogHeader>{draft && <IssueForm key={`${draft.parentId ?? 'root'}-${draft.type}`} projectId={projectId} defaults={draft} onSaved={id => { setDraft(null); navigate({ to: '/projects/$projectId/issues/$issueId', params: { projectId: String(projectId), issueId: String(id) } }) }} onCancel={() => setDraft(null)} />}</DialogContent></Dialog>
+    <Dialog open={!!draft} onOpenChange={open => { if (!open && !formBusy) setDraft(null) }}><DialogContent className="ticket-form-dialog" showCloseButton={!formBusy} onEscapeKeyDown={event => { if (formBusy) event.preventDefault() }} onPointerDownOutside={event => { if (formBusy) event.preventDefault() }}><DialogHeader><DialogTitle>{draft?.parentId ? '하위 티켓 추가' : '새 티켓'}</DialogTitle><DialogDescription>동일한 티켓을 WBS·간트·테이블·칸반에서 확인할 수 있습니다.</DialogDescription></DialogHeader><div className="ticket-dialog-body">{draft && <IssueForm key={`${draft.parentId ?? 'root'}-${draft.type}`} projectId={projectId} defaults={draft} onBusyChange={setFormBusy} onSaved={id => { setDraft(null); navigate({ to: '/projects/$projectId/issues/$issueId', params: { projectId: String(projectId), issueId: String(id) } }) }} onCancel={() => setDraft(null)} />}</div></DialogContent></Dialog>
   </section>
 }
