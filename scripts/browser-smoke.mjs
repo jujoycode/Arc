@@ -522,17 +522,31 @@ try {
   assert.equal(await executionForm.getByLabel('담당자', { exact: true }).count(), 0)
   await executionForm.getByLabel('상태', { exact: true }).selectOption('REVIEW')
   await executionForm.getByLabel('완료율', { exact: true }).fill('75')
-  // A rejected revision leaves the developer's draft intact for review.
+  // A rejected revision preserves the draft and prevents an unchecked retry.
+  const beforeExecution = await api(`projects/${projectId}/issues/${subtask.id}`, undefined, memberToken)
   let executionConflict = true
+  let rejectedVersion
   await page.route(`**/api/projects/${projectId}/issues/${subtask.id}/execution`, async route => {
-    if (route.request().method() === 'PATCH' && executionConflict) { executionConflict = false; await route.fulfill({ status: 409, contentType: 'application/json', body: JSON.stringify({ error: '진행 수정 충돌 검증' }) }) }
+    if (route.request().method() === 'PATCH' && executionConflict) { executionConflict = false; rejectedVersion = route.request().postDataJSON().version; await route.fulfill({ status: 409, contentType: 'application/json', body: JSON.stringify({ error: '진행 수정 충돌 검증' }) }) }
     else await route.continue()
   })
   await executionForm.getByRole('button', { name: '진행 상황 저장', exact: true }).click()
   await executionForm.getByRole('alert').getByText('진행 수정 충돌 검증').waitFor()
   assert.equal(await executionForm.getByLabel('완료율', { exact: true }).inputValue(), '75')
   assert.equal(await executionForm.getByLabel('상태', { exact: true }).inputValue(), 'REVIEW')
+  assert.equal(rejectedVersion, beforeExecution.version, 'Execution submits the version captured when editing began')
+  assert.equal(await executionForm.getByRole('button', { name: '진행 상황 저장', exact: true }).isDisabled(), true, 'A conflict must block stale execution retries')
+  await executionForm.getByRole('link', { name: '최신 티켓 확인 (새 창)', exact: true }).waitFor()
+  const afterConflict = await api(`projects/${projectId}/issues/${subtask.id}`, undefined, memberToken)
+  assert.deepEqual([afterConflict.version, afterConflict.status, afterConflict.progress], [beforeExecution.version, beforeExecution.status, beforeExecution.progress], 'Rejected execution cannot change the stored version or progress')
   await audit('ticket-execution')
+  await page.unroute(`**/api/projects/${projectId}/issues/${subtask.id}/execution`)
+  await executionForm.getByRole('button', { name: '취소', exact: true }).click()
+  await page.reload()
+  await heading('날짜 계산')
+  await page.getByRole('button', { name: '진행 상황 수정', exact: true }).click()
+  await executionForm.getByLabel('상태', { exact: true }).selectOption('REVIEW')
+  await executionForm.getByLabel('완료율', { exact: true }).fill('75')
   await executionForm.getByRole('button', { name: '진행 상황 저장', exact: true }).click()
   await executionForm.waitFor({ state: 'detached' })
   const executed = await api(`projects/${projectId}/issues/${subtask.id}`, undefined, memberToken)
