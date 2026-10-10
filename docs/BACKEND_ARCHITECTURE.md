@@ -1,4 +1,4 @@
-# Arc 백엔드 구조
+# arcat 백엔드 구조
 
 > 2026-10-06 · Kotlin / Spring Boot · 하나의 Gradle 애플리케이션 안에서 기능별 경계를 유지한다.
 

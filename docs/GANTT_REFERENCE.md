@@ -1,10 +1,10 @@
 # 간트 차트 기준: Redmine 기능 검토
 
-> 검토일: 2026-10-04 · 목적: Arc 첫 릴리스 간트 차트의 기능 기준 고정
+> 검토일: 2026-10-04 · 목적: arcat 첫 릴리스 간트 차트의 기능 기준 고정
 
 Redmine의 [간트 사용자 안내](https://www.redmine.org/projects/redmine/wiki/RedmineGantt)는 시작일과 종료일이 있거나 날짜가 있는 버전에 배정된 이슈를 간트에 표시한다고 설명한다. 아래의 세부 항목은 Redmine 공개 소스의 [간트 화면](https://github.com/redmine/redmine/blob/master/app/views/gantts/_chart.html.erb), [조회 옵션](https://github.com/redmine/redmine/blob/master/app/views/gantts/_query_form.html.erb), [렌더링 로직](https://github.com/redmine/redmine/blob/master/lib/redmine/helpers/gantt.rb), [내보내기 처리](https://github.com/redmine/redmine/blob/master/app/controllers/gantts_controller.rb)를 함께 확인해 정리했다. 소스 링크는 검토 당시의 `master` 기준이다.
 
-| Redmine에서 확인한 기능 | Arc 첫 릴리스 기준 |
+| Redmine에서 확인한 기능 | arcat 첫 릴리스 기준 |
 | --- | --- |
 | 이슈 시작일·종료일, 날짜가 있는 버전 표시 | 일정이 있는 이슈와 버전/마일스톤을 표시한다. 날짜가 없는 항목의 표시는 필터에서 명확히 구분한다. |
 | 프로젝트·하위 프로젝트·버전·부모/자식 이슈의 계층 | 워크스페이스/프로젝트 → 버전 → Epic → Story·Task·Bug → 하위 작업을 접고 펼칠 수 있다. |
@@ -18,12 +18,12 @@ Redmine의 [간트 사용자 안내](https://www.redmine.org/projects/redmine/wi
 
 Redmine의 간트는 주로 **일정을 읽고 탐색하는 화면**이다. Arc도 먼저 읽기·필터·관계·출력의 동등한 범위를 구현한다. 막대 드래그로 날짜를 바꾸는 편집 기능은 Redmine 기준에 없는 별도 확장으로 취급한다. 일정 수정은 이슈 상세의 날짜 입력에서 할 수 있어야 한다.
 
-## Arc 데이터·계산 규칙
+## arcat 데이터·계산 규칙
 
 - 이슈에 `start_date`, `due_date`, `done_ratio(0–100)`를 둔다. 시작일이 종료일보다 늦으면 저장을 거부한다.
 - 버전/마일스톤은 프로젝트에 속하며 이름, 시작일, 종료일을 가진다. 프로젝트 기간은 포함된 일정 항목에서 계산한다.
 - 상위 이슈의 기간은 하위 이슈의 최소 시작일과 최대 종료일을 바탕으로 집계한다. 완료율은 하위 이슈 완료율에서 산출하며, 수동 입력값과 집계값을 구분해 표시한다.
-- 부모 기준의 중첩 접기는 [GANTT-07](FUNCTIONAL_SPEC.md)의 Arc 요구사항을 따른다. 부모를 접으면 모든 자손의 행·막대를 숨기고, 다시 펼쳐도 하위 부모의 개별 접힘 상태를 유지한다. 접기는 집계 값과 다른 가지를 바꾸지 않으며 출력은 보이는 계층을 따른다.
+- 부모 기준의 중첩 접기는 [GANTT-07](FUNCTIONAL_SPEC.md)의 arcat 요구사항을 따른다. 부모를 접으면 모든 자손의 행·막대를 숨기고, 다시 펼쳐도 하위 부모의 개별 접힘 상태를 유지한다. 접기는 집계 값과 다른 가지를 바꾸지 않으며 출력은 보이는 계층을 따른다.
 - 이슈 관계는 `BLOCKS`와 `PRECEDES`를 지원한다. 자기 자신과의 관계 및 순환 관계를 만들 수 없다.
 - 날짜와 완료율이 없는 이슈는 왜 막대가 표시되지 않는지 안내한다. 필터 결과 0건과 읽기 권한 부족을 혼동하지 않는다.
 - 저장된 필터 보기는 사용자 개인 소유이며 다른 워크스페이스 데이터에 접근하는 수단이 될 수 없다.

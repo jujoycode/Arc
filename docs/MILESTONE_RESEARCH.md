@@ -1,6 +1,6 @@
 # 마일스톤 조사: Redmine·Jira·GitLab·GitHub
 
-> 조사일: 2026-10-07 (Asia/Seoul) · Arc 기준 커밋: `75d9d4d` · 공식 문서에서 확인한 동작과 Arc에 대한 제안을 구분한다.
+> 조사일: 2026-10-07 (Asia/Seoul) · arcat 기준 커밋: `75d9d4d` · 공식 문서에서 확인한 동작과 Arc에 대한 제안을 구분한다.
 
 ## 비교 결과
 
@@ -11,7 +11,7 @@
 | GitLab | 프로젝트·그룹 Milestone | 관련 작업·MR을 목표로 묶음; 작업 하나에 마일스톤 하나 | 선택적 시작·기한, 완료 작업 비율, 관련 릴리스·MR | 업무 목표와 개발 증빙을 연결하되 작업 상태와 목표 종료를 구분 |
 | GitHub | 저장소 Milestone | 관련 이슈·PR을 묶음 | 기한·완료율·열린/닫힌 항목; Projects 로드맵의 마일스톤 날짜 표식 | 작은 목표 상세 화면과 날짜 강조, 열린 작업을 바로 조회 |
 
-위 표의 각 도구 동작은 아래 공식 자료에서 확인했다. Arc 열은 조사 결과에 대한 제품 설계 판단이다. Redmine 플러그인, Jira Marketplace 앱, Jira Data Center는 이번 비교 범위에 포함하지 않았다.
+위 표의 각 도구 동작은 아래 공식 자료에서 확인했다. arcat 열은 조사 결과에 대한 제품 설계 판단이다. Redmine 플러그인, Jira Marketplace 앱, Jira Data Center는 이번 비교 범위에 포함하지 않았다.
 
 ## Redmine에서 확인한 동작
 
@@ -36,7 +36,7 @@
 - 하나의 작업에는 하나의 마일스톤을 배정한다. 완료 비율은 닫힌 작업 수 / 전체 작업 수이며 MR과 릴리스 정보도 확인할 수 있다.
 - 마일스톤을 종료해도 연결된 열린 이슈는 열린 상태로 남는다. 목표 관리와 이슈 상태를 함께 강제 변경하는 모델이 아니다.
 
-근거: [Milestones](https://docs.gitlab.com/user/project/milestones/). 일부 차트·로드맵은 제품 계층과 요금제 조건이 있으므로 첫 Arc 범위로 자동 포함하지 않는다.
+근거: [Milestones](https://docs.gitlab.com/user/project/milestones/). 일부 차트·로드맵은 제품 계층과 요금제 조건이 있으므로 첫 arcat 범위로 자동 포함하지 않는다.
 
 ## GitHub에서 확인한 동작
 
@@ -45,7 +45,7 @@
 
 근거: [About milestones](https://docs.github.com/en/issues/using-labels-and-milestones-to-track-work/about-milestones), [Roadmap markers](https://docs.github.com/en/issues/planning-and-tracking-with-projects/customizing-views-in-your-project/customizing-the-roadmap-layout#setting-vertical-markers).
 
-## Arc 현행 구현과 차이
+## arcat 현행 구현과 차이
 
 | 확인 위치 | 현재 동작 | 기획에서 해결할 점 |
 | --- | --- | --- |
@@ -58,7 +58,7 @@
 
 현재 ◆는 날짜 표현이며, ‘승인 완료’나 ‘릴리스 달성’을 관리하는 독립 마일스톤 기능이 아니다. 버전과 이슈의 일정 상속 규칙은 유지하면서 명시적 마일스톤을 추가하는 것이 필요하다.
 
-## 조사에서 도출한 Arc 원칙
+## 조사에서 도출한 arcat 원칙
 
 1. **버전은 배포 범위, 마일스톤은 달성 시점으로 구분한다.** 같은 버전에 설계 승인·베타 검증·출시 등 여러 체크포인트를 연결할 수 있다.
 2. **작업 진척과 목표 달성은 따로 기록한다.** 이슈가 모두 완료되어도 승인이 남을 수 있고, 마일스톤 달성이 작업 상태를 자동으로 바꾸면 안 된다.
@@ -66,4 +66,4 @@
 4. **처음에는 프로젝트 범위로 제공한다.** 그룹 공유·여러 프로젝트 통합 목표는 별도 확장으로 둔다.
 5. **표식만 추가하고 끝내지 않는다.** 담당자·선행 이슈·달성 판단·변경 이력·간트 탐색을 하나의 사용 흐름으로 제공한다.
 
-이 원칙을 구체화한 추천안은 [Arc 마일스톤 기획](MILESTONE_PLAN.md)에 정리한다. 독립 체크포인트와 복수 선행 이슈 관계는 Arc의 제안이며 위 도구의 동일한 기본 동작이라는 뜻은 아니다.
+이 원칙을 구체화한 추천안은 [arcat 마일스톤 기획](MILESTONE_PLAN.md)에 정리한다. 독립 체크포인트와 복수 선행 이슈 관계는 Arc의 제안이며 위 도구의 동일한 기본 동작이라는 뜻은 아니다.

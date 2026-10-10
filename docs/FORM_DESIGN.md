@@ -1,4 +1,4 @@
-# Arc 폼 디자인과 검증 규칙
+# arcat 폼 디자인과 검증 규칙
 
 > 갱신일: 2026-10-10 · 구현 기준
 > 관련 문서: [디자인 가이드](DESIGN_GUIDE.md), [티켓 필드 설정](TICKET_FIELDS_PLAN.md)

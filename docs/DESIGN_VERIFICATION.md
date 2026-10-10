@@ -1,4 +1,4 @@
-# Arc 디자인 시스템 v2 검증
+# arcat 디자인 시스템 v2 검증
 
 > 갱신일: 2026-10-08 · 기준: [디자인 가이드](DESIGN_GUIDE.md), [재기획](DESIGN_REPLAN.md)
 

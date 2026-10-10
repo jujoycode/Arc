@@ -1,4 +1,4 @@
-# Arc CI
+# arcat CI
 
 > 기준일: 2026-10-06 · GitHub Actions / Ubuntu 24.04
 
@@ -49,7 +49,7 @@ API 검사는 팀 격리, 초대·역할·소유권, 동시 번호 발급, 낙�
 
 ## 결과와 실패 조사
 
-[Arc Actions](https://github.com/jujoycode/Arc/actions/workflows/ci.yml)에서 단계별 로그를 확인한다. 빌드와 검증 자료는 7일 동안 보관한다.
+[arcat Actions](https://github.com/jujoycode/Arc/actions/workflows/ci.yml)에서 단계별 로그를 확인한다. 빌드와 검증 자료는 7일 동안 보관한다.
 
 - `frontend-build`: 검증에 사용한 웹 번들
 - `backend-build`: 검증에 사용한 실행 JAR

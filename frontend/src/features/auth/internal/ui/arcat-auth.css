@@ -1,0 +1,55 @@
+.auth-page.arcat-auth-page { min-height: 100dvh; padding: clamp(16px, 3vw, 48px); background: var(--arc-color-canvas); }
+.arcat-auth-layout { display: grid; grid-template-columns: minmax(0, 1.08fr) minmax(380px, .92fr); width: min(100%, 1152px); min-height: 728px; overflow: hidden; border: 1px solid var(--arc-color-border); border-radius: 28px; background: var(--arc-color-surface); box-shadow: var(--arc-shadow-panel); }
+.arcat-welcome-panel { position: relative; display: flex; flex-direction: column; min-width: 0; padding: 42px 48px 30px; background: #fbf5ea; overflow: hidden; }
+.arcat-welcome-copy { position: relative; z-index: 1; margin-top: 44px; }
+.arcat-welcome-copy .eyebrow { margin-bottom: 12px; font-size: 11px; letter-spacing: .13em; }
+.arcat-welcome-copy h2 { margin: 0; color: var(--arc-color-text); font-size: clamp(36px, 3.4vw, 46px); font-weight: 780; line-height: 1.2; letter-spacing: -.055em; }
+.arcat-welcome-copy > p:last-child { margin: 18px 0 0; color: var(--arc-color-text-muted); font-size: var(--arc-font-data); line-height: 1.7; }
+.arcat-welcome-art { position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center; margin-top: 6px; flex: 1; }
+.arcat-welcome-art .arcat-mascot { position: relative; z-index: 1; }
+.arcat-welcome-orbit { position: absolute; width: 278px; height: 278px; max-width: 90%; border-radius: 50%; background: #fffdf8; border: 1px solid #f1e9d9; }
+.arcat-welcome-caption { position: relative; z-index: 1; padding: 8px 16px; margin: -21px 0 18px; border: 1px solid #e8dfd1; border-radius: 100px; background: #fffdf8; color: var(--arc-color-text-muted); font-size: var(--arc-font-meta); }
+.arcat-welcome-features { display: flex; justify-content: center; flex-wrap: wrap; gap: 7px; padding: 0; margin: 0; list-style: none; }
+.arcat-welcome-features li { padding: 7px 10px; border: 1px solid #e8dfd1; border-radius: 8px; color: #596170; font-size: 11px; white-space: nowrap; }
+.arcat-auth-form-panel { display: flex; flex-direction: column; justify-content: center; align-items: center; min-width: 0; padding: 42px; }
+.arcat-auth-page .arcat-auth-card { width: 100%; max-width: 376px; padding: 0; gap: 26px; overflow: visible; border: 0; border-radius: 0; background: transparent; box-shadow: none; --tw-ring-shadow: 0 0 #0000; }
+.arcat-auth-card [data-slot='card-header'], .arcat-auth-card [data-slot='card-content'] { padding: 0; }
+.arcat-auth-card h1 { font-size: 27px; font-weight: 760; line-height: 1.35; letter-spacing: -.05em; margin: 0; }
+.arcat-auth-card [data-slot='card-header'] > .eyebrow { margin: 0 0 8px; font-size: 11px; letter-spacing: .13em; }
+.arcat-auth-card .muted { margin: 8px 0 0; line-height: 1.6; }
+.arcat-auth-form { gap: 20px; }
+.arcat-auth-form input { min-height: 46px; }
+.arcat-auth-submit { min-height: 46px; width: 100%; margin-top: 4px; }
+.arcat-auth-card .auth-switch { margin: 24px 0 0; font-size: var(--arc-font-label); }
+.arcat-auth-footer { margin: 34px 0 0; color: var(--arc-color-text-muted); font-size: var(--arc-font-meta); }
+.arcat-auth-notice { display: flex; align-items: center; gap: 12px; padding: 12px; margin-top: 20px; border: 1px solid var(--arc-color-border); border-radius: 12px; background: var(--arc-color-success-surface); }
+.arcat-auth-notice p { margin: 0; color: var(--arc-color-success); font-size: var(--arc-font-label); line-height: 1.6; }
+.auth-page.arcat-status-page { min-height: 100dvh; padding: 24px; background: radial-gradient(circle at 50% 25%, #fbf5ea, transparent 55%), var(--arc-color-canvas); }
+.arcat-status-page .arcat-status-card { width: min(100%, 440px); padding: 28px; gap: 24px; border-radius: 22px; text-align: center; }
+.arcat-status-card [data-slot='card-header'], .arcat-status-card [data-slot='card-content'] { padding: 0; }
+.arcat-status-card [data-slot='card-header'] { justify-items: center; gap: 22px; }
+.arcat-status-card h1 { margin: 0; font-size: 26px; font-weight: 750; letter-spacing: -.045em; }
+.arcat-status-card .arcat-mascot { margin: 0 auto; }
+.arcat-status-message { margin: 20px 0 24px; color: var(--arc-color-text-muted); line-height: 1.7; }
+.arcat-status-error { color: var(--arc-color-danger); }
+.arcat-status-action { min-height: 44px; width: 100%; color: var(--arc-color-action-on-primary); }
+@media (max-width: 900px) and (min-width: 681px) { .arcat-welcome-panel { padding: 34px 28px 26px; } .arcat-auth-form-panel { padding: 36px 28px; } .arcat-auth-layout { grid-template-columns: minmax(0, 1fr) minmax(330px, 1fr); } .arcat-welcome-copy h2 { font-size: 37px; } }
+@media (max-width: 680px) {
+  .auth-page.arcat-auth-page { padding: 0; align-items: start; background: var(--arc-color-surface); }
+  .arcat-auth-layout { min-height: 100dvh; grid-template-columns: minmax(0, 1fr); border: 0; border-radius: 0; box-shadow: none; }
+  .arcat-welcome-panel { padding: 24px 24px 26px; }
+  .arcat-welcome-panel .arcat-brand { font-size: 24px; }
+  .arcat-welcome-panel .arcat-brand img { width: 34px; height: 34px; }
+  .arcat-welcome-copy { margin-top: 22px; }
+  .arcat-welcome-copy .eyebrow, .arcat-welcome-copy > p:last-child, .arcat-welcome-features, .arcat-welcome-caption, .arcat-welcome-orbit { display: none; }
+  .arcat-welcome-copy h2 { padding-right: 76px; font-size: 24px; line-height: 1.35; }
+  .arcat-welcome-copy h2 br { display: none; }
+  .arcat-welcome-art { position: absolute; right: 14px; bottom: 16px; margin: 0; }
+  .arcat-welcome-art .arcat-mascot { width: 100px; }
+  .arcat-auth-form-panel { padding: 32px 24px 24px; justify-content: start; }
+  .arcat-auth-page .arcat-auth-card { max-width: 420px; gap: 24px; }
+  .arcat-auth-card h1 { font-size: 25px; }
+  .arcat-auth-footer { margin-top: 28px; }
+  .auth-page.arcat-status-page { padding: 16px; }
+  .arcat-status-page .arcat-status-card { padding: 24px; }
+}

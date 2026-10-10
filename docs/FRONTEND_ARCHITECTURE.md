@@ -1,4 +1,4 @@
-# Arc 프런트 구조
+# arcat 프런트 구조
 
 > React 19 / TypeScript / Vite / pnpm 11.19.0 · 2026-10-05
 

@@ -1,6 +1,8 @@
-# Arc
+# arcat
 
-[![Arc CI](https://github.com/jujoycode/Arc/actions/workflows/ci.yml/badge.svg)](https://github.com/jujoycode/Arc/actions/workflows/ci.yml)
+![arcat — Teamwork, delivered.](docs/brand/arcat-banner.png)
+
+[![arcat CI](https://github.com/jujoycode/Arc/actions/workflows/ci.yml/badge.svg)](https://github.com/jujoycode/Arc/actions/workflows/ci.yml)
 
 **팀의 계획과 개발자의 실행을 같은 티켓으로 연결하는 프로젝트 관리 도구.**
 
@@ -12,13 +14,13 @@
 
 계층별 업무, 담당자, 일정, 말단 완료 비율과 포인트를 함께 확인합니다. 개발자는 ‘내 업무’로 담당 티켓과 부모 맥락을 볼 수 있습니다.
 
-[![Arc 관리자 WBS — 실제 제품 화면, 1920×1080](docs/product/images/wbs-manager.png)](docs/product/02-planning-and-schedule.md#wbs-manager)
+[![arcat 관리자 WBS — 실제 제품 화면, 1920×1080](docs/product/images/wbs-manager.png)](docs/product/02-planning-and-schedule.md#wbs-manager)
 
 ## 간트로 일정과 관계 확인하기
 
 프로젝트·버전·Epic·Story·하위 작업을 계층별로 접고 펼칩니다. 일정·완료율·선행/차단 관계·오늘 선을 표시하고 개인 보기 저장과 PNG/PDF 출력을 제공합니다.
 
-[![Arc 간트 차트 — 실제 제품 화면, 1920×1080](docs/product/images/gantt.png)](docs/product/02-planning-and-schedule.md#gantt)
+[![arcat 간트 차트 — 실제 제품 화면, 1920×1080](docs/product/images/gantt.png)](docs/product/02-planning-and-schedule.md#gantt)
 
 위 사진은 동일한 데모 팀의 실제 앱 화면입니다. 모든 제품 사진은 **1920×1080 원본**이며, [화면 안내](docs/product/README.md)에 촬영일·사용자 역할·기능 설명을 함께 기록했습니다. 새 설치에는 데모 계정·데이터가 자동으로 생성되지 않습니다.
 
@@ -30,7 +32,7 @@
 | 범위와 일정 계획 | 관리자 WBS, 개발자 내 업무, 중첩 간트, Epic/버전 타임라인 | [WBS·일정](docs/product/02-planning-and-schedule.md) |
 | 업무 실행과 협업 | 티켓 테이블·열 선택, 칸반, 상세, 댓글, 관계·변경 기록, 충돌 안내 | [티켓·보기](docs/product/03-tickets-and-views.md) |
 | 스프린트 운영 | 백로그 정렬·편성, 계획·시작·종료, 미완료 이월, 과거 결과 | [스크럼](docs/product/04-sprints.md) |
-| 팀·개발 도구 관리 | 프로젝트 관리자 지정, 버전, 팀 역할, 보관, GitHub·GitLab 커밋/PR/MR | [설정·연동](docs/product/05-settings-and-integrations.md) |
+| 팀·개발 도구 관리 | 티켓 필드 개인화, 프로젝트 관리자 지정, 버전, 팀 역할, 보관, GitHub·GitLab 커밋/PR/MR | [설정·연동](docs/product/05-settings-and-integrations.md) |
 
 ### 역할에 맞는 업무 흐름
 
@@ -74,7 +76,7 @@ GitHub·GitLab 연동의 화면 자료는 로컬 제공자 모형으로 촬영�
 | 프런트엔드 | React 19, TypeScript, Vite, shadcn/ui, Tailwind CSS v4, TanStack Query·Table·Router, pnpm 11.19.0 |
 | 백엔드 | Kotlin, Spring Boot 4, Exposed DSL, Flyway |
 | 데이터·설치 | MySQL 8.4, Docker Compose, 로컬 Mailpit |
-| 디자인 | KRDS를 바탕으로 확장한 [Arc 디자인 시스템](docs/DESIGN_GUIDE.md) |
+| 디자인 | KRDS를 바탕으로 확장한 [arcat 디자인 시스템](docs/DESIGN_GUIDE.md) |
 
 GitHub Actions는 프런트·백엔드 검사와 빌드, 새 MySQL·Mailpit에서 실제 API·브라우저 수용 검사를 수행합니다. [CI 안내](docs/CI.md)에서 범위와 결과를 확인할 수 있습니다.
 
