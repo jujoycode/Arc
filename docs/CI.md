@@ -1,6 +1,8 @@
 # arcat CI
 
-> 기준일: 2026-10-06 · GitHub Actions / Ubuntu 24.04
+> 기준일: 2026-10-11 · GitHub Actions / Ubuntu 24.04
+
+2026-10-11에 arcat 브랜드·폼·워크스페이스 티켓 필드와 47장 제품 화면을 포함한 `a6edd4c`의 [main 실행 #38071803890](https://github.com/jujoycode/Arc/actions/runs/38071803890)에서 프런트·백엔드·API/브라우저·최종 게이트가 모두 성공했다. 새 필드 정책·폼 오류·충돌 복원과 기존 인증·WBS·간트·스프린트·연동 흐름을 함께 검증했다.
 
 2026-10-06에 [main 실행 #37341400334](https://github.com/jujoycode/Arc/actions/runs/37341400334)의 네 job이 모두 성공했다. 강제 충돌 테스트의 요청 가로채기 수명과 재실행 시 artifact 교체를 보완한 상태다.
 
