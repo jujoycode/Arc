@@ -1,0 +1,21 @@
+.arcat-brand { display: inline-flex; align-items: center; gap: 10px; color: var(--arc-color-text); font-size: 28px; font-weight: 800; line-height: 1; letter-spacing: -.045em; text-decoration: none; }
+.arcat-brand img { display: block; flex: 0 0 auto; width: 40px; height: 40px; }
+.arcat-brand-compact { gap: 8px; font-size: 23px; }
+.arcat-brand-compact img { width: 32px; height: 32px; }
+.arcat-mascot { display: flex; flex-direction: column; align-items: center; gap: 12px; flex: 0 0 auto; width: min(100%, var(--arcat-mascot-size)); margin: 0; }
+.arcat-mascot-picture { position: relative; width: 100%; aspect-ratio: 1; }
+.arcat-mascot-picture img { display: block; width: 100%; height: 100%; object-fit: contain; transform-origin: 50% 83%; user-select: none; }
+.arcat-mascot figcaption { color: var(--arc-color-text-muted); font-size: var(--arc-font-label); line-height: 1.5; text-align: center; }
+.arcat-mascot-spark { position: absolute; width: 7px; height: 7px; border-radius: 50%; background: #ee967e; opacity: 0; pointer-events: none; }
+.arcat-mascot-spark-one { top: 26%; left: 12%; }
+.arcat-mascot-spark-two { top: 16%; right: 15%; width: 5px; height: 5px; background: var(--arc-color-action-primary); }
+.arcat-mascot-welcome img { animation: arcat-wave 1.15s ease-in-out 2; }
+.arcat-mascot-deliver img { animation: arcat-deliver .8s ease-out both; }
+.arcat-mascot-celebrate img { animation: arcat-hop .75s ease-out 2; }
+.arcat-mascot-celebrate .arcat-mascot-spark { animation: arcat-spark .9s ease-out 2; }
+.arcat-mascot-celebrate .arcat-mascot-spark-two { animation-delay: .15s; }
+@keyframes arcat-wave { 0%, 100% { transform: rotate(0); } 28% { transform: rotate(-3deg); } 62% { transform: rotate(3deg); } }
+@keyframes arcat-deliver { from { opacity: 0; transform: translateX(-12px) rotate(-3deg); } to { opacity: 1; transform: translateX(0) rotate(0); } }
+@keyframes arcat-hop { 0%, 100% { transform: translateY(0); } 45% { transform: translateY(-8px) rotate(-2deg); } 65% { transform: translateY(-4px) rotate(2deg); } }
+@keyframes arcat-spark { 0% { opacity: 0; transform: scale(.4) translateY(8px); } 40% { opacity: .8; } 100% { opacity: 0; transform: scale(1.2) translateY(-14px); } }
+@media (prefers-reduced-motion: reduce) { .arcat-mascot-picture img, .arcat-mascot-spark { animation: none !important; } }

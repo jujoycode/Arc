@@ -1,3 +1,4 @@
+import { ArcatBrand } from '@/shared/ui/Mascot'
 import { Link, Navigate, Outlet, useNavigate, useParams } from '@tanstack/react-router'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { CalendarRange, Columns3, List, ListTodo, Settings2, Timer, ArrowLeft, Network, GanttChartSquare } from 'lucide-react'
@@ -43,7 +44,7 @@ export function ProjectLayout() {
   if (project.isError) return <main className="error-page">{(project.error as Error).message}<div><Button asChild variant="outline"><Link to="/">워크스페이스로 이동</Link></Button></div></main>
   return <div className="product-shell">
     <aside className="product-sidebar">
-      <Link to="/" className="brand"><span className="brand-mark">A</span> Arc</Link>
+      <Link to="/" className="brand"><ArcatBrand /></Link>
       <Link to="/" className="back-link"><ArrowLeft size={16} /> 모든 워크스페이스</Link>
       <div className="project-identity"><span>{project.data?.key ?? '…'}</span><strong>{project.data?.name ?? '불러오는 중'}</strong><small>{workspace?.name}</small></div>
       <nav aria-label="프로젝트 메뉴">{nav.map(item => <Link key={item.path} to={`/projects/$projectId/${item.path}`} params={{ projectId }} activeProps={{ className: 'active', 'aria-current': 'page' }} className="side-link"><item.icon size={18} aria-hidden="true" /><span>{item.label}</span></Link>)}</nav>
