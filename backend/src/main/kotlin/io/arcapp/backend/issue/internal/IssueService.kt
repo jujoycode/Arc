@@ -146,7 +146,7 @@ class IssueService(private val repository: IssueRepository, private val projects
             startDate = if (preserve("startDate")) previous?.get("start_date")?.toString() else input.startDate,
             dueDate = if (preserve("dueDate")) previous?.get("due_date")?.toString() else input.dueDate,
             storyPoints = if (preserve("storyPoints")) (previous?.get("story_points") as? Number)?.toInt() else input.storyPoints,
-            parentId = if (input.type == "EPIC" && "parentId" in hidden) null else if (preserve("parentId")) oldId("parent_issue_id") else input.parentId,
+            parentId = if (previous != null && input.type == "EPIC" && "parentId" in hidden) null else if (preserve("parentId")) oldId("parent_issue_id") else input.parentId,
             versionId = if (preserve("versionId")) oldId("version_id") else input.versionId,
         )
         val standard = mapOf("title" to effective.title, "description" to effective.description, "type" to effective.type,
