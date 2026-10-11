@@ -7,6 +7,7 @@
 @custom-variant dark (&:is(.dark *));
 
 :root {
+  color-scheme: light;
   font-family: var(--arc-font-family);
   color: var(--arc-color-text);
   background: var(--arc-color-canvas);
@@ -50,11 +51,12 @@
 * { box-sizing: border-box; }
 body { margin: 0; min-width: 320px; font-size: var(--arc-font-body); line-height: var(--arc-line-height); }
 button, input, textarea, select { font: inherit; }
+input[type="checkbox"], input[type="radio"] { accent-color: var(--arc-color-action-primary); }
 a { color: inherit; }
 :focus-visible { outline: var(--arc-focus-width) solid var(--arc-color-focus); outline-offset: var(--arc-focus-gap); }
 button:disabled, select:disabled { cursor: not-allowed; }
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; scroll-behavior: auto !important; } }
-@media (forced-colors: active) { :focus-visible { outline-color: Highlight; } [data-slot="button"], input, select, textarea { border: 1px solid ButtonText; } }
+@media (forced-colors: active) { :focus-visible { outline-color: Highlight; } [data-slot="button"], input, select, textarea { border: 1px solid ButtonText; } input[type="checkbox"], input[type="radio"] { accent-color: auto; } }
 
 @theme inline {
   --font-heading: var(--font-sans);

@@ -1,18 +1,18 @@
 :root {
-  /* arcat primitives. KRDS layering, with calico fur and courier stationery colors. */
-  --arc-copper-50: #f8e9dd;
+  /* arcat primitives. Neutral light surfaces, with calico colors reserved for accents. */
+  --arc-copper-50: #fff6ef;
   --arc-copper-100: #f0d4bf;
   --arc-copper-600: #a64b2a;
   --arc-copper-700: #873b21;
   --arc-ginger-400: #df995b;
-  --arc-paper-50: #fffcf7;
+  --arc-paper-50: #ffffff;
   --arc-neutral-0: #ffffff;
-  --arc-neutral-50: #faf7f2;
-  --arc-neutral-100: #f2e9dc;
-  --arc-neutral-200: #ddd3c6;
-  --arc-neutral-500: #908171;
-  --arc-neutral-600: #665e54;
-  --arc-neutral-900: #282520;
+  --arc-neutral-50: #f7f8fa;
+  --arc-neutral-100: #f2f4f7;
+  --arc-neutral-200: #e2e5e9;
+  --arc-neutral-500: #7a818b;
+  --arc-neutral-600: #59616d;
+  --arc-neutral-900: #20242b;
   --arc-red-50: #fceeeb;
   --arc-red-700: #ac322d;
   --arc-green-50: #edf4ee;
@@ -30,8 +30,8 @@
   --arc-color-action-hover: var(--arc-copper-700);
   --arc-color-action-on-primary: var(--arc-neutral-0);
   --arc-color-selected: var(--arc-copper-50);
-  --arc-color-selected-text: var(--arc-copper-700);
-  --arc-color-brand-surface: var(--arc-neutral-100);
+  --arc-color-selected-text: var(--arc-neutral-900);
+  --arc-color-brand-surface: var(--arc-neutral-50);
   --arc-color-brand-paper: var(--arc-paper-50);
   --arc-color-brand-accent: var(--arc-ginger-400);
   --arc-color-brand-ink: var(--arc-neutral-900);
@@ -72,11 +72,11 @@
   --arc-gantt-today-line: var(--arc-color-danger);
   --arc-gantt-weekend-background: var(--arc-color-surface-subtle);
   --arc-gantt-task-complete: var(--arc-color-action-primary);
-  --arc-gantt-task-remaining: var(--arc-copper-100);
-  --arc-gantt-epic-complete: #514d48;
-  --arc-gantt-epic-remaining: #d9d3c9;
+  --arc-gantt-task-remaining: var(--arc-neutral-200);
+  --arc-gantt-epic-complete: #4c5665;
+  --arc-gantt-epic-remaining: var(--arc-neutral-200);
   --arc-gantt-bug-complete: var(--arc-color-danger);
-  --arc-gantt-bug-remaining: #f4ceca;
+  --arc-gantt-bug-remaining: var(--arc-neutral-200);
   --arc-gantt-relation: var(--arc-color-text-muted);
   --arc-gantt-progress-line: #8a4263;
 }
