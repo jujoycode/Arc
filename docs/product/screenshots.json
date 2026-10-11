@@ -1,7 +1,7 @@
 {
   "capturedAt": "2026-10-11",
   "timezone": "Asia/Seoul",
-  "sourceCommit": "5ddc7829fad19fc303e7c636597bcac082f75c14",
+  "sourceCommit": "0717ff1d306f52fda2e8badfb9ce8c2425497771",
   "demo": "Aurora 제품팀 / 고객 포털 고도화",
   "providerMode": "local signed GitHub/GitLab provider fixture; no live provider account",
   "motionMode": "reduced motion; login-gaze and login-private use no-preference to demonstrate interaction",
@@ -19,7 +19,7 @@
       "role": "모든 사용자",
       "purpose": "삼색 집배원 고양이가 안내하는 시작 화면에서 검증된 이메일로 팀 공간에 접속합니다.",
       "features": [
-        "삼색 고양이와 크림·테라코타·차콜 제품 색상",
+        "삼색 고양이와 흰색·중립 회색 바탕, 절제된 구리색 강조",
         "이메일·비밀번호 로그인",
         "가입 화면 이동"
       ],

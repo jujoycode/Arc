@@ -2,7 +2,7 @@
 
 > 작성: 2026-10-05 · 중립 라이트 테마 갱신: 2026-10-11 · 단계: 디자인 방향 및 화면 계약 · 기준: [기능 명세](FUNCTIONAL_SPEC.md), [KRDS 기반 가이드](DESIGN_GUIDE.md)
 
-데스크톱과 모바일의 이전 화면 시안: [데스크톱](screenshots/design-v2-desktop.png) · [모바일](screenshots/design-v2-mobile.png). [HTML 시안](../frontend/public/design-preview.html)은 로그인 없이 열 수 있으며 간트/보드 전환을 확인할 수 있다. 기존 시안·제품 사진은 이번 중립 라이트 테마 수정 전 자료이므로 실제 앱의 새 검증·재촬영 후 갱신한다.
+데스크톱과 모바일의 이전 화면 시안: [데스크톱](screenshots/design-v2-desktop.png) · [모바일](screenshots/design-v2-mobile.png). [HTML 시안](../frontend/public/design-preview.html)은 로그인 없이 열 수 있으며 간트/보드 전환을 확인할 수 있다. 위 두 시안 사진은 이전 단계의 기록이다. HTML 시안과 [실제 제품 사진 50장](product/README.md)은 코드 `0717ff1`의 중립 라이트 테마로 갱신했다.
 
 큰 UI 표면은 흰색·중립 회색으로 정리하고 삼색은 캐릭터·로고·주 행동·선택·초점·데이터 강조에 사용한다. 베이지/크림 전체 배경, 갈색 본문·테두리와 큰 장식 원·그라데이션은 제거한다. 기능·권한·삼색 이미지·로그인의 시선과 눈 가림 동작은 유지한다.
 

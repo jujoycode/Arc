@@ -2,6 +2,8 @@
 
 > 기준일: 2026-10-11 · GitHub Actions / Ubuntu 24.04
 
+중립 라이트 테마의 앱 코드 `0717ff1`은 프런트 빌드·lint와 로컬 전체 API·연동·기본/티켓 필드/삼색 브랜드 브라우저 검사를 통과했다. [main 실행 #38123828070](https://github.com/jujoycode/Arc/actions/runs/38123828070)에서 Frontend checks·Backend checks·API and browser acceptance·CI gate가 모두 성공했다. 기존 기능·조작 치수·간트/타임라인 좌표·캐릭터 동작은 유지했다.
+
 2026-10-11에 arcat 브랜드·폼·워크스페이스 티켓 필드와 47장 제품 화면을 포함한 `a6edd4c`의 [main 실행 #38071803890](https://github.com/jujoycode/Arc/actions/runs/38071803890)에서 프런트·백엔드·API/브라우저·최종 게이트가 모두 성공했다. 새 필드 정책·폼 오류·충돌 복원과 기존 인증·WBS·간트·스프린트·연동 흐름을 함께 검증했다.
 
 2026-10-06에 [main 실행 #37341400334](https://github.com/jujoycode/Arc/actions/runs/37341400334)의 네 job이 모두 성공했다. 강제 충돌 테스트의 요청 가로채기 수명과 재실행 시 artifact 교체를 보완한 상태다.

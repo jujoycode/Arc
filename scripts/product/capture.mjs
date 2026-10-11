@@ -97,7 +97,7 @@ try {
   await actor(null)
   await go('login', '팀 공간에 로그인')
   await page.getByLabel('이메일', { exact: true }).fill('minji@example.com')
-  await capture('login', '이메일 로그인', '01-team-and-access', '모든 사용자', '삼색 집배원 고양이가 안내하는 시작 화면에서 검증된 이메일로 팀 공간에 접속합니다.', ['삼색 고양이와 크림·테라코타·차콜 제품 색상', '이메일·비밀번호 로그인', '가입 화면 이동'])
+  await capture('login', '이메일 로그인', '01-team-and-access', '모든 사용자', '삼색 집배원 고양이가 안내하는 시작 화면에서 검증된 이메일로 팀 공간에 접속합니다.', ['흰색·밝은 회색 라이트 테마와 삼색 고양이·작은 구리색 포인트', '이메일·비밀번호 로그인', '가입 화면 이동'])
   await page.emulateMedia({ reducedMotion: 'no-preference' })
   const authMascot = page.locator('.arcat-welcome-art .arcat-mascot[data-interactive="true"]')
   await authMascot.and(page.locator('[data-tracking="active"]')).waitFor()

@@ -10,7 +10,7 @@
 | --- | --- | --- |
 | 이메일 인증 | 이름·이메일·12자 이상 비밀번호로 가입, 확인 링크, 검증 후 로그인·로그아웃 | [가입](01-team-and-access.md#register) · [확인](01-team-and-access.md#email-verification) · [로그인](01-team-and-access.md#login) |
 | 첫 사용 안내 | 삼색 집배원 고양이와 제품 소개, 첫 워크스페이스 준비, 확인·초대 결과를 텍스트로 함께 안내 | [로그인](01-team-and-access.md#login) · [첫 팀 공간](01-team-and-access.md#workspace-onboarding) |
-| 브랜드와 반응 모션 | 상단 탐색의 삼색 로고, 크림·테라코타·차콜 컬러, 인증 화면의 마우스 방향 추적·비밀번호 포커스 눈 가리기, 배정·저장·확인 상황별 캐릭터 | [마우스 반응](01-team-and-access.md#login-gaze) · [비밀번호 포커스](01-team-and-access.md#login-private) · [배정 안내](03-tickets-and-views.md#ticket-create) |
+| 브랜드와 반응 모션 | 상단 탐색의 삼색 로고, 흰색·중립 회색 바탕과 절제된 구리색 강조, 인증 화면의 마우스 방향 추적·비밀번호 포커스 눈 가리기, 배정·저장·확인 상황별 캐릭터 | [마우스 반응](01-team-and-access.md#login-gaze) · [비밀번호 포커스](01-team-and-access.md#login-private) · [배정 안내](03-tickets-and-views.md#ticket-create) |
 | 팀 합류 | 이메일로 MEMBER·ADMIN 초대, 해당 이메일 계정으로 수락, 초대 취소·만료 | [초대 수락](01-team-and-access.md#team-invitation) · [팀 관리](05-settings-and-integrations.md#team-settings) |
 | 워크스페이스·탐색 | 팀 공간 생성·선택, 프로젝트 카드, 프로젝트 간 전환, 계정·로그아웃 | [팀 공간](01-team-and-access.md#workspaces) |
 | 프로젝트 | 이름·키·설명·상위 프로젝트, 보관·복원, 첫 티켓 이후 키 변경 제한 | [프로젝트 생성](01-team-and-access.md#project-creation) · [설정](05-settings-and-integrations.md#project-settings) · [보관](05-settings-and-integrations.md#archived-project) |
