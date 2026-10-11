@@ -1,0 +1,184 @@
+# arcat 전체 화면의 KRDS 적용
+
+> 작성: 2026-10-11 KST · 사용자 요청에 따른 전체 제품 디자인 정비 · 공식 자료 확인: 2026-10-11
+
+arcat의 모든 구현 화면에 KRDS의 정보 계층·컴포넌트·상태·접근성 규칙을 적용한다. 삼색 집배원 고양이와 구리색·크림색·차콜색 브랜드는 유지하고, 공통 버튼·입력·탐색·표·패널·대화상자가 같은 시각 계약을 사용하도록 정리한다. 이 문서는 적용 범위와 수용 기준이며 최종 검증 결과는 [디자인 검증](DESIGN_VERIFICATION.md)과 [구현 현황](STATUS.md)에 기록한다.
+
+## 1. 적용 범위와 보호할 기능
+
+대상은 인증·온보딩·워크스페이스·프로젝트 셸, 간트·WBS·타임라인·테이블·칸반·백로그·스프린트, 티켓 상세·계획/실행 폼·댓글·활동, 팀·프로젝트·티켓 필드·저장소 설정과 모든 생성·편집·종료 대화상자다. 기존 HTML 디자인 시안도 같은 크기·색·서체 계약으로 맞추되 실제 제품 기능을 구현한 것처럼 표현하지 않는다.
+
+이번 변경은 표현과 탐색 접근성을 정비한다. 다음 기능은 유지한다.
+
+- API 경로·요청/응답 계약·DB·revision/version과 서버 검증
+- 워크스페이스 OWNER/ADMIN, 프로젝트별 관리자, 담당자의 실행 수정, 모든 팀원의 댓글 권한
+- 티켓 유형·계층·필드 정책·숨김/비활성 값 보존·계획/실행 구분
+- 라우트·TanStack Query 키·필터·정렬·페이지·캐시 갱신·충돌 복원
+- 간트/WBS의 중첩 접기·일정/완료 집계, 타임라인 기간, PNG/PDF, 스프린트 결과·이월
+- 읽기 전용·보관·조회 실패·로딩의 실제 상태와 GitHub/GitLab 연동 범위
+
+새 마일스톤·알림 센터·다크 모드·서버 저장 보기 등은 이 디자인 변경에 포함하지 않는다. [기능 명세](FUNCTIONAL_SPEC.md)와 [권한표](product/FEATURES.md)가 제품 동작의 기준이다.
+
+## 2. 공식 기준과 제품 확장
+
+KRDS는 기본 값, 용도에 따른 의미, 개별 컴포넌트의 세 단계로 토큰을 나눈다. arcat는 이 흐름을 유지하고 간트·업무 표 같은 제품 패턴을 그 위에 둔다. 화면은 의미·컴포넌트 토큰을 사용하며 원시 색·크기를 반복하지 않는다. [공식 디자인 토큰](https://www.krds.go.kr/html/site/style/style_07.html)
+
+| 계층 | arcat 대응 | 적용 원칙 |
+| --- | --- | --- |
+| 기본 | 구리색·차콜색·크림색, 4/8px 간격 계열, 서체·크기·반경 | `tokens.css`에서 관리 |
+| 의미 | canvas/surface/text/action/border/focus/danger/success/warning | 색보다 역할을 참조 |
+| 컴포넌트 | 버튼·입력·카드·대화상자·탐색의 크기·상태·패딩 | shadcn/ui와 일반 CSS를 동일 토큰에 연결 |
+| 제품 패턴 | 간트 48px 행·완료/남은 구간·관계선, WBS 계층, 보드·타임라인 | 같은 의미와 접근성 위에 업무 밀도만 확장 |
+
+### 실제 크기 확인
+
+공식 HTML Component Kit의 버튼은 32/40/48/56/64px, 입력 필드는 40/48/56/80px 크기를 제공하며 기본 large는 56px다. 숫자는 공식 소스의 높이 토큰을 확인해 기록했다. arcat는 **medium 48px을 기본**, small 40px을 보조로 선택한다. 정부 포털의 기본 large를 모든 업무 화면에 그대로 적용하지 않는다. [버튼 소스](https://github.com/KRDS-uiux/krds-uiux/blob/d6bb184c823e4757f05807ea4646a23e3133b6e6/resources/scss/component/_button.scss) · [입력 소스](https://github.com/KRDS-uiux/krds-uiux/blob/d6bb184c823e4757f05807ea4646a23e3133b6e6/resources/scss/component/_input.scss) · [높이 토큰](https://github.com/KRDS-uiux/krds-uiux/blob/d6bb184c823e4757f05807ea4646a23e3133b6e6/resources/css/token/krds_tokens.css)
+
+공식 형태 가이드는 40/48px 버튼·입력에 6px, 카드에 10px, 큰 대화상자에 12px 반경을 제시한다. 56/64px 반경은 현재 가이드 표와 HTML Kit가 각각 6/8px로 달라, 이 변경에서는 공통으로 일치하는 40/48px·6px 계약을 사용한다. [공식 형태](https://www.krds.go.kr/html/site/style/style_04.html)
+
+| 요소 | arcat 적용값 | 공식 기준과의 관계 |
+| --- | --- | --- |
+| 기본 버튼·입력·셀렉트 | 높이 48px, 반경 6px, 입력 글자 16px | KRDS medium 높이·형태, 글자는 제품 확장 |
+| 보조 버튼·좁은 툴바 조작 | 높이 40px, 반경 6px | KRDS small |
+| 밀집 표의 접기·정렬·보조 버튼 | 높이 32px, 반경 4px | KRDS xsmall에 대응하는 제한된 데이터 조작 |
+| 카드·정보 패널 | 반경 10px, 내부 16/24px 패딩 | KRDS large 형태·제품 밀도 |
+| 대화상자·넓은 안내 영역 | 반경 12px, 본문 16/24px 패딩 | KRDS xlarge 형태 |
+| 체크박스·라디오 | 보이는 컨트롤 20px, 레이블도 클릭 가능 | 선택 영역을 글자까지 확장 |
+| 키보드 포커스 | 3px 외곽선·2px 간격, 인접 배경과 3:1 이상 | 명확하고 가려지지 않는 초점 |
+
+32px 밀집 크기는 데이터 조작에 한정한다. 폼의 글자 입력을 32px로 축소하지 않는다. 터치 환경의 주요 행동은 48px로 제공하며, 작은 아이콘·접기·체크박스는 레이블·주변 반응 영역을 활용해 충분한 타깃을 확보한다. KRDS는 터치 44×44px 이상의 반응 영역을 권장하므로 작은 크기가 모바일에서 그대로 통과한다고 간주하지 않는다. [공식 버튼 접근성](https://www.krds.go.kr/html/site/component/component_05_02.html)
+
+### 서체와 간격
+
+Pretendard GOV와 시스템 고딕 대체 글꼴을 유지한다. KRDS는 기본 본문 17px, 보조 본문 15px, 메타 13px, 줄 간격 150%를 제공한다. arcat는 업무 입력·설명 16px, 필드 레이블·데이터 15px, 메타 13px로 확장하며 작은 메타를 설명 본문으로 사용하지 않는다. 페이지 제목은 데스크톱 32px·모바일 24px, 섹션은 24/22px, 작은 구획은 19px를 기준으로 구분한다. 기본 굵기는 400/700을 쓰고 500을 보조로 사용한다. [공식 타이포그래피](https://www.krds.go.kr/html/site/style/style_03.html)
+
+레이아웃은 8px 흐름에 4px 보조 단위를 사용한다. 레이블·도움말·컨트롤·시스템 메시지 사이 8px, 가로 필드 간격 16px, 세로 필드 16/24px, 큰 구획 24/32px를 적용한다. 데이터 행 안에서만 4/8px 간격을 허용한다. 날짜·숫자·짧은 키의 입력 폭은 목적에 맞추고 설명·제목은 가용 폭을 쓴다. [공식 레이아웃](https://www.krds.go.kr/html/site/style/style_05.html)
+
+### 색과 상태
+
+[삼색 브랜드](ARCAT_BRAND.md)의 구리색 주 행동·차콜 글자·크림 바탕과 오류·성공·주의 의미 색은 유지한다. 장식용 진저색으로 글자나 필수 입력 경계를 대체하지 않는다. 버튼은 주 행동·윤곽·텍스트·위험의 계층을 구분하고 상태는 레이블·아이콘·문구를 함께 제공한다. 기본/hover/pressed/disabled/focus/error/readonly/loading/selected 상태가 서로 다른 역할을 보여 주어야 한다.
+
+입력 경계·포커스·필수 데이터 도형은 인접 색과 3:1 이상, 일반 글자는 4.5:1 이상을 검증한다. 필드 오류는 가까운 문구와 요약 링크를 연결하고 `aria-invalid`·`aria-describedby`를 유지한다. 비활성 컨트롤은 사유를 설명하며 읽기 전용 값은 계속 읽을 수 있어야 한다. [공식 텍스트 입력](https://www.krds.go.kr/html/site/component/component_09_03.html) · [공식 입력폼](https://www.krds.go.kr/html/site/global/global_08.html)
+
+## 3. 적용하지 않는 정부 사이트 요소
+
+arcat는 팀용 프로젝트 관리 제품이므로 다음 정부 사이트 식별·정책 요소는 사용하지 않는다.
+
+| 제외 요소 | 이유 |
+| --- | --- |
+| 최상단 “대한민국 공식 전자정부 누리집” 공식 배너 | 정부 서비스 인증 표시가 제품 성격과 맞지 않음 |
+| 태극기·정부 상징·행정기관 식별자 | arcat 로고가 제품을 식별함 |
+| 기관 주소·대표 민원 전화·상급 기관 관계를 나열하는 정부형 푸터 | 실제 제품 운영 정보와 별개인 정부 전용 문맥 |
+| 큰 정부 포털 헤더·행정 서비스 전체 메뉴·정책 배너 | 워크스페이스/프로젝트 중심의 지속적인 업무 탐색과 맞지 않음 |
+| 정부 사이트의 언어·글자·선명한 화면 설정 UI를 기능 확인 없이 복제 | 지원하지 않는 기능을 보여 주지 않음 |
+
+공식 배너 자체의 역할은 정부 서비스의 출처를 식별하는 것이다. arcat에서 이를 제외하는 결정은 사용자의 요청과 제품 문맥에 따른다. [공식 배너](https://www.krds.go.kr/html/site/component/component_02_01.html)
+
+**제품 헤더·본문 바로가기·접근 가능한 메뉴·프로젝트 위치는 유지한다.** 상단 삼색 마크, 워크스페이스/프로젝트 이동, 계정·로그아웃, 현재 보기를 표현하는 사이드/모바일 탐색이 업무의 기준이다. 실제 필요가 있는 서비스 정보와 지원 링크까지 정부형 푸터라는 이유로 없애지 않는다. 본문 바로가기는 키보드 초점에서 보이고 실제 `main`으로 이동해야 한다.
+
+## 4. 실제 화면 진단과 구현 우선순위
+
+점검 기준은 `docs/product/screenshots.json`의 **50장**, 1920×1080·2026-10-11 KST 촬영·코드 `5ddc782`다. 전체 사진의 배치·상태·기능별 공통 요소를 확인했고 간트·필드 설정·프로젝트 설정 원본과 대응 CSS/공통 UI를 상세 확인했다. 이 목록은 KRDS 적용 전의 삼색 브랜드 제품이며, 사진만으로 키보드·대비·권한 검증을 완료했다고 판단하지 않는다.
+
+해당 코드에는 기본 높이 40px·주 버튼 44px, 카드 반경 8/9/12px와 shadcn `rounded-lg`, 레이블 14px·밀집 조작 13px, 14/15px 툴바 여백이 함께 존재한다. 기존 기능의 오류를 뜻하는 것은 아니며 이번 KRDS 계약에 맞춰 정리할 구체적인 표현 차이다.
+
+| 우선순위·영역 | 실제 관찰 | 적용과 완료 기준 |
+| --- | --- | --- |
+| P0 공통 컴포넌트 | 활성 버튼·Input·네이티브 select의 크기와 반경이 다름 | 48/40/32 및 6/10/12px 계약을 공통 토큰으로 연결하고 역할별 실측. 현재 사용하지 않는 Radix Select·Tabs는 새로 적용하지 않음 |
+| P0 폼·대화상자 | 티켓 폼은 그룹·오류를 제공하지만 인증/설정/스프린트는 서로 다른 패딩·굵기 사용 | 같은 레이블·8px 관계·16/24px 필드 간격·실패/필수 표시, 본문 스크롤과 고정 행동 확인 |
+| P1 앱 셸·헤더 | 로그인·워크스페이스·프로젝트·필드 설정이 서로 다른 제목·본문 여백 사용 | 현재 위치→제목→설명→주 행동의 위계, 동일한 제목/간격, 모바일 줄바꿈 |
+| P1 간트 | 2행 툴바·옵션·저장 보기·출력에 작은 버튼과 개별 여백이 혼재 | 기간·검색/필터·접기·출력의 그룹을 유지하면서 컨트롤 높이·패딩·레이블 정리 |
+| P1 WBS·테이블 | 필터·요약·표·접기·행 행동의 밀도가 서로 다름 | 읽기 쉬운 헤더·선택 상태·48px 기본 행, 명시적 링크/버튼, 키·계층·집계 유지 |
+| P1 타임라인 | 필터·기간 조작·그룹·차트·미계획 목록에 패널 역할이 혼재 | 위계·패널 반경·기간 조작 간격 통일, 차트 88px 행과 막대 위치 유지 |
+| P1 칸반·진행 스프린트 | 작은 상태 선택과 카드 반경·글자 굵기가 반복됨 | 공통 카드·메타·상태 레이블·조작 크기, 가로 스크롤과 실패 복원 유지 |
+| P1 백로그·스프린트 계획 | 목록·편성 조작·예정/종료 결과와 작은 대화상자의 밀도 차이 | 목록 간격·보조 행동과 결과 설명을 통일, 시작/종료/이월 선택 변경 없음 |
+| P1 상세·협업 | 본문·속성·댓글·관계·개발 활동에 크기·정보 위계 차이 | 제목/구획/정의 목록·폼·활동 행 공통 계약, 긴 내용 줄바꿈과 역할 안내 |
+| P1 설정·필드 정책 | 설정은 3열 카드, 필드 정책은 아코디언+별도 미리보기 | 카드·필드·구분선·읽기 전용/위험 영역의 계층, 작은 폭에서 자연스러운 세로 배치 |
+| P2 상태·검증·화면 자료 | 빈/보관/충돌·시선/눈 가림 상태는 구현되어 있으나 새 치수 검증 필요 | 권한·필터·오류·조회 지연의 실제 상태와 브랜드 모션을 회귀 검사하고 50장 재촬영 |
+
+## 5. 화면 50장의 적용 목록
+
+각 항목은 같은 이름의 실제 PNG에 연결한다. 공통 컴포넌트 변경은 아래 모든 상태에 적용하며, 특정 사진만 보기 좋게 만드는 별도 CSS를 추가하지 않는다.
+
+### 인증·팀 시작 — 9장
+
+| 실제 화면 | 역할·상태 | 적용 계약 |
+| --- | --- | --- |
+| [이메일 로그인](product/images/login.png) | 모든 사용자 | 헤더·입력·안내·브랜드 |
+| [마우스를 따라 바라보는 삼색 고양이](product/images/login-gaze.png) | 마우스를 사용하는 사용자 | 헤더·입력·안내·브랜드 |
+| [비밀번호 입력 중 눈을 가리는 고양이](product/images/login-private.png) | 로그인·가입 사용자 | 헤더·입력·안내·브랜드 |
+| [계정 가입](product/images/register.png) | 모든 사용자 | 헤더·입력·안내·브랜드 |
+| [이메일 확인 완료](product/images/email-verification.png) | 가입 사용자 | 헤더·입력·안내·브랜드 |
+| [첫 워크스페이스 시작 안내](product/images/workspace-onboarding.png) | 새로 가입한 사용자 | 헤더·입력·안내·브랜드 |
+| [팀 초대 수락](product/images/team-invitation.png) | 초대받은 팀원 | 헤더·입력·안내·브랜드 |
+| [워크스페이스와 프로젝트 선택](product/images/workspaces.png) | 팀원·관리자 | 헤더·입력·안내·브랜드 |
+| [새 프로젝트 준비](product/images/project-creation.png) | 워크스페이스 소유자·관리자 | 헤더·입력·안내·브랜드 |
+
+### 계획·일정 — 10장
+
+| 실제 화면 | 역할·상태 | 적용 계약 |
+| --- | --- | --- |
+| [간트로 일정과 관계 확인](product/images/gantt.png) | 모든 팀원 | 기간·필터·계층·데이터 |
+| [계층별 간트 접기](product/images/gantt-collapse.png) | 모든 팀원 | 기간·필터·계층·데이터 |
+| [간트 옵션과 개인 보기](product/images/gantt-personal-view.png) | 모든 팀원 | 기간·필터·계층·데이터 |
+| [간트 선택 항목 상세](product/images/gantt-item-detail.png) | 모든 팀원 | 기간·필터·계층·데이터 |
+| [관리자의 WBS 계획](product/images/wbs-manager.png) | 기본·프로젝트 관리자 | 기간·필터·계층·데이터 |
+| [WBS 하위 티켓 추가](product/images/wbs-child-ticket.png) | 기본·프로젝트 관리자 | 기간·필터·계층·데이터 |
+| [개발자의 내 업무와 팀 진척](product/images/wbs-developer.png) | 개발자 | 기간·필터·계층·데이터 |
+| [Epic별 타임라인](product/images/timeline-epic.png) | 모든 팀원 | 기간·필터·계층·데이터 |
+| [버전별 분기 일정](product/images/timeline-version.png) | 모든 팀원 | 기간·필터·계층·데이터 |
+| [미계획·기간 밖 업무](product/images/timeline-unscheduled.png) | 모든 팀원 | 기간·필터·계층·데이터 |
+
+### 티켓·실행·협업 — 14장
+
+| 실제 화면 | 역할·상태 | 적용 계약 |
+| --- | --- | --- |
+| [담당 개발자의 실행 정보 수정](product/images/ticket-execution.png) | 담당자·관리자 | 카드·표·폼·상태 |
+| [티켓 테이블](product/images/ticket-table.png) | 모든 팀원 | 카드·표·폼·상태 |
+| [테이블 표시 열 선택](product/images/ticket-table-columns.png) | 모든 팀원 | 카드·표·폼·상태 |
+| [공통 티켓 생성](product/images/ticket-create.png) | 기본·프로젝트 관리자 | 카드·표·폼·상태 |
+| [티켓 상세와 팀 협업](product/images/ticket-detail.png) | 모든 팀원 | 카드·표·폼·상태 |
+| [선행·차단 관계 연결](product/images/ticket-relations.png) | 기본·프로젝트 관리자 | 카드·표·폼·상태 |
+| [티켓 변경 기록](product/images/ticket-history.png) | 모든 팀원 | 카드·표·폼·상태 |
+| [댓글 수정과 협업 기록](product/images/ticket-comment-edit.png) | 모든 팀원·댓글 작성자 | 카드·표·폼·상태 |
+| [관리자의 티켓 계획 편집](product/images/ticket-plan-edit.png) | 기본·프로젝트 관리자 | 카드·표·폼·상태 |
+| [동시 편집 충돌과 입력 보존](product/images/ticket-edit-conflict.png) | 편집 권한이 있는 사용자 | 카드·표·폼·상태 |
+| [칸반 상태별 실행](product/images/kanban.png) | 모든 팀원·담당자 | 카드·표·폼·상태 |
+| [티켓 계획에 팀별 추가 정보 입력](product/images/ticket-custom-form.png) | 기본·프로젝트 관리자 | 카드·표·폼·상태 |
+| [필드별 검증과 입력 내용 보존](product/images/ticket-validation.png) | 티켓 편집 사용자 | 카드·표·폼·상태 |
+| [저장된 팀별 추가 정보 확인](product/images/ticket-custom-detail.png) | 모든 팀원 | 카드·표·폼·상태 |
+
+### 백로그·스프린트 — 6장
+
+| 실제 화면 | 역할·상태 | 적용 계약 |
+| --- | --- | --- |
+| [백로그와 스프린트 편성](product/images/backlog.png) | 모든 팀원·관리자 | 목록·편성·대화상자 |
+| [진행 중 스프린트](product/images/sprint-active.png) | 모든 팀원 | 목록·편성·대화상자 |
+| [새 스프린트 계획](product/images/sprint-plan.png) | 기본·프로젝트 관리자 | 목록·편성·대화상자 |
+| [스프린트 종료와 이월](product/images/sprint-close.png) | 기본·프로젝트 관리자 | 목록·편성·대화상자 |
+| [종료 당시 스프린트 결과](product/images/sprint-history.png) | 모든 팀원 | 목록·편성·대화상자 |
+| [다음 스프린트 시작 안내](product/images/sprint-ready.png) | 모든 팀원·관리자 | 목록·편성·대화상자 |
+
+### 설정·연동·수명 — 11장
+
+| 실제 화면 | 역할·상태 | 적용 계약 |
+| --- | --- | --- |
+| [프로젝트 설정과 관리자](product/images/project-settings.png) | 모든 팀원·워크스페이스 관리자 | 패널·폼·기록·권한 안내 |
+| [버전 일정 관리](product/images/version-settings.png) | 기본·프로젝트 관리자 | 패널·폼·기록·권한 안내 |
+| [팀원 역할·초대 관리](product/images/team-settings.png) | 워크스페이스 소유자·관리자 | 패널·폼·기록·권한 안내 |
+| [프로젝트 보관과 워크스페이스 삭제](product/images/workspace-lifecycle.png) | 워크스페이스 소유자·관리자 | 패널·폼·기록·권한 안내 |
+| [GitHub·GitLab 저장소 연결](product/images/repository-integrations.png) | 워크스페이스 소유자·관리자 | 패널·폼·기록·권한 안내 |
+| [웹훅 전달 기록](product/images/webhook-deliveries.png) | 워크스페이스 소유자·관리자 | 패널·폼·기록·권한 안내 |
+| [티켓에 연결된 커밋·PR·MR](product/images/development-activity.png) | 모든 팀원 | 패널·폼·기록·권한 안내 |
+| [팀에 맞는 표준 티켓 필드](product/images/ticket-fields-standard.png) | 워크스페이스 소유자·관리자 | 패널·폼·기록·권한 안내 |
+| [커스텀 필드와 입력 구성 미리보기](product/images/ticket-fields-custom.png) | 워크스페이스 소유자·관리자 | 패널·폼·기록·권한 안내 |
+| [프로젝트 시작 전 빈 상태](product/images/empty-project.png) | 모든 팀원·관리자 | 패널·폼·기록·권한 안내 |
+| [보관 프로젝트의 읽기 전용 WBS](product/images/archived-project.png) | 모든 팀원 | 패널·폼·기록·권한 안내 |
+
+## 6. 유지관리 규칙
+
+버튼·폼·표·대화상자는 기존 React 19·shadcn/ui·Tailwind v4 위에서 적용한다. KRDS의 jQuery/HTML Kit 동작 코드를 별도 런타임으로 섞지 않는다. Radix의 대화상자 초점·네이티브 선택의 키보드 조작·Valibot 오류 계약을 보존한다. 컴포넌트 경계는 [프런트 구조](FRONTEND_ARCHITECTURE.md)를 따른다.
+
+표에서 행 전체를 임의의 버튼으로 만들지 않고 키·제목의 링크와 접기·정렬 버튼을 분리한다. 모달은 내용과 목적에 맞는 폭, 제목·본문·고정 행동 영역, 열기/닫기 후 초점 복원을 제공한다. [공식 표](https://www.krds.go.kr/html/site/component/component_04_11.html) · [공식 모달](https://www.krds.go.kr/html/site/component/component_04_05.html)
+
+가이드와 HTML Kit의 값이 다르면 원문·코드 기준을 확인해 적용값을 명시한다. 공식 토큰 이름과 arcat의 `--arc-*`는 구분하며 제품 확장 값을 KRDS의 필수 표준인 것처럼 설명하지 않는다. 새 컴포넌트는 기본/hover/focus/disabled/error·반응형·키보드 검증을 기존 수용 흐름에 추가한다.
