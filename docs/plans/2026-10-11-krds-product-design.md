@@ -1,6 +1,6 @@
 # arcat 전체 제품 디자인 정리 실행 계획
 
-> 작성일: 2026-10-11 · 상태: 라이트 색상 교정·화면 자료·CI 완료, KRDS 치수 정비는 후속 · 초기 앱 코드: `5ddc782` · 라이트 앱 코드: `0717ff1`
+> 작성일: 2026-10-11 · 상태: 라이트 색상·화면·CI 및 공통 UI 정비 완료, 탐색·폼·업무 화면 진행 중 · 초기 앱 코드: `5ddc782` · 라이트 앱 코드: `0717ff1`
 
 ## 최신 디자인 방향: 라이트 테마와 제한된 삼색 포인트
 
@@ -52,6 +52,8 @@ OWNER·ADMIN의 기본 관리 권한, 프로젝트별 추가 관리자, 담당�
 - 커밋: `docs: plan KRDS adoption across the arcat product`.
 
 ### 2. 의미 토큰과 활성 공통 UI
+
+- [x] 공통 컴포넌트의 규격·상태·초점·터치 토큰 적용, 실제 렌더링·대비·키보드와 기존 티켓 필드 브라우저 검사 및 독립 검토 통과. 제품 화면의 덮어쓰기는 3·4단계에서 정리.
 
 - `frontend/src/shared/styles/tokens.css`, `index.css`와 `shared/ui`의 실제 사용하는 Button·Input·Textarea·Card·Table·Badge·Dialog·Label·Form을 정리한다.
 - 높이·반경·글자·간격·체크박스 강조색을 의미 토큰으로 통일한다. Tailwind 반경 계산과 제품 CSS의 덮어쓰기를 함께 확인한다.

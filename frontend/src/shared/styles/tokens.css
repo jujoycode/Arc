@@ -4,17 +4,20 @@
   --arc-copper-100: #f0d4bf;
   --arc-copper-600: #a64b2a;
   --arc-copper-700: #873b21;
+  --arc-copper-800: #6e301b;
   --arc-ginger-400: #df995b;
   --arc-paper-50: #ffffff;
   --arc-neutral-0: #ffffff;
   --arc-neutral-50: #f7f8fa;
   --arc-neutral-100: #f2f4f7;
   --arc-neutral-200: #e2e5e9;
+  --arc-neutral-300: #d0d4da;
   --arc-neutral-500: #7a818b;
   --arc-neutral-600: #59616d;
   --arc-neutral-900: #20242b;
   --arc-red-50: #fceeeb;
   --arc-red-700: #ac322d;
+  --arc-red-800: #892823;
   --arc-green-50: #edf4ee;
   --arc-green-700: #286046;
 
@@ -28,6 +31,14 @@
   --arc-color-border-control: var(--arc-neutral-500);
   --arc-color-action-primary: var(--arc-copper-600);
   --arc-color-action-hover: var(--arc-copper-700);
+  --arc-color-action-pressed: var(--arc-copper-800);
+  --arc-color-action-neutral-hover: var(--arc-neutral-100);
+  --arc-color-action-secondary-hover: var(--arc-neutral-200);
+  --arc-color-action-neutral-pressed: var(--arc-neutral-300);
+  --arc-color-disabled-surface: var(--arc-neutral-100);
+  --arc-color-disabled-text: var(--arc-neutral-600);
+  --arc-color-disabled-border: var(--arc-neutral-200);
+  --arc-color-readonly-surface: var(--arc-neutral-50);
   --arc-color-action-on-primary: var(--arc-neutral-0);
   --arc-color-selected: var(--arc-copper-50);
   --arc-color-selected-text: var(--arc-neutral-900);
@@ -37,6 +48,7 @@
   --arc-color-brand-ink: var(--arc-neutral-900);
   --arc-color-danger: var(--arc-red-700);
   --arc-color-danger-surface: var(--arc-red-50);
+  --arc-color-danger-pressed: var(--arc-red-800);
   --arc-color-success: var(--arc-green-700);
   --arc-color-success-surface: var(--arc-green-50);
   --arc-color-warning: #775118;
@@ -46,13 +58,17 @@
   --arc-shadow-dialog: 0 16px 50px color-mix(in srgb, var(--arc-color-text) 8%, transparent);
   --arc-color-focus: var(--arc-copper-600);
   --arc-font-family: 'Pretendard GOV', 'Noto Sans KR', system-ui, sans-serif;
+  /* arcat density extension: body/input 16px, label/data 15px, metadata 13px. */
   --arc-font-body: 1rem;
+  --arc-font-input: 1rem;
   --arc-font-data: .9375rem;
-  --arc-font-label: .875rem;
+  --arc-font-label: .9375rem;
   --arc-font-meta: .8125rem;
   --arc-line-height: 1.5;
-  --arc-radius-control: 8px;
-  --arc-radius-panel: 12px;
+  --arc-radius-dense: 4px;
+  --arc-radius-control: 6px;
+  --arc-radius-panel: 10px;
+  --arc-radius-dialog: 12px;
   --arc-space-1: 4px;
   --arc-space-2: 8px;
   --arc-space-3: 12px;
@@ -63,9 +79,17 @@
   --arc-focus-gap: 2px;
 
   /* Component and product pattern tokens. */
-  --arc-control-height: 40px;
-  --arc-control-height-primary: 44px;
+  --arc-control-height: 48px;
+  --arc-control-height-primary: var(--arc-control-height);
+  --arc-control-height-small: 40px;
+  /* Only compact data buttons may use 32px; inputs/selects use 40px minimum. */
   --arc-control-height-dense: 32px;
+  --arc-control-touch-target: 44px;
+  --arc-control-selection-size: 20px;
+  --arc-control-padding-inline: var(--arc-space-3);
+  --arc-control-gap: var(--arc-space-2);
+  --arc-panel-padding: var(--arc-space-6);
+  --arc-panel-padding-small: var(--arc-space-4);
   --arc-shell-header-height: 64px;
   --arc-shell-sidebar-width: 232px;
   --arc-data-row-height: 48px;
