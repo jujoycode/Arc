@@ -6,6 +6,7 @@ import { useIssues, refreshProjectIssues, matchesIssue, ProjectIssueFilters, use
 import { useProjectAccess } from '@/features/project'
 import { useSprints } from '../../api/useSprints'
 import { Button } from '@/shared/ui/button'
+import { Mascot } from '@/shared/ui/Mascot'
 import { IssueCard, issuePath, statusLabels } from '@/features/issue'
 import type { Issue } from '@/features/issue'
 import { Input } from '@/shared/ui/input'
@@ -22,7 +23,7 @@ export function SprintsScreen({ projectId }: { projectId: number }) {
   const sprints = useSprints(projectId)
   const issues = useIssues(projectId)
   const { filters } = useProjectFilters()
-  const { archived, manager, canExecute } = useProjectAccess(projectId)
+  const { archived, manager, canExecute, ready } = useProjectAccess(projectId)
   const client = useQueryClient()
   const [open, setOpen] = useState(false)
   const [form, setForm] = useState<SprintFormValues>(initialForm)
@@ -152,7 +153,10 @@ export function SprintsScreen({ projectId }: { projectId: number }) {
         const cards = issues.data?.items.filter(issue => issue.sprintId === active.id && issue.status === status && matchesIssue(issue, filters)) ?? []
         return <section key={status} className="board-column" aria-label={`${label} 열`}><header><h2>{label}</h2><span>{cards.length}</span></header><div className="board-cards">{cards.map(issue => <IssueCard key={issue.id} issue={issue} disabled={!canExecute(issue)} busy={busyId === issue.id} onStatusChange={move} />)}</div></section>
       })}</div>
-    </section> : <p className="empty-message">진행 중인 스프린트가 없습니다. 계획 중 스프린트에 이슈를 넣고 시작하세요.</p>}
+    </section> : sprints.isSuccess && <div className="arcat-planning-empty arcat-sprint-empty" role="region" aria-label="스프린트 시작 안내">
+      <Mascot variant="idle" size={88} />
+      <div><h2>진행 중인 스프린트가 없습니다.</h2><p>{archived ? '보관된 프로젝트입니다. 새 스프린트를 시작하려면 프로젝트를 복원하세요.' : manager ? planned.length ? '백로그에서 계획 중인 스프린트에 티켓을 편성한 뒤 ‘시작’을 눌러 보세요.' : '‘스프린트 계획’에서 목표와 기간을 정하고, 백로그에서 티켓을 편성해 보세요.' : ready ? '프로젝트 관리자가 스프린트를 시작하면 팀의 목표와 티켓 진행 상황을 이곳에서 확인할 수 있습니다.' : '팀의 다음 목표와 실행할 티켓을 준비하는 공간입니다.'}</p></div>
+    </div>}
     <h2 className="subheading">모든 스프린트</h2>
     <div className="sprint-list">{sprints.data?.map(sprint => <article key={sprint.id} className="sprint-tile">
       <div><strong>{sprint.name}</strong><p>{sprint.startOn.slice(0, 10)} – {sprint.endOn.slice(0, 10)} · {sprint.status === 'PLANNED' ? '계획' : sprint.status === 'ACTIVE' ? '진행 중' : '종료'}</p></div>

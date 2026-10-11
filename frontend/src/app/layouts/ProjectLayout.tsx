@@ -44,7 +44,6 @@ export function ProjectLayout() {
   if (project.isError) return <main className="error-page">{(project.error as Error).message}<div><Button asChild variant="outline"><Link to="/">워크스페이스로 이동</Link></Button></div></main>
   return <div className="product-shell">
     <aside className="product-sidebar">
-      <Link to="/" className="brand"><ArcatBrand /></Link>
       <Link to="/" className="back-link"><ArrowLeft size={16} /> 모든 워크스페이스</Link>
       <div className="project-identity"><span>{project.data?.key ?? '…'}</span><strong>{project.data?.name ?? '불러오는 중'}</strong><small>{workspace?.name}</small></div>
       <nav aria-label="프로젝트 메뉴">{nav.map(item => <Link key={item.path} to={`/projects/$projectId/${item.path}`} params={{ projectId }} activeProps={{ className: 'active', 'aria-current': 'page' }} className="side-link"><item.icon size={18} aria-hidden="true" /><span>{item.label}</span></Link>)}</nav>
@@ -52,7 +51,10 @@ export function ProjectLayout() {
     </aside>
     <div className="product-content">
       <header className="product-topbar">
+        <div className="product-topbar-start">
+          <Link to="/" className="topnav-brand"><ArcatBrand compact /></Link>
         <div className="project-location"><Link to="/" className="workspace-crumb">{workspace?.name ?? '워크스페이스'}</Link><span className="crumb-divider" aria-hidden="true">/</span><label className="project-switch"><span className="sr-only">프로젝트 선택</span><select value={projectId} disabled={!projects.data} onChange={event => navigate({ to: '/projects/$projectId/gantt', params: { projectId: event.target.value } })}>{(projects.data ?? (project.data ? [project.data] : [])).map(item => <option key={item.id} value={item.id}>{item.name}{item.archivedAt ? ' · 보관됨' : ''}</option>)}</select></label></div>
+        </div>
         <div className="account-actions"><span>{me.data?.displayName}</span><Button variant="ghost" onClick={logout}>로그아웃</Button></div>
       </header>
       <main id="main-content" tabIndex={-1}><ProjectFiltersProvider key={projectId}>{project.data?.archivedAt && <p className="archive-notice" role="status">보관된 프로젝트입니다. 변경하려면 설정에서 복원하세요.</p>}<Outlet /></ProjectFiltersProvider></main>

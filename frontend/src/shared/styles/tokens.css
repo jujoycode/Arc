@@ -1,19 +1,22 @@
 :root {
-  /* Arc primitives. KRDS token layering is followed; these values belong to Arc. */
-  --arc-blue-50: #edf2ff;
-  --arc-blue-600: #315cf5;
-  --arc-blue-700: #2447ba;
+  /* arcat primitives. KRDS layering, with calico fur and courier stationery colors. */
+  --arc-copper-50: #f8e9dd;
+  --arc-copper-100: #f0d4bf;
+  --arc-copper-600: #a64b2a;
+  --arc-copper-700: #873b21;
+  --arc-ginger-400: #df995b;
+  --arc-paper-50: #fffcf7;
   --arc-neutral-0: #ffffff;
-  --arc-neutral-50: #f7f8fa;
-  --arc-neutral-100: #eef1f4;
-  --arc-neutral-200: #d9e0e8;
-  --arc-neutral-500: #7b8797;
-  --arc-neutral-600: #5f6b7a;
-  --arc-neutral-900: #17212f;
-  --arc-red-50: #fff0ed;
-  --arc-red-700: #b42318;
-  --arc-green-50: #e9f6ee;
-  --arc-green-700: #17613d;
+  --arc-neutral-50: #faf7f2;
+  --arc-neutral-100: #f2e9dc;
+  --arc-neutral-200: #ddd3c6;
+  --arc-neutral-500: #908171;
+  --arc-neutral-600: #665e54;
+  --arc-neutral-900: #282520;
+  --arc-red-50: #fceeeb;
+  --arc-red-700: #ac322d;
+  --arc-green-50: #edf4ee;
+  --arc-green-700: #286046;
 
   /* Semantic tokens: product and shared UI consume these, never primitives. */
   --arc-color-canvas: var(--arc-neutral-50);
@@ -23,21 +26,25 @@
   --arc-color-text-muted: var(--arc-neutral-600);
   --arc-color-border: var(--arc-neutral-200);
   --arc-color-border-control: var(--arc-neutral-500);
-  --arc-color-action-primary: var(--arc-blue-600);
-  --arc-color-action-hover: var(--arc-blue-700);
+  --arc-color-action-primary: var(--arc-copper-600);
+  --arc-color-action-hover: var(--arc-copper-700);
   --arc-color-action-on-primary: var(--arc-neutral-0);
-  --arc-color-selected: var(--arc-blue-50);
-  --arc-color-selected-text: var(--arc-blue-700);
+  --arc-color-selected: var(--arc-copper-50);
+  --arc-color-selected-text: var(--arc-copper-700);
+  --arc-color-brand-surface: var(--arc-neutral-100);
+  --arc-color-brand-paper: var(--arc-paper-50);
+  --arc-color-brand-accent: var(--arc-ginger-400);
+  --arc-color-brand-ink: var(--arc-neutral-900);
   --arc-color-danger: var(--arc-red-700);
   --arc-color-danger-surface: var(--arc-red-50);
   --arc-color-success: var(--arc-green-700);
   --arc-color-success-surface: var(--arc-green-50);
-  --arc-color-warning: #70500d;
-  --arc-color-warning-surface: #fff5de;
+  --arc-color-warning: #775118;
+  --arc-color-warning-surface: #fff2d7;
   --arc-shadow-card: 0 2px 7px color-mix(in srgb, var(--arc-color-text) 3%, transparent);
   --arc-shadow-panel: 0 5px 24px color-mix(in srgb, var(--arc-color-text) 4%, transparent);
   --arc-shadow-dialog: 0 16px 50px color-mix(in srgb, var(--arc-color-text) 8%, transparent);
-  --arc-color-focus: var(--arc-blue-600);
+  --arc-color-focus: var(--arc-copper-600);
   --arc-font-family: 'Pretendard GOV', 'Noto Sans KR', system-ui, sans-serif;
   --arc-font-body: 1rem;
   --arc-font-data: .9375rem;
@@ -64,12 +71,12 @@
   --arc-data-row-height: 48px;
   --arc-gantt-today-line: var(--arc-color-danger);
   --arc-gantt-weekend-background: var(--arc-color-surface-subtle);
-  --arc-gantt-task-complete: #2563ab;
-  --arc-gantt-task-remaining: #bbd3f2;
-  --arc-gantt-epic-complete: #6941b9;
-  --arc-gantt-epic-remaining: #e5d8f7;
-  --arc-gantt-bug-complete: #b45335;
-  --arc-gantt-bug-remaining: #f9d8cf;
+  --arc-gantt-task-complete: var(--arc-color-action-primary);
+  --arc-gantt-task-remaining: var(--arc-copper-100);
+  --arc-gantt-epic-complete: #514d48;
+  --arc-gantt-epic-remaining: #d9d3c9;
+  --arc-gantt-bug-complete: var(--arc-color-danger);
+  --arc-gantt-bug-remaining: #f4ceca;
   --arc-gantt-relation: var(--arc-color-text-muted);
-  --arc-gantt-progress-line: #9e2947;
+  --arc-gantt-progress-line: #8a4263;
 }

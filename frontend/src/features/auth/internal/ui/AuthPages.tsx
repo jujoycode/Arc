@@ -15,11 +15,11 @@ const fieldName = (name: string) => `auth-${name}`
 const prefixedErrors = (errors: Record<string, string>) => Object.fromEntries(Object.entries(errors).map(([name, message]) => [fieldName(name), message]))
 type Status = 'pending' | 'success' | 'error' | 'info'
 
-function WelcomePanel({ mode }: { mode: 'login' | 'register' }) {
+function WelcomePanel({ mode, privacy }: { mode: 'login' | 'register'; privacy: boolean }) {
   return <section className="arcat-welcome-panel" aria-label="arcat 소개">
     <ArcatBrand />
     <div className="arcat-welcome-copy"><p className="eyebrow">YOUR TEAM, IN SYNC</p><h2>팀의 다음 일을,<br />한곳에서.</h2><p>티켓부터 WBS와 간트까지.<br />팀의 계획을 연결하고 진행 상황을 함께 확인하세요.</p></div>
-    <div className="arcat-welcome-art"><span className="arcat-welcome-orbit" aria-hidden="true" /><Mascot variant={mode === 'register' ? 'deliver' : 'welcome'} size={360} /><p className="arcat-welcome-caption">{mode === 'register' ? '새로운 팀의 이야기를 함께 시작해요.' : '오늘의 업무도, 차근차근.'}</p></div>
+    <div className="arcat-welcome-art"><span className="arcat-welcome-orbit" aria-hidden="true" /><Mascot variant={mode === 'register' ? 'deliver' : 'welcome'} size={360} interactive privacy={privacy} /><p className="arcat-welcome-caption">{privacy ? '비밀번호를 입력할 때는 눈을 가릴게요.' : mode === 'register' ? '새로운 팀의 이야기를 함께 시작해요.' : '오늘의 업무도, 차근차근.'}</p></div>
     <ul className="arcat-welcome-features"><li>티켓과 WBS</li><li>간트·칸반·스프린트</li><li>GitHub·GitLab 연동</li></ul>
   </section>
 }
@@ -32,6 +32,7 @@ export function AuthPage({ mode }: { mode: 'login' | 'register' }) {
   const [errorMessage, setErrorMessage] = useState('')
   const [successMessage, setSuccessMessage] = useState('')
   const [busy, setBusy] = useState(false)
+  const [passwordFocused, setPasswordFocused] = useState(false)
   const isRegister = mode === 'register'
 
   function update(name: keyof typeof values, value: string) {
@@ -57,6 +58,7 @@ export function AuthPage({ mode }: { mode: 'login' | 'register' }) {
       return
     }
     setErrors({})
+    setPasswordFocused(false)
     setBusy(true)
     try {
       if (isRegister) {
@@ -77,14 +79,14 @@ export function AuthPage({ mode }: { mode: 'login' | 'register' }) {
   }
 
   return <main id="main-content" className="auth-page arcat-auth-page"><div className="arcat-auth-layout">
-    <WelcomePanel mode={mode} />
+    <WelcomePanel mode={mode} privacy={passwordFocused} />
     <section className="arcat-auth-form-panel" aria-label={isRegister ? '계정 가입' : '로그인'}><Card className="auth-card arcat-auth-card">
       <CardHeader><p className="eyebrow">{isRegister ? 'A NEW BEGINNING' : 'WELCOME BACK'}</p><CardTitle><h1>{isRegister ? 'arcat 계정 만들기' : '팀 공간에 로그인'}</h1></CardTitle><p className="muted">{isRegister ? '이메일을 확인하고, 팀의 첫 프로젝트를 시작하세요.' : '팀의 이슈와 일정을 한곳에서 관리하세요.'}</p></CardHeader>
       <CardContent><form onSubmit={submit} className="arc-form arcat-auth-form" noValidate aria-busy={busy}>
         <FormErrorSummary errors={prefixedErrors(errors)} message={errorMessage} />
         {isRegister && <FormField name={fieldName('displayName')} label="이름" required error={errors.displayName}>{props => <Input {...props} autoComplete="name" value={values.displayName} onChange={event => update('displayName', event.target.value)} disabled={busy} />}</FormField>}
         <FormField name={fieldName('email')} label="이메일" required error={errors.email}>{props => <Input {...props} type="email" autoComplete="email" inputMode="email" value={values.email} onChange={event => update('email', event.target.value)} disabled={busy} />}</FormField>
-        <FormField name={fieldName('password')} label="비밀번호" required error={errors.password} description={isRegister ? '12자 이상으로 입력하세요. 영문은 최대 72자, 한글은 최대 24자입니다.' : undefined}>{props => <Input {...props} type="password" autoComplete={isRegister ? 'new-password' : 'current-password'} value={values.password} onChange={event => update('password', event.target.value)} disabled={busy} />}</FormField>
+        <FormField name={fieldName('password')} label="비밀번호" required error={errors.password} description={isRegister ? '12자 이상으로 입력하세요. 영문은 최대 72자, 한글은 최대 24자입니다.' : undefined}>{props => <Input {...props} type="password" autoComplete={isRegister ? 'new-password' : 'current-password'} value={values.password} onChange={event => update('password', event.target.value)} onFocus={() => setPasswordFocused(true)} onBlur={() => setPasswordFocused(false)} disabled={busy} />}</FormField>
         <Button type="submit" className="arcat-auth-submit" disabled={busy}>{busy ? '처리 중…' : isRegister ? '가입하고 확인 메일 받기' : '로그인'}</Button>
       </form>
       {successMessage && <div className="arcat-auth-notice" role="status"><Mascot variant="deliver" size={76} /><p>{successMessage}</p></div>}

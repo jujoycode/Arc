@@ -80,3 +80,4 @@ python3 scripts/integration-smoke.py 2>&1 | tee "$arc_reports/integration-smoke.
 pnpm --dir frontend check:browser 2>&1 | tee "$arc_reports/browser-smoke.log"
 python3 scripts/ticket-fields-smoke.py 2>&1 | tee "$arc_reports/ticket-fields-api.log"
 node scripts/ticket-fields-browser.mjs 2>&1 | tee "$arc_reports/ticket-fields-browser.log"
+node scripts/calico-brand-browser.mjs 2>&1 | tee "$arc_reports/calico-brand-browser.log"

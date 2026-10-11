@@ -1,16 +1,20 @@
 .auth-page.arcat-auth-page { min-height: 100dvh; padding: clamp(16px, 3vw, 48px); background: var(--arc-color-canvas); }
 .arcat-auth-layout { display: grid; grid-template-columns: minmax(0, 1.08fr) minmax(380px, .92fr); width: min(100%, 1152px); min-height: 728px; overflow: hidden; border: 1px solid var(--arc-color-border); border-radius: 28px; background: var(--arc-color-surface); box-shadow: var(--arc-shadow-panel); }
-.arcat-welcome-panel { position: relative; display: flex; flex-direction: column; min-width: 0; padding: 42px 48px 30px; background: #fbf5ea; overflow: hidden; }
+.arcat-welcome-panel { position: relative; display: flex; flex-direction: column; min-width: 0; padding: 42px 48px 30px; background: var(--arc-color-brand-surface); overflow: hidden; }
+.arcat-welcome-panel::before, .arcat-welcome-panel::after { position: absolute; content: ''; border-radius: 50%; pointer-events: none; }
+.arcat-welcome-panel::before { top: -152px; right: -148px; width: 380px; height: 380px; background: color-mix(in srgb, var(--arc-color-brand-accent) 9%, transparent); }
+.arcat-welcome-panel::after { bottom: 62px; left: -132px; width: 220px; height: 220px; background: color-mix(in srgb, var(--arc-color-brand-ink) 3%, transparent); }
+.arcat-welcome-panel > .arcat-brand, .arcat-welcome-features { position: relative; z-index: 1; }
 .arcat-welcome-copy { position: relative; z-index: 1; margin-top: 44px; }
 .arcat-welcome-copy .eyebrow { margin-bottom: 12px; font-size: 11px; letter-spacing: .13em; }
 .arcat-welcome-copy h2 { margin: 0; color: var(--arc-color-text); font-size: clamp(36px, 3.4vw, 46px); font-weight: 780; line-height: 1.2; letter-spacing: -.055em; }
 .arcat-welcome-copy > p:last-child { margin: 18px 0 0; color: var(--arc-color-text-muted); font-size: var(--arc-font-data); line-height: 1.7; }
 .arcat-welcome-art { position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center; margin-top: 6px; flex: 1; }
 .arcat-welcome-art .arcat-mascot { position: relative; z-index: 1; }
-.arcat-welcome-orbit { position: absolute; width: 278px; height: 278px; max-width: 90%; border-radius: 50%; background: #fffdf8; border: 1px solid #f1e9d9; }
-.arcat-welcome-caption { position: relative; z-index: 1; padding: 8px 16px; margin: -21px 0 18px; border: 1px solid #e8dfd1; border-radius: 100px; background: #fffdf8; color: var(--arc-color-text-muted); font-size: var(--arc-font-meta); }
+.arcat-welcome-orbit { position: absolute; width: 278px; height: 278px; max-width: 90%; border-radius: 50%; background: var(--arc-color-brand-paper); border: 1px solid var(--arc-color-border); box-shadow: 0 0 0 22px color-mix(in srgb, var(--arc-color-brand-paper) 24%, transparent); }
+.arcat-welcome-caption { position: relative; z-index: 1; padding: 8px 16px; margin: -21px 0 18px; border: 1px solid var(--arc-color-border); border-radius: 100px; background: var(--arc-color-brand-paper); color: var(--arc-color-text-muted); font-size: var(--arc-font-meta); }
 .arcat-welcome-features { display: flex; justify-content: center; flex-wrap: wrap; gap: 7px; padding: 0; margin: 0; list-style: none; }
-.arcat-welcome-features li { padding: 7px 10px; border: 1px solid #e8dfd1; border-radius: 8px; color: #596170; font-size: 11px; white-space: nowrap; }
+.arcat-welcome-features li { padding: 7px 10px; border: 1px solid var(--arc-color-border); border-radius: 8px; color: var(--arc-color-text-muted); font-size: 11px; white-space: nowrap; }
 .arcat-auth-form-panel { display: flex; flex-direction: column; justify-content: center; align-items: center; min-width: 0; padding: 42px; }
 .arcat-auth-page .arcat-auth-card { width: 100%; max-width: 376px; padding: 0; gap: 26px; overflow: visible; border: 0; border-radius: 0; background: transparent; box-shadow: none; --tw-ring-shadow: 0 0 #0000; }
 .arcat-auth-card [data-slot='card-header'], .arcat-auth-card [data-slot='card-content'] { padding: 0; }
@@ -24,7 +28,7 @@
 .arcat-auth-footer { margin: 34px 0 0; color: var(--arc-color-text-muted); font-size: var(--arc-font-meta); }
 .arcat-auth-notice { display: flex; align-items: center; gap: 12px; padding: 12px; margin-top: 20px; border: 1px solid var(--arc-color-border); border-radius: 12px; background: var(--arc-color-success-surface); }
 .arcat-auth-notice p { margin: 0; color: var(--arc-color-success); font-size: var(--arc-font-label); line-height: 1.6; }
-.auth-page.arcat-status-page { min-height: 100dvh; padding: 24px; background: radial-gradient(circle at 50% 25%, #fbf5ea, transparent 55%), var(--arc-color-canvas); }
+.auth-page.arcat-status-page { min-height: 100dvh; padding: 24px; background: radial-gradient(circle at 50% 25%, var(--arc-color-brand-surface), transparent 55%), var(--arc-color-canvas); }
 .arcat-status-page .arcat-status-card { width: min(100%, 440px); padding: 28px; gap: 24px; border-radius: 22px; text-align: center; }
 .arcat-status-card [data-slot='card-header'], .arcat-status-card [data-slot='card-content'] { padding: 0; }
 .arcat-status-card [data-slot='card-header'] { justify-items: center; gap: 22px; }
