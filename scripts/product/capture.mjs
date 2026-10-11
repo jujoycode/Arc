@@ -20,6 +20,7 @@ page.setDefaultTimeout(20000)
 const errors = []
 page.on('pageerror', error => errors.push(error.message))
 const shots = []
+const sourceCommit = execFileSync('git', ['rev-parse', 'HEAD'], { encoding: 'utf8' }).trim()
 const capturedAt = new Intl.DateTimeFormat('sv-SE', { timeZone: 'Asia/Seoul' }).format(new Date())
 const month = capturedAt.slice(0, 7)
 const date = day => `${month}-${String(day).padStart(2, '0')}`
@@ -64,13 +65,16 @@ async function go(path, heading) {
   await page.locator('.loading-state').waitFor({ state: 'detached' })
   await page.waitForLoadState('networkidle')
 }
-async function capture(id, title, chapter, role, purpose, features, anchor) {
+async function capture(id, title, chapter, role, purpose, features, anchor, options = {}) {
   await page.waitForLoadState('networkidle')
-  await page.evaluate(async () => {
-    document.activeElement?.blur()
+  await page.evaluate(async ({ preserveFocus }) => {
+    if (!preserveFocus) document.activeElement?.blur()
     await document.fonts.ready
+    await Promise.all([...document.images].map(async image => {
+      if (image.src) await image.decode()
+    }))
     await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)))
-  })
+  }, { preserveFocus: options.preserveFocus ?? false })
   if (anchor) {
     await anchor.waitFor()
     await anchor.evaluate(element => window.scrollTo(0, Math.max(0, element.getBoundingClientRect().top + window.scrollY - 88)))
@@ -78,7 +82,7 @@ async function capture(id, title, chapter, role, purpose, features, anchor) {
   await page.screenshot({ path: join(output, `${id}.png`), fullPage: false, animations: 'disabled' })
   const png = readFileSync(join(output, `${id}.png`))
   assert.equal(png.readUInt32BE(16), 1920); assert.equal(png.readUInt32BE(20), 1080)
-  shots.push({ id, file: `${id}.png`, title, chapter, role, purpose, features, route: new URL(page.url()).pathname.replace(/\/workspaces\/\d+/g, '/workspaces/:workspaceId').replace(/\/projects\/\d+/g, '/projects/:projectId').replace(/\/issues\/\d+/g, '/issues/:issueId'), frame: anchor ? '화면 하단 기능으로 스크롤' : '화면 상단', width: 1920, height: 1080 })
+  shots.push({ id, file: `${id}.png`, title, chapter, role, purpose, features, route: new URL(page.url()).pathname.replace(/\/workspaces\/\d+/g, '/workspaces/:workspaceId').replace(/\/projects\/\d+/g, '/projects/:projectId').replace(/\/issues\/\d+/g, '/issues/:issueId'), frame: anchor ? '화면 하단 기능으로 스크롤' : '화면 상단', width: 1920, height: 1080, ...(options.interaction ? { interaction: options.interaction } : {}) })
   console.log(`Captured ${shots.length}: ${id}.png`)
 }
 async function delivery(connection, provider, payload, event, secret) {
@@ -93,12 +97,28 @@ try {
   await actor(null)
   await go('login', '팀 공간에 로그인')
   await page.getByLabel('이메일', { exact: true }).fill('minji@example.com')
-  await capture('login', '이메일 로그인', '01-team-and-access', '모든 사용자', '집배원 고양이가 안내하는 시작 화면에서 검증된 이메일로 팀 공간에 접속합니다.', ['arcat 제품 소개와 집배원 고양이', '이메일·비밀번호 로그인', '가입 화면 이동'])
+  await capture('login', '이메일 로그인', '01-team-and-access', '모든 사용자', '삼색 집배원 고양이가 안내하는 시작 화면에서 검증된 이메일로 팀 공간에 접속합니다.', ['삼색 고양이와 크림·테라코타·차콜 제품 색상', '이메일·비밀번호 로그인', '가입 화면 이동'])
+  await page.emulateMedia({ reducedMotion: 'no-preference' })
+  const authMascot = page.locator('.arcat-welcome-art .arcat-mascot[data-interactive="true"]')
+  await authMascot.and(page.locator('[data-tracking="active"]')).waitFor()
+  await page.locator('.arcat-welcome-art img').evaluate(image => image.decode())
+  await page.waitForTimeout(2000)
+  await page.mouse.move(1460, 350)
+  await page.waitForTimeout(220)
+  await capture('login-gaze', '마우스를 따라 바라보는 삼색 고양이', '01-team-and-access', '마우스를 사용하는 사용자', '로그인 화면에서 고양이의 눈과 몸이 마우스 방향을 작게 따라 움직입니다.', ['정밀 포인터에서 눈동자·몸의 제한된 움직임', '상시 반복 없이 포인터 움직임에 반응', '터치·움직임 감소 환경에서는 정지 상태', '업무 입력을 방해하지 않는 장식'], undefined, { interaction: 'fine-pointer-following' })
+  await page.getByLabel('비밀번호', { exact: true }).focus()
+  assert.equal(await page.getByLabel('비밀번호', { exact: true }).inputValue(), '', 'Private pose photo must not contain a password')
+  await authMascot.and(page.locator('[data-private="true"][data-tracking="inactive"]')).waitFor()
+  await page.locator('.arcat-welcome-art img').evaluate(image => image.decode())
+  await page.waitForTimeout(2000)
+  await capture('login-private', '비밀번호 입력 중 눈을 가리는 고양이', '01-team-and-access', '로그인·가입 사용자', '비밀번호 입력에 포커스하면 고양이가 앞발로 눈을 가리고 마우스 추적을 멈춥니다.', ['비밀번호 값 대신 포커스 상태에만 반응', '포커스가 빠지면 원래 안내로 복귀', '빈 비밀번호 입력으로 촬영', '마스코트 장식과 함께 일반 비밀번호 입력 유지'], undefined, { preserveFocus: true, interaction: 'password-focus-with-empty-input' })
+  await page.getByLabel('비밀번호', { exact: true }).blur()
+  await page.emulateMedia({ reducedMotion: 'reduce' })
   await go('register', 'arcat 계정 만들기')
   await page.getByLabel('이름', { exact: true }).fill('김민지')
   const ownerEmail = `minji-${suffix}@example.com`
   await page.getByLabel('이메일', { exact: true }).fill(ownerEmail)
-  await capture('register', '계정 가입', '01-team-and-access', '모든 사용자', '이름과 이메일로 계정을 만들고 확인 메일을 받습니다.', ['집배원 고양이와 팀 시작 안내', '이름·이메일·비밀번호 입력', '12자 이상 비밀번호', '이메일 확인 후 로그인'])
+  await capture('register', '계정 가입', '01-team-and-access', '모든 사용자', '이름과 이메일로 계정을 만들고 확인 메일을 받습니다.', ['삼색 집배원 고양이와 팀 시작 안내', '이름·이메일·비밀번호 입력', '12자 이상 비밀번호', '이메일 확인 후 로그인'])
   await api('auth/register', { email: ownerEmail, displayName: '김민지', password })
   await go(`verify?token=${await mailToken(ownerEmail, 'arcat 이메일 확인')}`)
   await page.getByText('이메일 확인을 마쳤습니다. 로그인하세요.').waitFor()
@@ -108,7 +128,7 @@ try {
   await actor(owner)
   await go('', '함께 일할 공간')
   await page.getByRole('heading', { name: '팀의 첫 공간을 준비해 볼까요?', exact: true }).waitFor()
-  await capture('workspace-onboarding', '첫 워크스페이스 시작 안내', '01-team-and-access', '새로 가입한 사용자', '집배원 고양이와 안내를 따라 첫 팀 공간을 준비합니다.', ['업무가 없는 가입 직후의 실제 빈 상태', '워크스페이스 이름 입력과 생성', '첫 공간 생성 후 프로젝트 준비', '장식 캐릭터와 텍스트 안내'])
+  await capture('workspace-onboarding', '첫 워크스페이스 시작 안내', '01-team-and-access', '새로 가입한 사용자', '삼색 집배원 고양이와 안내를 따라 첫 팀 공간을 준비합니다.', ['업무가 없는 가입 직후의 실제 빈 상태', '워크스페이스 이름 입력과 생성', '첫 공간 생성 후 프로젝트 준비', '장식 캐릭터와 텍스트 안내'])
   const developer = await account('이서준', 'seojun')
   const designer = await account('박지우', 'jiwoo')
   const manager = await account('한지훈', 'jihoon')
@@ -237,7 +257,7 @@ try {
   await page.getByRole('button', { name: '이슈 만들기', exact: true }).click()
   await page.getByRole('dialog').getByLabel('제목', { exact: true }).fill('고객 문의 목록의 키보드 탐색')
   await page.getByRole('dialog').getByLabel('담당자', { exact: true }).selectOption(String(designer.id))
-  await capture('ticket-create', '공통 티켓 생성', '03-tickets-and-views', '기본·프로젝트 관리자', 'Epic·Story·Task·Bug·하위 작업을 하나의 티켓 계약으로 생성합니다.', ['기본 정보·계획·일정·진행 상황 그룹', '필수·선택과 입력 안내', '담당자·부모·버전·포인트', '담당자 선택 시 집배원 고양이와 배정 안내', '모든 보기에서 같은 키 사용'])
+  await capture('ticket-create', '공통 티켓 생성', '03-tickets-and-views', '기본·프로젝트 관리자', 'Epic·Story·Task·Bug·하위 작업을 하나의 티켓 계약으로 생성합니다.', ['기본 정보·계획·일정·진행 상황 그룹', '필수·선택과 입력 안내', '담당자·부모·버전·포인트', '담당자 선택 시 삼색 집배원 고양이와 배정 안내', '모든 보기에서 같은 키 사용'])
   await page.getByRole('dialog').getByRole('button', { name: '취소', exact: true }).click()
   await go(path(`issues/${story.id}`), story.title)
   await capture('ticket-detail', '티켓 상세와 팀 협업', '03-tickets-and-views', '모든 팀원', '한 티켓에서 완료 기준·속성·댓글·변경 기록·관계·개발 활동을 확인합니다.', ['설명·상태·담당자·일정', '댓글 협업', '변경 기록', '선행·차단 관계', '관리자 삭제'])
@@ -279,6 +299,9 @@ try {
   await page.getByRole('button', { name: '결과 보기', exact: true }).click()
   await capture('sprint-history', '종료 당시 스프린트 결과', '04-sprints', '모든 팀원', '티켓이 다음 스프린트로 이동해도 종료 당시 상태와 포인트를 다시 확인합니다.', ['종료 시점 티켓 목록', '완료·미완료 수·포인트', '당시 상태 보존', '재시작 불가'])
   await page.keyboard.press('Escape')
+  await go(path('sprints'), '스프린트')
+  await page.getByRole('region', { name: '스프린트 시작 안내', exact: true }).waitFor()
+  await capture('sprint-ready', '다음 스프린트 시작 안내', '04-sprints', '모든 팀원·관리자', '진행 중인 스프린트가 없으면 삼색 고양이와 함께 다음 목표를 준비하는 방법을 안내합니다.', ['진행 중인 스프린트가 없는 실제 상태', '계획 중인 스프린트와 종료 이력 유지', '관리자의 티켓 편성·시작 안내', '짧은 캐릭터 안내와 업무 중심 화면'])
 
   await go(path('settings'), '프로젝트와 팀 설정')
   await capture('project-settings', '프로젝트 설정과 관리자', '05-settings-and-integrations', '모든 팀원·워크스페이스 관리자', '프로젝트 정보와 기본·추가 관리자를 확인하고 관리 범위를 지정합니다.', ['프로젝트 이름·키·설명·부모', '기본 OWNER·ADMIN', '프로젝트 관리자 지정·해제', '첫 티켓 후 키 변경 제한'])
@@ -345,13 +368,14 @@ try {
   await page.getByRole('heading', { name: '추가 정보', exact: true }).waitFor()
   await capture('ticket-custom-detail', '저장된 팀별 추가 정보 확인', '03-tickets-and-views', '모든 팀원', '티켓 상세에서 팀이 정한 추가 정보를 읽고 계획·실행 맥락을 공유합니다.', ['표시 이름과 타입별 값', '단일 선택의 선택지 이름', '일반 팀원의 조회', '필드 비활성화 후 기존 값 보존'], page.getByRole('heading', { name: '추가 정보', exact: true }))
   await go(`projects/${empty.id}/wbs`, 'WBS')
-  await capture('empty-project', '프로젝트 시작 전 빈 상태', '05-settings-and-integrations', '모든 팀원·관리자', '업무가 없는 프로젝트에서는 0건과 업무 없음을 표시하고 첫 티켓을 만들 수 있습니다.', ['빈 결과 안내', '완료로 오해하지 않는 팀 집계', '첫 티켓 생성'])
+  await capture('empty-project', '프로젝트 시작 전 빈 상태', '05-settings-and-integrations', '모든 팀원·관리자', '업무가 없는 프로젝트에서는 삼색 고양이와 함께 0건과 업무 없음을 표시하고 첫 티켓을 만들 수 있습니다.', ['실제 티켓이 없는 WBS의 삼색 캐릭터 안내', '완료로 오해하지 않는 팀 집계', '첫 티켓 생성', '필터만 비어 있는 결과는 일반 안내 유지'])
   await api(`projects/${project.id}`, { name: project.name, description: '고객 포털 고도화', archived: true }, owner.token, 'PUT')
   await go(path('wbs'), 'WBS')
   await capture('archived-project', '보관 프로젝트의 읽기 전용 WBS', '05-settings-and-integrations', '모든 팀원', '지난 프로젝트의 업무·진척은 남겨 두면서 변경을 제한합니다.', ['보관 안내', '변경 버튼 비활성', '조회·필터·접기 가능', '관리자 복원'])
   await api(`projects/${project.id}`, { name: project.name, archived: false }, owner.token, 'PUT')
   assert.deepEqual(errors, [], 'Product photography must have no browser script errors')
-  writeFileSync(join(output, '../screenshots.json'), JSON.stringify({ capturedAt, timezone: 'Asia/Seoul', sourceCommit: execFileSync('git', ['rev-parse', 'HEAD'], { encoding: 'utf8' }).trim(), demo: 'Aurora 제품팀 / 고객 포털 고도화', providerMode: 'local signed GitHub/GitLab provider fixture; no live provider account', viewport: { width: 1920, height: 1080, deviceScaleFactor: 1 }, screenshots: shots }, null, 2) + '\n')
+  assert.equal(shots.length, 50, 'The gallery must include all product screens, both interactive authentication poses, and sprint guidance')
+  writeFileSync(join(output, '../screenshots.json'), JSON.stringify({ capturedAt, timezone: 'Asia/Seoul', sourceCommit, demo: 'Aurora 제품팀 / 고객 포털 고도화', providerMode: 'local signed GitHub/GitLab provider fixture; no live provider account', motionMode: 'reduced motion; login-gaze and login-private use no-preference to demonstrate interaction', viewport: { width: 1920, height: 1080, deviceScaleFactor: 1 }, screenshots: shots }, null, 2) + '\n')
   console.log(`Completed ${shots.length} actual product screenshots at 1920×1080; no script errors.`)
 } catch (cause) {
   const diagnostics = resolve(process.env.ARC_CAPTURE_ARTIFACTS_DIR ?? '.ci-artifacts/product-capture')

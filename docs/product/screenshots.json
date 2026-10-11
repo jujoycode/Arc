@@ -1,9 +1,10 @@
 {
   "capturedAt": "2026-10-11",
   "timezone": "Asia/Seoul",
-  "sourceCommit": "2d30e3742b18519d257fb748b4e7b083cdc23a41",
+  "sourceCommit": "5ddc7829fad19fc303e7c636597bcac082f75c14",
   "demo": "Aurora 제품팀 / 고객 포털 고도화",
   "providerMode": "local signed GitHub/GitLab provider fixture; no live provider account",
+  "motionMode": "reduced motion; login-gaze and login-private use no-preference to demonstrate interaction",
   "viewport": {
     "width": 1920,
     "height": 1080,
@@ -16,9 +17,9 @@
       "title": "이메일 로그인",
       "chapter": "01-team-and-access",
       "role": "모든 사용자",
-      "purpose": "집배원 고양이가 안내하는 시작 화면에서 검증된 이메일로 팀 공간에 접속합니다.",
+      "purpose": "삼색 집배원 고양이가 안내하는 시작 화면에서 검증된 이메일로 팀 공간에 접속합니다.",
       "features": [
-        "arcat 제품 소개와 집배원 고양이",
+        "삼색 고양이와 크림·테라코타·차콜 제품 색상",
         "이메일·비밀번호 로그인",
         "가입 화면 이동"
       ],
@@ -28,6 +29,44 @@
       "height": 1080
     },
     {
+      "id": "login-gaze",
+      "file": "login-gaze.png",
+      "title": "마우스를 따라 바라보는 삼색 고양이",
+      "chapter": "01-team-and-access",
+      "role": "마우스를 사용하는 사용자",
+      "purpose": "로그인 화면에서 고양이의 눈과 몸이 마우스 방향을 작게 따라 움직입니다.",
+      "features": [
+        "정밀 포인터에서 눈동자·몸의 제한된 움직임",
+        "상시 반복 없이 포인터 움직임에 반응",
+        "터치·움직임 감소 환경에서는 정지 상태",
+        "업무 입력을 방해하지 않는 장식"
+      ],
+      "route": "/login",
+      "frame": "화면 상단",
+      "width": 1920,
+      "height": 1080,
+      "interaction": "fine-pointer-following"
+    },
+    {
+      "id": "login-private",
+      "file": "login-private.png",
+      "title": "비밀번호 입력 중 눈을 가리는 고양이",
+      "chapter": "01-team-and-access",
+      "role": "로그인·가입 사용자",
+      "purpose": "비밀번호 입력에 포커스하면 고양이가 앞발로 눈을 가리고 마우스 추적을 멈춥니다.",
+      "features": [
+        "비밀번호 값 대신 포커스 상태에만 반응",
+        "포커스가 빠지면 원래 안내로 복귀",
+        "빈 비밀번호 입력으로 촬영",
+        "마스코트 장식과 함께 일반 비밀번호 입력 유지"
+      ],
+      "route": "/login",
+      "frame": "화면 상단",
+      "width": 1920,
+      "height": 1080,
+      "interaction": "password-focus-with-empty-input"
+    },
+    {
       "id": "register",
       "file": "register.png",
       "title": "계정 가입",
@@ -35,7 +74,7 @@
       "role": "모든 사용자",
       "purpose": "이름과 이메일로 계정을 만들고 확인 메일을 받습니다.",
       "features": [
-        "집배원 고양이와 팀 시작 안내",
+        "삼색 집배원 고양이와 팀 시작 안내",
         "이름·이메일·비밀번호 입력",
         "12자 이상 비밀번호",
         "이메일 확인 후 로그인"
@@ -68,7 +107,7 @@
       "title": "첫 워크스페이스 시작 안내",
       "chapter": "01-team-and-access",
       "role": "새로 가입한 사용자",
-      "purpose": "집배원 고양이와 안내를 따라 첫 팀 공간을 준비합니다.",
+      "purpose": "삼색 집배원 고양이와 안내를 따라 첫 팀 공간을 준비합니다.",
       "features": [
         "업무가 없는 가입 직후의 실제 빈 상태",
         "워크스페이스 이름 입력과 생성",
@@ -381,7 +420,7 @@
         "기본 정보·계획·일정·진행 상황 그룹",
         "필수·선택과 입력 안내",
         "담당자·부모·버전·포인트",
-        "담당자 선택 시 집배원 고양이와 배정 안내",
+        "담당자 선택 시 삼색 집배원 고양이와 배정 안내",
         "모든 보기에서 같은 키 사용"
       ],
       "route": "/projects/:projectId/issues",
@@ -599,6 +638,24 @@
         "완료·미완료 수·포인트",
         "당시 상태 보존",
         "재시작 불가"
+      ],
+      "route": "/projects/:projectId/sprints",
+      "frame": "화면 상단",
+      "width": 1920,
+      "height": 1080
+    },
+    {
+      "id": "sprint-ready",
+      "file": "sprint-ready.png",
+      "title": "다음 스프린트 시작 안내",
+      "chapter": "04-sprints",
+      "role": "모든 팀원·관리자",
+      "purpose": "진행 중인 스프린트가 없으면 삼색 고양이와 함께 다음 목표를 준비하는 방법을 안내합니다.",
+      "features": [
+        "진행 중인 스프린트가 없는 실제 상태",
+        "계획 중인 스프린트와 종료 이력 유지",
+        "관리자의 티켓 편성·시작 안내",
+        "짧은 캐릭터 안내와 업무 중심 화면"
       ],
       "route": "/projects/:projectId/sprints",
       "frame": "화면 상단",
@@ -828,11 +885,12 @@
       "title": "프로젝트 시작 전 빈 상태",
       "chapter": "05-settings-and-integrations",
       "role": "모든 팀원·관리자",
-      "purpose": "업무가 없는 프로젝트에서는 0건과 업무 없음을 표시하고 첫 티켓을 만들 수 있습니다.",
+      "purpose": "업무가 없는 프로젝트에서는 삼색 고양이와 함께 0건과 업무 없음을 표시하고 첫 티켓을 만들 수 있습니다.",
       "features": [
-        "빈 결과 안내",
+        "실제 티켓이 없는 WBS의 삼색 캐릭터 안내",
         "완료로 오해하지 않는 팀 집계",
-        "첫 티켓 생성"
+        "첫 티켓 생성",
+        "필터만 비어 있는 결과는 일반 안내 유지"
       ],
       "route": "/projects/:projectId/wbs",
       "frame": "화면 상단",

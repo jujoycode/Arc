@@ -51,6 +51,10 @@ Gradle check는 트랜잭션·제공자 계약·실제 날짜·티켓 필드 규
 
 `scripts/ticket-fields-smoke.py`는 OWNER/ADMIN과 프로젝트 관리자 구분, 워크스페이스 격리, 필수값·타입·비활성/숨김 값 보존·기존 요청 호환·필드 revision과 티켓 version 충돌을 확인한다. `scripts/ticket-fields-browser.mjs`는 실제 설정·티켓 양식, 필드 오류와 초안 보존, 잘못된 응답 차단, 스프린트 대화상자 실패, 개발자 실행 권한을 검사한다. 기본 브라우저 검사에는 arcat 로고·favicon·캐릭터 로딩과 모션 감소 설정도 포함한다.
 
+`scripts/calico-brand-browser.mjs`도 빌드 결과를 대상으로 하는 필수 수용 검사다. 로그인·가입·인증 오류·워크스페이스/프로젝트 빈 상태·WBS/스프린트 빈 상태·프로젝트 칸반의 8개 상태를 1920/768/360px에서 검사해 axe 규칙 24개와 문서 가로 넘침을 확인한다. 삼색 이미지·favicon·상단 로고, 제한된 몸·눈 움직임, 비밀번호 초점의 눈 가림과 값 변화에 따른 위치 불변, 초점 해제·창 이탈·모션 설정 변경·SPA 이동 후 복원 및 정리, 터치 정지, 서로 다른 배정·저장 자세를 확인한다. WBS/스프린트 조회 중·오류와 WBS 필터 결과만 비어 있을 때 실제 빈 업무 안내를 표시하지 않는지도 검사한다. 자기 워크스페이스를 만들고 끝에 삭제하며, 외부 자격 증명은 필요하지 않다.
+
+2026-10-11 삼색 브랜드 변경의 로컬 전체 API·저장소 제공자 모형·기존/필드/브랜드 브라우저 수용 검사가 통과했고, 새 브랜드의 axe 위반·문서 가로 넘침·브라우저 오류는 0건이었다. 코드 `5ddc782`의 [main 실행 #38107545188](https://github.com/jujoycode/Arc/actions/runs/38107545188)에서도 프런트·백엔드·API/브라우저·최종 게이트가 모두 성공했다. 이 자동 검사 결과는 실기기 화면 읽기 도구 검증을 대체하지 않는다.
+
 ## 결과와 실패 조사
 
 [arcat Actions](https://github.com/jujoycode/Arc/actions/workflows/ci.yml)에서 단계별 로그를 확인한다. 빌드와 검증 자료는 7일 동안 보관한다.
@@ -59,6 +63,7 @@ Gradle check는 트랜잭션·제공자 계약·실제 날짜·티켓 필드 규
 - `backend-build`: 검증에 사용한 실행 JAR
 - `acceptance-artifacts`: 서버·프런트·API·브라우저 로그, 간트 PNG/PDF 출력
 - 브라우저 실패 시 `acceptance-artifacts/browser/failure.png`와 `trace.zip`
+- 삼색 브랜드 검사 자료는 `acceptance-artifacts/browser/calico-brand/verification.json`, 화면별 axe JSON·PNG와 `trace.zip`
 - Gradle 실패 시 보고서가 생성되었다면 `backend-diagnostics`
 
 추적 파일을 다운로드한 뒤 요청·화면·조작 순서를 확인한다.
