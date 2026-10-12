@@ -102,5 +102,13 @@
   --arc-gantt-bug-complete: var(--arc-color-danger);
   --arc-gantt-bug-remaining: var(--arc-neutral-200);
   --arc-gantt-relation: var(--arc-color-text-muted);
-  --arc-gantt-progress-line: #8a4263;
+  --arc-gantt-progress-line: var(--arc-color-action-hover);
+}
+
+/* Compact data controls keep desktop density and provide 44px touch targets. */
+@media (any-pointer: coarse) {
+  :root {
+    --arc-control-height-small: var(--arc-control-touch-target);
+    --arc-control-height-dense: var(--arc-control-touch-target);
+  }
 }

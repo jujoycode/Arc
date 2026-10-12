@@ -4,6 +4,7 @@ import { WorkspacePage } from '@/features/workspace'
 import { TicketFieldsPage } from '@/features/ticketfield'
 import { ProjectLayout, ProjectView } from './layouts/ProjectLayout'
 import '@/shared/styles/product.css'
+import '@/shared/styles/work-views.css'
 
 const rootRoute = createRootRoute({ component: () => <><a className="skip-link" href="#main-content">본문으로 건너뛰기</a><Outlet /></> })
 const homeRoute = createRoute({ getParentRoute: () => rootRoute, path: '/', component: WorkspacePage })
