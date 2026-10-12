@@ -7,6 +7,7 @@ const { default: AxeBuilder } = await import(createRequire(new URL('../frontend/
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { createHmac } from 'node:crypto'
+import { checkControlledDialog, checkGanttGeometry, checkTicketTableKeyboard } from './krds-render-checks.mjs'
 
 const web = process.env.ARC_WEB_URL ?? 'http://localhost:5173'
 const backend = process.env.ARC_API_URL ?? 'http://localhost:8080/api/'
@@ -137,7 +138,12 @@ try {
   const release = await api(`projects/${projectId}/versions`, { name: 'v1.0', startDate: '2026-10-01', dueDate: '2026-10-31' }, ownerToken)
   const epic = await api(`projects/${projectId}/issues`, { title: '출시 계획', type: 'EPIC', startDate: '2026-09-01', dueDate: '2026-12-31', versionId: release.id }, ownerToken)
 
+  await nav('이슈 목록')
+  await checkControlledDialog(page, page.getByRole('button', { name: '이슈 만들기', exact: true }), output, 'issues-short-loop', { shortLoop: true })
+  await nav('간트')
+  await checkControlledDialog(page, page.getByRole('button', { name: '이슈 만들기', exact: true }), output, 'gantt-short-loop', { shortLoop: true })
   await nav('칸반')
+  await checkControlledDialog(page, page.getByRole('button', { name: '이슈 만들기', exact: true }), output, 'board-short-loop', { shortLoop: true })
   await page.getByRole('button', { name: '이슈 만들기', exact: true }).click()
   await audit('issue-create')
   const form = page.getByRole('dialog')
@@ -193,6 +199,20 @@ try {
   const allBarCount = await page.locator('.schedule-bar').count()
   const relationCount = await page.locator('.relation-overlay:not(.progress-overlay) g').count()
   assert.equal(relationCount, 1)
+  const checkCurrentGantt = async name => {
+    const viewport = page.viewportSize(), month = await page.getByLabel('시작 월', { exact: true }).inputValue()
+    try {
+      await page.getByLabel('시작 월', { exact: true }).fill('2026-10')
+      for (const width of [1920, 768, 360]) {
+        await page.setViewportSize({ width, height: 1080 })
+        await checkGanttGeometry(page, output, `${name}-${width}`, `${story.key} ${story.title}`, `${done.key} API 구현`)
+      }
+    } finally {
+      await page.getByLabel('시작 월', { exact: true }).fill(month)
+      await page.setViewportSize(viewport)
+    }
+  }
+  await checkCurrentGantt('expanded')
   assert.equal(await page.getByRole('button', { name: '모두 펼치기', exact: true }).isDisabled(), true)
   const depthPadding = title => issueRow(title).locator('.issue-name').evaluate(element => parseFloat(getComputedStyle(element).paddingLeft))
   assert.ok(await depthPadding('출시 계획') < await depthPadding(story.title))
@@ -222,6 +242,7 @@ try {
   assert.equal(await fold(story.key, story.title, false).getAttribute('aria-expanded'), 'false')
   assert.equal(await issueRow('날짜 계산').count(), 0)
   assert.equal(await page.locator('.relation-overlay:not(.progress-overlay) g').count(), relationCount)
+  await checkCurrentGantt('nested-fold-restored')
   await fold('v1.0', 'v1.0', true).click()
   await issueRow('출시 계획').waitFor({ state: 'detached' })
   assert.equal(await issueRow('API 구현').isVisible(), true)
@@ -260,6 +281,12 @@ try {
   await page.getByText('표시 옵션', { exact: true }).click()
   await page.getByLabel('진행선', { exact: true }).check()
   await page.getByLabel('담당자 열', { exact: true }).check()
+  // All fixture rows and the relation must remain aligned when the sidebar gains a column.
+  await page.getByRole('button', { name: '필터 초기화', exact: true }).click()
+  await issueRow('날짜 계산').waitFor()
+  await checkCurrentGantt('optional-column')
+  await page.getByLabel('이슈 검색', { exact: true }).fill('일정')
+  await page.locator('#kind-filter').selectOption('STORY')
   await page.getByText('개인 보기 저장 · 불러오기', { exact: true }).click()
   await page.getByLabel('보기 이름').fill('검증 보기')
   await page.getByRole('button', { name: '현재 보기 저장', exact: true }).click()
@@ -305,6 +332,9 @@ try {
   await page.unroute(wbsPagePattern)
   const wbsRow = id => page.locator(`.wbs-row[data-ticket-id="${id}"]`)
   await wbsRow(subtask.id).waitFor()
+  await checkControlledDialog(page, page.getByRole('button', { name: '새 티켓', exact: true }), output, 'wbs-root-cancel', { dismiss: '취소' })
+  await checkControlledDialog(page, page.getByRole('button', { name: `${story.key} 하위 티켓 추가`, exact: true }), output, 'wbs-child-escape')
+  await checkControlledDialog(page, page.getByRole('button', { name: '새 티켓', exact: true }), output, 'wbs-root-close', { dismiss: '닫기' })
   assert.equal(await wbsRow(epic.id).locator('.wbs-code').textContent(), '1')
   assert.equal(await wbsRow(storyId).locator('.wbs-code').textContent(), '1.1')
   assert.equal(await wbsRow(subtask.id).locator('.wbs-code').textContent(), '1.1.1')
@@ -411,6 +441,7 @@ try {
   await page.getByLabel('시작일 열', { exact: true }).check()
   assert.equal(await page.getByRole('columnheader', { name: /우선순위/ }).count(), 0)
   await page.getByRole('cell', { name: '40%', exact: true }).waitFor()
+  await checkTicketTableKeyboard(page, output)
   const progressSort = page.waitForResponse(response => response.url().includes('/issues?') && response.url().includes('sort=progress'))
   await page.getByRole('button', { name: '완료율', exact: true }).click()
   assert.equal((await progressSort).status(), 200)
@@ -651,7 +682,9 @@ try {
   await page.getByRole('button', { name: '종료 확정', exact: true }).click()
   await page.getByRole('status').filter({ hasText: '2개 중 1개 완료 · 완료 3점 / 미완료 5점' }).waitFor()
   assert.equal((await api(`projects/${projectId}/issues/${storyId}`, undefined, ownerToken)).sprintId, null)
-  await page.getByRole('button', { name: '결과 보기', exact: true }).click()
+  const historyOpener = page.getByRole('button', { name: '결과 보기', exact: true })
+  await checkControlledDialog(page, historyOpener, output, 'sprint-history-escape')
+  await historyOpener.click()
   await page.getByRole('dialog').getByText(`${story.key} · 일정 관리 구현 · 진행 중 · 5점`, { exact: true }).waitFor()
   assert.equal((await api(`projects/${projectId}/sprints/${sprint.id}/history`, undefined, ownerToken)).length, 2)
 
