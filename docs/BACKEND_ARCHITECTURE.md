@@ -1,6 +1,6 @@
 # arcat 백엔드 구조
 
-> 갱신 2026-10-11 · Kotlin / Spring Boot · 하나의 Gradle 애플리케이션 안에서 기능별 경계를 유지한다.
+> 갱신 2026-10-13 · Kotlin / Spring Boot · 하나의 Gradle 애플리케이션 안에서 기능별 경계를 유지한다.
 
 ## 설계 방향
 
@@ -39,6 +39,10 @@ backend/src/main/kotlin/io/arcapp/backend/
 │       ├── IssueService.kt
 │       ├── IssueQueryService.kt
 │       └── persistence/
+├── milestone/                 # 독립 목표 메타데이터·취소/재개·이력 API
+│   ├── api/                   # 실제 응답·상태·이력 타입
+│   ├── web/                   # 7개 HTTP 경로
+│   └── internal/              # 단일 Service와 Exposed persistence
 ├── sprint/                    # 계획·시작·종료
 ├── ticketfield/               # 워크스페이스 양식·커스텀 값 정책
 │   ├── api/                   # TicketFields 공개 검증·정책 계약
@@ -89,6 +93,7 @@ flowchart LR
 - 이슈 생성: `IssueController → IssueService → ProjectAccess / WorkspaceAccess → IssueRepository`.
 - 티켓 계획 저장은 `TicketFields` 공개 계약으로 워크스페이스의 현재 필드 정책·revision·값을 검사한다. 정책 쓰기와 계획 쓰기는 워크스페이스→프로젝트 순서로 잠가 충돌·필수 정책을 일관되게 적용한다. 담당자의 실행 전용 수정은 추가 계획 필수값에서 분리한다. 비활성·숨김·이전 요청의 누락된 값은 보존한다.
 - 스프린트 종료: `SprintService`가 프로젝트 권한과 상태를 검증한 뒤 `SprintIssueOperations`로 참여 이력·포인트·미완료 이월을 처리한다. 스프린트 모듈이 이슈 저장소를 직접 호출하지 않는다.
+- 마일스톤: `MilestoneService → ProjectAccess + WorkspaceAccess`로 현재 프로젝트 관리자·소속·보관·revision을 검사하고 저장과 이력을 조정한다. 단순 조회를 위해 별도 QueryService나 미래 소비자 전용 facade를 만들지 않는다. milestone에서 다른 기능의 internal을 참조하지 않는다.
 - 간트 조회: `GanttQueryService → ProjectTimelineQueries + IssueTimelineQueries`. 프로젝트 하위 트리와 이슈·관계를 통합한다.
 - 인증 필터는 `SessionAuthenticator`를 호출하고, 메일 발송은 `MailSender`를 호출한다.
 
@@ -101,6 +106,7 @@ flowchart LR
 - `ProjectAccess.forUpdate`와 `SprintIssueOperations`의 쓰기는 호출하는 Service의 트랜잭션 안에서 실행한다.
 - 계획 권한은 `ProjectAccess.isManager/requireManager`가 기본 OWNER·ADMIN과 `project_managers`의 프로젝트별 지정을 합쳐 판단한다. issue·sprint는 이 공개 계약을 호출하고 프로젝트 저장소를 직접 참조하지 않는다. 실행 권한은 계획 관리자 또는 해당 티켓 담당자다. 상태·완료율 전용 PATCH는 두 실행 필드와 version만 쓰며 계획 PUT은 관리자 전용이다.
 - 추가 관리자 지정·해제는 workspace 잠금 → project 잠금 순서에서 OWNER·ADMIN 권한을 검사한다. 티켓 변경과 지정 해제는 동일 project 잠금으로 직렬화한다. V7의 멤버 복합 외래 키는 탈퇴 시 프로젝트 지정을 함께 삭제한다. 부모 프로젝트의 추가 권한을 자식에게 상속하지 않는다.
+- 마일스톤 쓰기는 READ_COMMITTED에서 workspace → project → milestone 순서로 잠근다. 대기 중 커밋된 관리자 해제·탈퇴를 public API로 재확인한다. 실제 MySQL의 잠금 대기·격리 수준·403·이력 불변과 V8→V9 자료 보존을 검증했다. 기존 모듈의 격리 수준을 전역 변경하지 않는다.
 - Exposed 저장소는 `dbQuery`로 현재 트랜잭션에 참여한다. 인증 필터 등 트랜잭션 밖의 호출만 새 트랜잭션을 연다. 같은 유스케이스 안에서 저장소가 별도로 커밋하지 않는다. 멤버·소유권 변경은 잠금 후 권한과 상태를 재검사한다.
 - 조회 조합에 필요한 다른 기능의 테이블 투영은 해당 기능의 persistence 안에 최소 컬럼으로 선언한다. 다른 기능의 Table을 직접 참조하거나 해당 데이터의 쓰기 책임을 가져오지 않는다.
 - SQL 중복 키 오류는 Spring 예외로 변환하여 기존 HTTP 409 계약을 유지한다. SQL·바인딩 값은 응답에 포함하지 않는다.

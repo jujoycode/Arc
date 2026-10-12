@@ -1,6 +1,8 @@
 # arcat 마일스톤 기획
 
-> 작성일: 2026-10-07 (Asia/Seoul) · 상태: 추천 설계, 구현 대기 · 근거: [공식 기능 비교와 현행 구현 조사](MILESTONE_RESEARCH.md)
+> 작성일: 2026-10-07 (Asia/Seoul) · 갱신: 2026-10-13 KST · 상태: 1단계 API 구현, 2~5단계 후속 · 근거: [공식 기능 비교와 현행 구현 조사](MILESTONE_RESEARCH.md)
+
+현재 구현한 7개 API·입력·권한·이력은 [마일스톤 API 1단계](MILESTONE_API.md)를 따릅니다. 생성·조회·PUT 편집·취소·재개·이력과 V9를 구현했으며 선행 티켓·달성·관리 UI·간트는 아래 전체 목표의 후속 단계입니다. 실제 달성 기준 필드는 `criteria`로 확정했습니다.
 
 ## 1. 추천 방향
 
@@ -40,7 +42,7 @@
 
 ## 4. 사용자 흐름
 
-1. 관리자 또는 소유자가 프로젝트의 ‘마일스톤’ 화면이나 간트의 ‘마일스톤 추가’를 연다.
+1. OWNER·ADMIN 또는 해당 프로젝트 관리자가 프로젝트의 ‘마일스톤’ 화면이나 간트의 ‘마일스톤 추가’를 연다.
 2. 이름·목표일·달성 기준을 입력하고 담당자와 버전을 선택한다. 버전 없이 ‘계약 승인’ 같은 프로젝트 목표도 등록한다.
 3. 선행 이슈를 고른다. 예를 들어 ‘베타 검증’에는 테스트·주요 버그 수정·검증 환경 준비를 연결한다. 같은 프로젝트의 다른 버전이나 버전 미지정 작업도 선행 조건이 될 수 있다.
 4. 팀원은 기존 이슈 화면·보드에서 업무를 처리한다. 마일스톤 상세는 최신 선행 작업 완료 수와 남은 작업을 보여 준다.
@@ -110,7 +112,7 @@ flowchart TD
 
 | 저장소 | 핵심 필드 | 규칙 |
 | --- | --- | --- |
-| `milestones` | id, project_id, version_id?, title, description?, acceptance_criteria, target_date, owner_id?, status, achieved_on?, achieved_at?, achieved_by?, revision, created_at, updated_at | 하나의 프로젝트, 선택적 같은 프로젝트 버전; 제목 1~120자; 목표일·달성 기준 필수; 낙관적 버전 |
+| `milestones` | id, project_id, version_id?, title, description?, criteria, target_date, owner_id?, status, achieved_on?, achieved_at?, achieved_by?, revision, created_at, updated_at | 하나의 프로젝트, 선택적 같은 프로젝트 버전; 제목 1~120자; 목표일·달성 기준 필수; 낙관적 버전 |
 | `milestone_issues` | milestone_id, issue_id, created_by, created_at | 같은 프로젝트의 선행 조건; 복합 유일 키; 한 이슈가 여러 마일스톤에 연결 가능 |
 | `milestone_activities` | id, milestone_id, actor_id, event_type, payload, created_at | 생성·일정 변경·연결 변경·달성·취소·재개; 변경 전후와 사유, 달성 시 증빙 스냅샷 |
 
@@ -119,16 +121,16 @@ flowchart TD
 | API 설계안 | 목적 |
 | --- | --- |
 | GET / POST `/api/projects/{projectId}/milestones` | 목록·생성 |
-| GET / PATCH `/api/projects/{projectId}/milestones/{id}` | 상세·수정, revision 검사 |
+| GET / PUT `/api/projects/{projectId}/milestones/{id}` | 상세·수정, revision 검사 |
 | PUT `/api/projects/{projectId}/milestones/{id}/prerequisites` | 선행 조건 목록 교체, 중복 제거·범위 검증 |
 | POST `/api/projects/{projectId}/milestones/{id}/achieve` | actualDate·검증 메모·선택적 예외 사유와 revision으로 달성 기록 |
 | POST `/api/projects/{projectId}/milestones/{id}/cancel` 또는 `/reopen` | 사유와 revision을 포함한 상태 전환 |
 | GET `/api/projects/{projectId}/milestones/{id}/activities` | 페이지별 이력 |
 | 기존 GET `/api/projects/{projectId}/gantt` 확장 | 권한 확인된 프로젝트·하위 프로젝트의 milestones 추가 |
 
-설계안의 경로·필드는 구현 단계에서 기존 API 관례에 맞춰 확정한다. 첫 범위에서는 영구 삭제 대신 취소와 이력을 제공한다.
+1단계에서 GET/POST/PUT/cancel/reopen/activities와 `criteria` 필드를 확정했다. 위 표의 달성 필드·선행 조건 저장소·달성 및 간트 경로는 후속 전체 설계이며 V9에 구현된 것으로 간주하지 않는다. 첫 범위에서는 영구 삭제 대신 취소와 이력을 제공한다.
 
-- 모든 워크스페이스 멤버는 조회 가능하다. 생성·편집·선행 조건 변경·달성·취소·재개는 관리자와 소유자만 수행한다. 보관된 프로젝트는 읽기 전용이다.
+- 모든 워크스페이스 멤버는 조회 가능하다. 생성·편집·선행 조건 변경·달성·취소·재개는 OWNER·ADMIN 또는 해당 프로젝트에 지정된 관리자가 수행한다. 보관된 프로젝트는 읽기 전용이다.
 - 담당자는 같은 워크스페이스 멤버여야 한다. 버전·선행 이슈는 같은 프로젝트만 허용한다. 이력·간트·하위 프로젝트 조회에서도 서버가 권한을 확인한다.
 - 편집·달성은 revision을 검사하고 충돌 시 409로 응답한다. UI는 입력을 보존하고 최신 상태와 함께 재시도할 수 있어야 한다.
 - 달성 시 프로젝트 → 마일스톤 순서의 잠금과 같은 Spring 트랜잭션에서 권한·연결 범위·이슈 상태를 재확인하고 상태와 이력을 원자적으로 기록한다. 기존 이슈 쓰기 경로의 프로젝트 잠금 참여를 실제 MySQL에서 확인한다.
@@ -151,13 +153,13 @@ flowchart TD
 
 | 단계 | 작업 단위 | 완료 판단 |
 | --- | --- | --- |
-| 1 — 모델·경계 | Flyway, Exposed, 명시적 날짜·상태·권한 계약, CRUD·이력 | 새 설치·기존 DB 업그레이드, 팀 격리·보관·revision 충돌 검사 |
+| 1 — 모델·경계 (구현) | V9·Exposed·7개 API·권한·revision·이력 | 새 설치·자료가 있는 V8 업그레이드·경합·격리·보관 검사 통과 |
 | 2 — 달성 규칙 | 선행 조건·말단 중복 제거·무효 참조·수동 검증·달성 스냅샷 | 실제 MySQL의 동시 변경·부분 실패 롤백, 과거 달성 보존 |
 | 3 — 관리 UI | 목록·추가·상세·연결·달성·취소·재개 | 관리자/멤버 동작, 입력 보존과 재시도, 페이지·빈 상태 |
 | 4 — 간트 | 명시적 ◆, 버전 목표, 일반 기한 구분, 접기·필터·보기·PNG/PDF | 같은 날짜·기간 경계·계획/실제 차이·중첩 접기·내보내기 검사 |
 | 5 — 제품 검증 | 접근성·반응형·대량 데이터·스크린샷·CI | 기존 전체 수용 흐름 유지, 자동 검사와 실기기 확인 범위 기록 |
 
-각 단위의 검증 완료 후 커밋한다. 이 문서·명세·TODO는 기획 완료이며 위 단계의 앱 구현은 아직 시작하지 않았다.
+각 단위의 검증 완료 후 커밋한다. 이 문서·명세·TODO는 기획 완료이며 1단계 API는 구현했으며 2~5단계의 앱 기능은 후속 작업이다.
 
 2차: 여러 보기의 선행 작업 필터, 상단 목표 요약, 버전 편집·배정 잠금·배포 기록, 기존 GitHub/GitLab의 커밋·PR·MR 개발 증빙 조회. PR 병합만으로 마일스톤을 달성시키지 않는다. 현재 연동에 없는 빌드·배포 증빙은 별도 이벤트 지원이 필요하다.
 

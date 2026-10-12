@@ -54,7 +54,8 @@ GitHub Actions는 PR과 main 변경에서 프런트·백엔드를 검사한 뒤,
 ```bash
 (cd frontend && pnpm build)
 (cd backend && ./gradlew check)  # Python 3 필요: 패키지 경계 검사 포함
-python3 scripts/smoke.py  # API, MySQL, Mailpit 실행 필요
+python3 scripts/smoke.py
+python3 scripts/milestone-smoke.py  # API, MySQL, Mailpit 실행 필요
 (cd frontend && pnpm exec playwright install chromium)
 (cd frontend && pnpm check:browser)  # 웹 앱·API·MySQL·Mailpit 실행 필요
 ```
