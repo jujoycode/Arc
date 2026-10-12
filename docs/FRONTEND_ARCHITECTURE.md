@@ -1,6 +1,6 @@
 # arcat 프런트 구조
 
-> React 19 / TypeScript / Vite / pnpm 11.19.0 · 갱신 2026-10-11
+> React 19 / TypeScript / Vite / pnpm 11.19.0 · 갱신 2026-10-13
 
 ## 패키지 관리
 
@@ -36,12 +36,14 @@ frontend/src/
     ├── api/client.ts               # HTTP·토큰 저장
     ├── ui/                         # shadcn/ui 기본 컴포넌트
     ├── lib/                        # cn·지역 시간 표시
-    └── styles/                     # KRDS 기반 Arc 토큰·전역 스타일
+    └── styles/                     # KRDS 기반 arcat 토큰·전역 스타일
 ```
 
 각 기능은 실제 필요한 부분만 다음처럼 둔다.
 
 입력과 변경 API 응답은 Valibot 스키마로 검사한다. `issue/api/types.ts`는 런타임 응답 스키마에서 타입을 도출하며, 폼 문자열에서 날짜·정수·빈 값·커스텀 값을 명시적으로 변환한다. `shared/ui/form.tsx`는 레이블·설명·필드 오류·요약과 포커스 연결을 담당하고 `shared/api/client.ts`는 응답 검사와 `APIError(status, code, fieldErrors)`를 제공한다. `ticketfield` 공개 계약은 정책 쿼리·타입·커스텀 값 검사만 다른 기능에 노출한다. 폼 상세 규칙은 [FORM_DESIGN](FORM_DESIGN.md)을 따른다.
+
+공유 스타일은 `tokens.css`의 의미·컴포넌트 토큰, `product.css`의 셸·폼 기반, 그 뒤 한 번 가져오는 `work-views.css`의 업무 화면 규칙으로 구분한다. 기능별 인증·워크스페이스·티켓 필드 CSS도 같은 토큰을 소비한다. 차트 행·막대·관계선 좌표는 스타일 정비로 다시 계산하지 않는다.
 
 브랜드 자산은 `public/brand`, 정지·짧은 모션 공통 구성 요소는 `shared/ui/Mascot.tsx`에 둔다. 장식과 업무 텍스트를 구분하고 모션 감소 설정을 지원한다.
 
