@@ -34,7 +34,7 @@ flowchart LR
 - 경로 필터를 두지 않아 문서만 바뀐 PR에도 완료된 검사 결과가 남는다.
 - 같은 PR·브랜치에서 새 실행이 시작되면 이전 실행을 취소한다.
 - 외부 Actions는 확인한 커밋 SHA로 고정한다. Dependabot이 매주 Actions 갱신 PR을 만든다.
-- pnpm 설치 Action은 Node 24 런타임을 사용하는 `pnpm/action-setup` v6.1.0의 커밋으로 고정한다. 위 main 실행은 갱신 전 설치 Action을 사용한 결과이며, 갱신 후 결과는 새 실행에서 확인한다.
+- pnpm 설치 Action은 Node 24 런타임을 사용하는 `pnpm/action-setup` v6.1.0의 커밋으로 고정한다. 갱신한 코드 `af15117ac0f190466f841c82fa3196231867d978`의 [main 실행 #38567065603](https://github.com/jujoycode/Arc/actions/runs/38567065603)에서도 네 검사가 모두 성공했다.
 - pnpm 버전은 `frontend/package.json`의 `packageManager`를 따르며 `--frozen-lockfile`로 설치한다.
 - pnpm 저장소와 Gradle 캐시를 사용한다. Gradle 캐시 쓰기는 main으로 제한한다.
 - Gradle 배포 파일 SHA-256을 wrapper 설정에 고정한다.
