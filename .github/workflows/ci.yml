@@ -26,7 +26,7 @@ jobs:
       - uses: ./.github/actions/setup-frontend
       - run: pnpm --dir frontend lint
       - run: pnpm --dir frontend build
-      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
           name: frontend-build
           overwrite: true
@@ -57,7 +57,7 @@ jobs:
           mapfile -t arc_jars < <(find backend/build/libs -maxdepth 1 -name '*.jar' ! -name '*-plain.jar')
           test "${#arc_jars[@]}" -eq 1
           cp "${arc_jars[0]}" .ci-build/backend/arc.jar
-      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
           name: backend-build
           include-hidden-files: true
@@ -67,7 +67,7 @@ jobs:
           retention-days: 7
       - name: Upload Gradle diagnostics
         if: failure()
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
           name: backend-diagnostics
           overwrite: true
@@ -119,11 +119,11 @@ jobs:
         with:
           distribution: temurin
           java-version: '21'
-      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8
         with:
           name: frontend-build
           path: frontend/dist/
-      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8
         with:
           name: backend-build
           path: .ci-build/backend/
@@ -133,7 +133,7 @@ jobs:
         run: bash scripts/ci/acceptance.sh
       - name: Upload acceptance diagnostics and exports
         if: always()
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
           name: acceptance-artifacts
           include-hidden-files: true
